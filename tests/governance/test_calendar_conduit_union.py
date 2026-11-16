@@ -29,6 +29,17 @@ def _workflow_owner(operation=None):
         source.require_task_operation(operation, ROOT)
         yield operation
 
+def reviewed_private_mail_parent(path,raw):
+    # Test-only exact pair/toolchain continuation; no source issuer or runtime grant.
+    if path!='.github/workflows/private-mail-wire.yml'or type(raw)is not bytes or len(raw)!=4914 or hashlib.sha256(raw).hexdigest()!='daa78d081d7e3820d85b8e8dc7e66f9db85fd87e53de7e46ef1c69ca1f4a0dbb':
+        raise ValueError('unreviewed_private_mail_workflow')
+    edits=((b'GORGE_MAIL_WIRE_REF: 16318f87a017f82c28f3011b362364cf24b73ef8',b'GORGE_MAIL_WIRE_REF: 83351b0e7eba38e50ff076ba6763ca68ebc57e1b'),(b"go-version: '1.27.4'",b"go-version: '1.27.3'"))
+    for current,prior in edits:
+        if raw.count(current)!=1:raise ValueError('unreviewed_private_mail_workflow')
+        raw=raw.replace(current,prior,1)
+    if len(raw)!=4914 or hashlib.sha256(raw).hexdigest()!='d1c90f5e6d047bf6227504b7595600a3a4c813c98b5f6314b601d4b820aae6a1':raise ValueError('unreviewed_private_mail_workflow')
+    return raw
+
 def validate_workflow_union(changed, historical, read, *, _operation=None):
     with _workflow_owner(_operation) as operation:
         current_read = read
@@ -48,6 +59,13 @@ def validate_workflow_union(changed, historical, read, *, _operation=None):
         import recovery_oauth_authorization_ci_delta as authorization_ci
         import recovery_oauth_client_lifecycle_ci_delta as lifecycle_ci
         changed = set(changed)
+        private_mail='.github/workflows/private-mail-wire.yml'
+        if private_mail in changed:
+            physical=current_read(private_mail);context=operation._task_contexts[ROOT]
+            if type(physical)is not bytes or physical!=context.current(private_mail):raise ValueError('unknown_private_mail_current_bytes')
+            parent=reviewed_private_mail_parent(private_mail,physical)
+            if parent!=context.parent(private_mail)or parent!=git('show',WORKFLOW_BASELINE+':'+private_mail):raise ValueError('unknown_private_mail_parent_DATA')
+            changed.remove(private_mail)
         conduit = '.github/workflows/conduit-producer-focused.yml'
         if conduit in changed:
             context = operation._task_contexts[ROOT]
@@ -288,6 +306,17 @@ class CalendarConduitUnion(unittest.TestCase):
                     import recovery_worker_terminal_delta as worker_delta
                     raw = worker_delta.reduce_current(path, raw)
                 self.assertEqual(raw, git('show', MAIN + ':' + path))
+
+    def test_private_mail_pair_toolchain_continuation_is_exact(self):
+        with _workflow_owner()as operation:
+            path='.github/workflows/private-mail-wire.yml';raw=(ROOT/path).read_bytes();context=operation._task_contexts[ROOT]
+            self.assertEqual(reviewed_private_mail_parent(path,raw),context.parent(path))
+            historical={'.github/workflows/atomic-feature-regressions.yml','.github/workflows/oauth-access-producer-focused.yml','.github/workflows/assessment-credential-focused.yml'}
+            changed=git('diff','--name-only',WORKFLOW_BASELINE,'--','.github/workflows').decode().splitlines()
+            validate_workflow_union(changed,historical,lambda name:(ROOT/name).read_bytes(),_operation=operation)
+            for name,body in [(MEDIA_WORKFLOW,raw),('tests/atomic/build_gorge.py',raw),(path,raw+b'\n'),(path,context.parent(path)),(path,raw.replace(b"go-version: '1.27.4'",b"go-version: '1.27.3'")),(path,raw.replace(b'16318f87a017f82c28f3011b362364cf24b73ef8',b'a'*40))]:
+                with self.subTest(name=name),self.assertRaises(ValueError):reviewed_private_mail_parent(name,body)
+            with self.assertRaises(ValueError):validate_workflow_union(changed,historical,lambda name:raw+b'\n'if name==path else(ROOT/name).read_bytes(),_operation=operation)
 
     def test_reviewed_media_workflow_union_rejects_unknown_addition_or_mutation(self):
         with _workflow_owner() as operation:

@@ -1,6 +1,7 @@
 """Real Task S + unadmitted E protocol tests; Root-only genuine execution."""
 from pathlib import Path
-import os,tempfile,unittest
+import ast,hashlib,os,subprocess,tempfile,unittest
+import assessment_legacy_DATA_model_v3 as model
 import test_source_snapshot_assessment_task_v2 as assessment_tests
 from assessment_legacy_DATA_model_v3 import legacy_DATA_labels
 class LegacyDATATwoRootProtocolV3(unittest.TestCase):
@@ -31,4 +32,15 @@ class LegacyDATATwoRootProtocolV3(unittest.TestCase):
    with self.assertRaises(ValueError):legacy_DATA_labels(alias)
    root.chmod(0o755)
    with self.assertRaises(ValueError):legacy_DATA_labels(root)
+class ExactCurrentFunctionClosure(unittest.TestCase):
+ def test_only_one_reviewed_current_helper_extends_the_closed_model(self):
+  # Immutable predecessor syntax is DATA, never executable source.
+  prior=subprocess.check_output(['/usr/bin/git','--no-replace-objects','-C',str(model.ROOT),'show','7025c4d29e61d80a58c158be46b3c8fbf684f71d:tests/governance/assessment_legacy_DATA_model_v3.py'],timeout=10)
+  self.assertEqual(hashlib.sha256(prior).hexdigest(),'4b2d7280aea79cff6cb1910db0c6822b57aa55fa0fa550392960eacd3b495272')
+  tree=ast.parse(prior);expected=next(ast.literal_eval(n.value)for n in tree.body if isinstance(n,ast.Assign)and any(isinstance(t,ast.Name)and t.id=='EXPECTED_FUNCTIONS'for t in n.targets))
+  actual=dict(model.EXPECTED_FUNCTIONS);old=dict(expected)
+  self.assertEqual(set(actual),set(old))
+  self.assertEqual(set(actual['project_description_admission_delta'])-set(old['project_description_admission_delta']),{'native_pair_parent_DATA'})
+  self.assertEqual(tuple((name,tuple(symbol for symbol in symbols if not(name=='project_description_admission_delta'and symbol=='native_pair_parent_DATA')))for name,symbols in model.EXPECTED_FUNCTIONS),expected)
+
 if __name__=='__main__':unittest.main()

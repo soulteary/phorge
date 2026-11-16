@@ -17,6 +17,18 @@ def phase(raw):
  selected=text.split(BEGIN,1)[1].split(END,1)[0]
  need(selected.count('        run: |\n')==1)
  return textwrap.dedent(selected.split('        run: |\n',1)[1].split('      - uses:',1)[0])
+def builder_parent_DATA(name,current,parent,provided=None):
+ """Closed source bytes only; caller must own the genuine CURRENT window."""
+ need(type(name)is str and name in BUILDERS and type(current)is bytes and type(parent)is bytes)
+ if provided is not None:need(type(provided)is bytes and provided==current)
+ if name=='tests/atomic/paired-gorge.json':
+  need(len(current)==149 and hashlib.sha256(current).hexdigest()=='94b47858a458a2fac8ea2d2331def3ac3e5c67edbcaf46030ec45708381140d9')
+  need(len(parent)==149 and hashlib.sha256(parent).hexdigest()==BUILDERS[name])
+  value=json.loads(current)
+  need(type(value.get('schemaVersion'))is int and value=={'schemaVersion':1,'revision':'16318f87a017f82c28f3011b362364cf24b73ef8','release':None,'scope':'unreleased-source-only-test-pair'})
+  return parent
+ need(current==parent and hashlib.sha256(current).hexdigest()==BUILDERS[name]);return current
+
 def source_contract(root):
  """CURRENT typed owner and real source/strict-body checks; synthetic DATA only."""
  from task_inverse_test_api_v2 import owner
@@ -32,13 +44,10 @@ def source_contract(root):
   # these exact reviewed source bytes are DATA, never built by this helper.
   def builder_source(name,provided=None):
    need(type(name)is str and name in BUILDERS)
-   current=context.current(name);parent=context.parent(name)
-   need(type(current)is bytes and current==parent and hashlib.sha256(current).hexdigest()==BUILDERS[name])
-   if provided is not None:need(type(provided)is bytes and provided==current)
-   return current
+   return builder_parent_DATA(name,context.current(name),context.parent(name),provided)
   builder_negative_count=0
   for name in BUILDERS:
-   current=builder_source(name)
+   baseline_bytes=builder_source(name);need(hashlib.sha256(baseline_bytes).hexdigest()==BUILDERS[name]);current=context.current(name)
    for provided in(current+b'\n# unknown',bytearray(current)):
     try:builder_source(name,provided)
     except ValueError:builder_negative_count+=1
@@ -82,7 +91,7 @@ def source_contract(root):
    try:workflow_data_in_operation(operation,root,[path],{path:body})
    except ValueError:negative_count+=1
    else:raise ValueError('unreviewed_workflow_role_accepted')
-  result={'workflow_current':raw,'checkpoint':revision,'source_operation_exit_verified':False,'strict_contract_positive_and_negatives':True,'real_File_only_builder_and_pair_source_preserved':True,'negative_contract_cases':negative_count,'source_SQL_obligations':8,'total_contract_checks':18,'source_inputs':50,'orchestration_only':True,'native_or_source_SQL_HMAC_qualified':False}
+  result={'workflow_current':raw,'checkpoint':revision,'source_operation_exit_verified':False,'strict_contract_positive_and_negatives':True,'real_File_only_builder_and_pair_source_preserved':True,'reviewed_current_pair_continuation':True,'negative_contract_cases':negative_count,'source_SQL_obligations':8,'total_contract_checks':18,'source_inputs':50,'orchestration_only':True,'native_or_source_SQL_HMAC_qualified':False}
  result['source_operation_exit_verified']=True
  return result
 
