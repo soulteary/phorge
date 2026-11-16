@@ -46,4 +46,6 @@ def model(operation,root,captured,restore,completion,native):
  exec(compile(ast.fix_missing_locations(ast.Module(nodes,[])),str(root/CHECKER),'exec'),namespace)
  def accept(data,*,source_revision,file_digest,queue_digest):
   guard();result=namespace['validate'](data,root=root,source_revision=source_revision,file_digest=file_digest,queue_digest=queue_digest);guard();return result
- return {'validate':accept,'source_inputs':12,'checks':32,'calendar_obligations':21}
+ def verify_sources():
+  guard();result=namespace['sources'](root);guard();return result
+ return {'validate':accept,'verify_sources':verify_sources,'source_inputs':12,'checks':32,'calendar_obligations':21}

@@ -23,11 +23,11 @@ class WorkerDiagnostic(unittest.TestCase):
   s=(ROOT/'.github/workflows/atomic-feature-regressions.yml').read_text();self.assertIn("if: failure() && steps.borrowed-owner.outputs.diagnostic_owned == 'true'",s);self.assertIn('mkdir "$RUNNER_TEMP/governance-borrowed-session-failure"',s);self.assertIn('exit "$native_status"',s);self.assertIn('path: ${{ runner.temp }}/governance-borrowed-session-failure/diagnostic.json',s);self.assertNotIn('path: /tmp/governance-native-worker',s)
 
  def test_actual_failure_shell_foreign_directory_or_symlink_never_marks_owned_upload(self):
-  s=(ROOT/'.github/workflows/atomic-feature-regressions.yml').read_text();line=next(x for x in s.splitlines()if '--session-borrowed-owner >'in x);suffix=line[line.index('|| {'):]
+  s=(ROOT/'.github/workflows/atomic-feature-regressions.yml').read_text();lines=[x for x in s.splitlines()if 'run_task_directory_native_v2.py --root'in x and '--role session-borrowed-owner --directory'in x];self.assertEqual(len(lines),1);line=lines[0];suffix=line[line.index('|| {'):];self.assertEqual(suffix.count('--receipt "$RUNNER_TEMP/task-session-borrowed-owner-v2-private/capture-native-body.private.json"'),1)
   with tempfile.TemporaryDirectory()as tmp:
    root=Path(tmp).resolve();foreign=root/'foreign';foreign.mkdir();(foreign/'secret').write_text('unrelated')
    for mode in ['foreign-dir','foreign-link','good']:
-    runner=root/mode;runner.mkdir();dest=runner/'governance-borrowed-session-failure';out=runner/'output';out.touch();receipt=runner/'governance-borrowed-session-owner';receipt.mkdir();p=receipt/'integration.json';p.touch(mode=0o600);p.write_text('{"passed":false,"failure":{"message":"SECRET"}}')
+    runner=root/mode;runner.mkdir();dest=runner/'governance-borrowed-session-failure';out=runner/'output';out.touch();receipt=runner/'task-session-borrowed-owner-v2-private';receipt.mkdir();p=receipt/'capture-native-body.private.json';p.touch(mode=0o600);p.write_text('{"passed":false,"failure":{"message":"SECRET"}}')
     if mode=='foreign-dir':dest.mkdir()
     elif mode=='foreign-link':dest.symlink_to(foreign,target_is_directory=True)
     env=dict(os.environ,RUNNER_TEMP=str(runner),GITHUB_OUTPUT=str(out));v=subprocess.run(['bash','-c','set -eu; umask 077; (exit 37) '+suffix],cwd=ROOT,env=env,capture_output=True,text=True,timeout=10);self.assertEqual(v.returncode,37);self.assertEqual(out.read_text()=='diagnostic_owned=true\n',mode=='good');self.assertEqual((foreign/'secret').read_text(),'unrelated');self.assertNotIn('SECRET',v.stderr)
