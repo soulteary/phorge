@@ -2,7 +2,7 @@
 import ast,json,pathlib,unittest
 P=pathlib.Path(__file__).resolve().parents[2]/'scripts/governance/check_conduit_task_schema_receipt_v2.py'
 def model():
- tree=ast.parse(P.read_text());nodes=[n for n in tree.body if isinstance(n,ast.Assign)and any(isinstance(t,ast.Name)and t.id in ('REJECTION_REASONS','ACCEPT_FAILURE_STAGES','DIAGNOSTIC_MAIN_STAGES','EXCEPTION_TYPES')for t in n.targets)or isinstance(n,ast.FunctionDef)and n.name in ('rejection_diagnostic','rejection_stage')];ns={'json':json,'accept':None};exec(compile(ast.Module(body=nodes,type_ignores=[]),str(P),'exec'),ns);return ns
+ tree=ast.parse(P.read_text());nodes=[n for n in tree.body if isinstance(n,ast.Assign)and any(isinstance(t,ast.Name)and t.id in ('REJECTION_REASONS','ACCEPT_FAILURE_STAGES','DIAGNOSTIC_MAIN_STAGES','EXCEPTION_TYPES','BODY_SITE_ENUMS')for t in n.targets)or isinstance(n,ast.FunctionDef)and n.name in ('rejection_diagnostic','rejection_stage','rejection_body_site')];nodes.extend(n for n in tree.body if isinstance(n,ast.Expr)and isinstance(n.value,ast.Call)and isinstance(n.value.func,ast.Attribute)and isinstance(n.value.func.value,ast.Name)and n.value.func.value.id=='REJECTION_REASONS'and n.value.func.attr=='update');ns={'json':json,'accept':lambda:None};exec(compile(ast.Module(body=nodes,type_ignores=[]),str(P),'exec'),ns);return ns
 class ReasonTests(unittest.TestCase):
  def test_all_known_literals_closed(self):
   m=model()
@@ -42,4 +42,34 @@ class ReasonTests(unittest.TestCase):
   except KeyError as error:self.assertEqual(m['rejection_diagnostic'](error,'output')['stage'],'output')
  def test_stage_enum_unknown_is_null(self):
   m=model();self.assertIsNone(m['rejection_diagnostic'](ValueError('secret'),'password')['stage']);self.assertIsNone(m['rejection_diagnostic'](ValueError('secret'))['stage'])
+class BodySiteTests(unittest.TestCase):
+ def test_actual_pinned_model_code_identity_and_nested_site(self):
+  import importlib.util,types
+  directory=P.parent
+  def load(name):
+   spec=importlib.util.spec_from_file_location(name,directory/(name+'.py'));module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module);return module
+  adapter=load('conduit_task_strict_body_v2');common=load('oauth_task_strict_body_v2');checker=types.SimpleNamespace(re=__import__('re'),ROOT=pathlib.Path('/synthetic'),obligations=lambda *a,**kw:set(),native=types.SimpleNamespace(FIELDS={'one'}),completion=types.SimpleNamespace())
+  completion_ns={};common.compile_functions(common.functions(ast.parse((directory/'check_completion.py').read_bytes()),{'require','fields'}),completion_ns);checker.completion=types.SimpleNamespace(**completion_ns)
+  raw={name:(directory/(name+'.py')).read_bytes()for name in adapter.PINS};actual=adapter.model(raw,common,checker);m=model()
+  try:actual['validate']({},pathlib.Path('/synthetic'),source_revision='a'*40,file_digest='b'*64)
+  except (AttributeError,ValueError)as error:
+   self.assertEqual(m['rejection_diagnostic'](error,body_codes=actual['diagnostic_codes'])['body_site'],'conduit_body_site_03')
+  restore=actual['validate'].__globals__['_strict_restore']
+  try:restore({},pathlib.Path('/synthetic'),None)
+  except ValueError as error:
+   result=m['rejection_diagnostic'](error,body_codes=actual['diagnostic_codes']);self.assertEqual(result['body_site'],'conduit_body_site_18');self.assertEqual(result['reason'],'conduit_receipt_fixed_08_07');self.assertNotIn('/synthetic',json.dumps(result))
+  clone=types.FunctionType(restore.__code__.replace(),restore.__globals__)
+  self.assertIsNot(clone.__code__,restore.__code__);self.assertEqual(clone.__code__,restore.__code__)
+  try:clone({},pathlib.Path('/synthetic'),None)
+  except ValueError as error:self.assertIsNone(m['rejection_diagnostic'](error,body_codes=actual['diagnostic_codes'])['body_site'])
+  def _strict_restore():raise ValueError('private credential')
+  try:_strict_restore()
+  except ValueError as error:self.assertIsNone(m['rejection_diagnostic'](error,body_codes=actual['diagnostic_codes'])['body_site'])
+ def test_unknown_registry_line_and_enum_fail_closed(self):
+  m=model()
+  def sample():raise ValueError('private credential')
+  try:sample()
+  except ValueError as error:
+   for codes in (None,{}, {sample.__code__:{1:'conduit_body_site_01'}},{sample.__code__:{sample.__code__.co_firstlineno:'private credential'}}):
+    self.assertIsNone(m['rejection_diagnostic'](error,body_codes=codes)['body_site'])
 if __name__=='__main__':unittest.main()
