@@ -1,3 +1,4 @@
+from task_native_gate_test_api_v2 import current_native_gate
 """Borrowed-only producer lock topology; explicit host SQL/model collaborators, not SQL6 proof."""
 from pathlib import Path
 import json,subprocess,unittest,ast,hashlib
@@ -33,10 +34,11 @@ class BorrowedNativeProducer(unittest.TestCase):
   source=(ROOT/'support/governance/recovery/borrowed-session-producer.php').read_text();self.assertNotIn('covering-control',source);self.assertIn('PhabricatorAuthSessionEngine())->establishSession',source);self.assertIn('PhorgeGovernanceNativeIdentitySource::revalidate($snapshot,$conn)',source)
 
  def test_versioned_receipt_rejects_old_profile_and_missing_new_source(self):
-  import sys,copy
-  sys.path.insert(0,str(ROOT/'scripts/governance'));import check_recovery_borrowed_session as gate
-  from test_recovery_borrowed_wiring import BorrowedWiring
-  data=BorrowedWiring().template();self.assertEqual(len(gate.SOURCE_INPUTS),30);self.assertIn('support/governance/recovery/borrowed-session-producer.php',gate.SOURCE_INPUTS);self.assertEqual(len(gate.SQL_obligations()),6);self.assertEqual(len(gate.obligations()),16)
-  for key,value in [('profile','isolated-borrowed-real-store-session-owner-v1'),('borrowed_only_native_producer',False),('child_preflight_committed_before_owner',False),('child_preflight_no_record_locks_observed',False),('actor_revalidated_before_child_commit',False),('old_covering_positive_query_used',True)]:
-   bad=copy.deepcopy(data);bad['native'][key]=value
-   with self.assertRaises((ValueError,TypeError)):gate.validate(bad,source_revision='a'*40,file_digest='b'*64)
+  from task_native_gate_test_api_v2 import current_native_gate
+  with current_native_gate(ROOT,'borrowed')as current:
+   import sys,copy
+   sys.path.insert(0,str(ROOT/'scripts/governance'));import check_recovery_borrowed_session as gate
+   data=current.template();self.assertEqual(len(gate.SOURCE_INPUTS),30);self.assertIn('support/governance/recovery/borrowed-session-producer.php',gate.SOURCE_INPUTS);self.assertEqual(len(current.SQL_obligations()),6);self.assertEqual(len(current.obligations()),16)
+   for key,value in [('profile','isolated-borrowed-real-store-session-owner-v1'),('borrowed_only_native_producer',False),('child_preflight_committed_before_owner',False),('child_preflight_no_record_locks_observed',False),('actor_revalidated_before_child_commit',False),('old_covering_positive_query_used',True)]:
+    bad=copy.deepcopy(data);bad['native'][key]=value
+    with self.assertRaises((ValueError,TypeError)):current.validate(bad,source_revision='a'*40,file_digest='b'*64)

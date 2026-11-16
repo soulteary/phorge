@@ -134,20 +134,50 @@ class NativeGate:
   self.guard()
   from task_source_candidate_test_api_v2 import CandidateDATA
   result=CandidateDATA(self.op,self.root).driver_prior(raw);self.guard();return result
+ def atomic_history(self,path='.github/workflows/atomic-feature-regressions.yml',raw=None):
+  """CURRENT helper body on authenticated parent DATA; original producer role.
+  Unknown paths/current bytes and patched producer identity remain refused.
+  """
+  self.guard();need(self.family=='borrowed'and path=='.github/workflows/atomic-feature-regressions.yml')
+  if raw is not None:need(type(raw)is bytes and raw==self.context.current(path))
+  import test_recovery_borrowed_wiring as original
+  relative='tests/governance/test_recovery_borrowed_wiring.py'
+  nodes=self.common.functions(ast.parse(self.context.current(relative)),{'historical_atomic_source'})
+  class AdmissionImport(ast.NodeTransformer):
+   def __init__(self):self.count=0
+   def visit_Import(self,node):
+    if ast.unparse(node)=='import project_description_admission_delta as current':
+     self.count+=1;return ast.Assign([ast.Name('current',ast.Store())],ast.Name('_current_admission',ast.Load()))
+    return node
+  before=copy.deepcopy(nodes[0]);seam=AdmissionImport();after=seam.visit(nodes[0])
+  need(seam.count==1 and len(before.body)==len(after.body)and[n.value for n in ast.walk(before)if isinstance(n,ast.Constant)]==[n.value for n in ast.walk(after)if isinstance(n,ast.Constant)])
+  namespace=dict(original.__dict__);namespace['_current_admission']=self.op._modules['project_description_admission_delta']
+  self.common.compile_functions([after],namespace)
+  result=namespace['historical_atomic_source'](path,None if raw is None else self.context.parent(path))
+  self.guard();return result
  def fixture_DATA(self,destination):
   """A registered parent-DATA fixture, never a producer or source owner."""
-  self.guard();need(self.family in {'session','borrowed','conduit'})
+  self.guard();need(self.family in {'session','borrowed','conduit','assessment-credential'})
   if not hasattr(self,'_fixture_session'):
    from task_historical_views_test_api_v2 import in_operation
    legacy,_=in_operation(self.op,self.root);self._fixture_session=legacy._session
-  result=self._fixture_session.fixture_DATA(Path(destination),paths=set(self.checker.SOURCE_INPUTS))
+  paths=set(self.checker.SOURCE_INPUTS)
+  # Every original complete_source_cohort prerequisite is mandatory, even when
+  # it is not part of the selected producer's final SOURCE_INPUTS map.
+  paths|=set(self.op._modules['recovery_oauth_code_source_delta'].SOURCE_INPUTS)
+  paths|=set(self.op._modules['recovery_partial_current_schema_delta'].SOURCE_INPUTS)
+  paths|=set(self.op._modules['recovery_oauth_authorization_source_delta'].PRODUCTION_PATHS)
+  if self.family=='assessment-credential':
+   need(type(self.checker.ADAPTER_SOURCE_INPUTS)is dict and len(self.checker.ADAPTER_SOURCE_INPUTS)==2)
+   paths|=set(self.checker.ADAPTER_SOURCE_INPUTS)
+  result=self._fixture_session.fixture_DATA(Path(destination),paths=paths)
   self.guard();return result
  def fixture_SQL_obligations(self,destination):
   """Original CURRENT label body on explicitly registered historical DATA.
   It cannot issue an operation, alter a source root or qualify a native run.
   """
   self.guard();destination=Path(destination)
-  need(self.family in {'session','borrowed','conduit'}and hasattr(self,'_fixture_session')and
+  need(self.family in {'session','borrowed','conduit','assessment-credential'}and hasattr(self,'_fixture_session')and
    destination!=self.root and destination in self._fixture_session.fixtures)
   session=self._fixture_session;session.require_DATA(destination)
   def functions(name,bindings):
@@ -165,8 +195,11 @@ class NativeGate:
   coordinator=functions('recovery_oauth_code_coordinator_delta',{
    'authorization_delta':auth,'partial_delta':partial,'code_delta':code,'ci_delta':ci})
   namespace=dict(self.checker.__dict__);namespace.update(code_coord=coordinator,read_source_checked=session.data_bytes)
-  nodes=self.common.functions(ast.parse(self.raws[self.relative]),{'SQL_obligations'})
+  if self.family=='assessment-credential':namespace.update(worker_terminal=self.op.worker_terminal,calendar_delta=self.op.calendar_delta)
+  names={'SQL_obligations','source_view'}if self.family=='assessment-credential'else{'SQL_obligations'}
+  nodes=self.common.functions(ast.parse(self.raws[self.relative]),names)
   self.common.compile_functions(nodes,namespace)
+  self._fixture_coordinator=coordinator
   result=namespace['SQL_obligations'](destination)
   session.require_DATA(destination);self.guard();return result
  def template(self,digest='b'*64):

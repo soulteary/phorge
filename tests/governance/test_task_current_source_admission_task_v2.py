@@ -3,12 +3,13 @@
 CURRENT code executes inside one genuine source owner. Historical bytes and
 exact predecessor inverses are DATA, never a runtime execution authorization.
 """
-import hashlib,unittest
+import hashlib,sys,unittest
 from pathlib import Path
+ROOT=Path(__file__).resolve().parents[2]
+sys.path.insert(0,str(ROOT/'scripts/governance'))
 from task_inverse_test_api_v2 import owner
 import source_operation_snapshot as source
 from test_task_current_source_admission import bridge
-ROOT=Path(__file__).resolve().parents[2]
 ORIGINAL='tests/governance/test_task_current_source_admission.py'
 class ExactHistoricalBridgeTaskV2(unittest.TestCase):
  def test_all_four_modified_bodies_restore_exact5903_parent(self):

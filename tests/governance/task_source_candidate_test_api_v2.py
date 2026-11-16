@@ -60,6 +60,22 @@ class CandidateDATA:
  def validate(self,data,root=ROOT):
   self.guard();need(Path(root)==self.root)
   result=self._validate(data,self.root);self.guard();return result
+ def fixture_DATA(self,destination):
+  self.guard()
+  from task_native_gate_test_api_v2 import NativeGate
+  if not hasattr(self,'_fixture_gate'):self._fixture_gate=NativeGate(self.operation,self.root,'borrowed')
+  result=self._fixture_gate.fixture_DATA(destination);self.guard();return result
+ def fixture_validate(self,data,destination):
+  """Only registered parent DATA; not an alternate source or producer root."""
+  self.guard();need(hasattr(self,'_fixture_gate'));destination=Path(destination)
+  gate=self._fixture_gate;gate.fixture_SQL_obligations(destination)
+  namespace=dict(self._validate.__globals__)
+  namespace.update(code_coord=gate._fixture_coordinator,
+   source=types.SimpleNamespace(read_source_checked=gate._fixture_session.data_bytes))
+  nodes=[copy.deepcopy(n)for n in ast.parse(self.context.current('scripts/governance/check_recovery_borrowed_owner_source.py')).body if isinstance(n,ast.FunctionDef)and n.name=='validate']
+  need(len(nodes)==1)
+  exec(compile(ast.Module(body=nodes,type_ignores=[]),str(self.root/'scripts/governance/check_recovery_borrowed_owner_source.py')+'[CURRENT-registered-parent-DATA-only]','exec'),namespace)
+  result=namespace['validate'](data,destination);gate._fixture_session.require_DATA(destination);self.guard();return result
  def delta(self,name):
   self.guard();need(name in self._facades);return self._facades[name]
  def inverse(self,name,path,raw):
@@ -78,3 +94,19 @@ class CandidateDATA:
 def source_candidates(root):
  with owner(Path(root))as operation:
   api=CandidateDATA(operation,Path(root));yield api;api.guard()
+
+def main():
+ import argparse,json
+ from task_admission_test_api_v2 import checkpoint
+ import check_recovery_borrowed_owner_source as original
+ parser=argparse.ArgumentParser();parser.add_argument('--source-artifact',type=Path,required=True);parser.add_argument('--expected-checkpoint',required=True)
+ args=parser.parse_args();need(args.expected_checkpoint==checkpoint())
+ with source_candidates(ROOT)as api:
+  # Retain the original one-MiB bounded no-follow source-artifact reader.
+  raw=original.source.read_source_checked(args.source_artifact)
+  def nonfinite(value):raise ValueError('nonfinite refused')
+  data=json.loads(raw,object_pairs_hook=original.completion.strict_object,parse_constant=nonfinite)
+  result=api.validate(data)
+ result.update(CURRENT_source_exit_verified=True,CURRENT_source_checkpoint=args.expected_checkpoint,SQL_executed=False,runtime_qualified=False)
+ print(json.dumps(result,sort_keys=True))
+if __name__=='__main__':main()
