@@ -84,6 +84,13 @@
       "source": "support/governance/native-organization/test-oauth-code-owner-mysql.php",
       "source_sha256": "d02f958583b1bc74a6837cb198c99162d8b0b1f928ec0014d47df4184f6566b9"
     },
+    "organization-approval-workbench": {
+      "argument": "--organization-approval-workbench",
+      "mode": "organization-approval-workbench-Task-OFF",
+      "native_call_anchor": "$native=governance_approval_workbench_focused($fixture,$check);",
+      "source": "support/governance/native-organization/test-native-organization-mysql.php",
+      "source_sha256": "858fa9a5925bcc3506442ba2ca67ab622cc5c63d531ba87e39236d3649b48e5c"
+    },
     "project-source-facts": {
       "argument": "--project-source-facts",
       "mode": "project-source-facts-Task-OFF",
