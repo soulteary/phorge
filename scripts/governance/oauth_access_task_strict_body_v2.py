@@ -26,7 +26,11 @@ def model(raws,common,checker):
  # Original CURRENT functions/obligations/summary retain their real typed operation.
  body_ns=dict(checker.__dict__);body_ns['_strict_restore']=ns['_strict_restore'];common.compile_functions([modified],body_ns)
  artifact_ns={'Path':Path,'os':os,'stat':stat,'hashlib':hashlib};common.compile_functions(common.functions(parsed['check_recovery_partial_composition'],{'read_checked'}),artifact_ns)
- return {'validate':body_ns['_validate_with_source_operation'],'read_checked':artifact_ns['read_checked'],'strict_restore_seam_count':1,'original_statement_and_literals_retained':True,'source_or_SQL_qualified':False}
+ # Code identities come only from this pinned compilation; no frame names/paths/locals.
+ diagnostic_codes={}
+ for function,lines,start in ((body_ns['_validate_with_source_operation'],(70,71,72,75,76,77,78,79,80,81,82,83,84,85,86,87),1),(ns['_strict_restore'],(1202,1203,1204,1208,1209,1210,1211,1212,1213,1215,1216,1217,1218,1219,1220,1221,1222),17)):
+  diagnostic_codes[id(function.__code__)]=(function.__code__,{line:'oauth_access_body_site_%02d'%(start+i)for i,line in enumerate(lines)})
+ return {'diagnostic_codes':diagnostic_codes,'validate':body_ns['_validate_with_source_operation'],'read_checked':artifact_ns['read_checked'],'strict_restore_seam_count':1,'original_statement_and_literals_retained':True,'source_or_SQL_qualified':False}
 def runtime(before,after,revision):
  fields={'schema','phase','source_revision','version','server_uuid_sha256','observed_service_image'}
  need(type(revision)is str and re.fullmatch('[a-f0-9]{40}',revision)is not None and revision!='0'*40)
