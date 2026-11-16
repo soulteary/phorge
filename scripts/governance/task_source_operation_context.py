@@ -61,6 +61,8 @@ CI_V2_NEW_PATHS.update({'tests/governance/test_calendar_task_strict_body_v2.py',
 
 CI_V2_NEW_PATHS.add('tests/governance/test_atomic_two_owner_task_routes_v2.py')
 
+CI_V2_NEW_PATHS.update({'tests/governance/task_workbench_workflow_shell_test_api_v2.py'})
+
 def need(v):
  if v is not True:raise ValueError('task_SourceOperation_admission_refused')
 def sha(raw):return hashlib.sha256(raw).hexdigest()
