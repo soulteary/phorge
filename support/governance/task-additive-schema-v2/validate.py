@@ -13,7 +13,12 @@ NAMES=('governance_taskcontentapproval','governance_taskcontentaudit','governanc
 # Full-native has a distinct Completion-v3 consumer and cleanup seam.
 CAPTURE_CLEANUP_MODES=frozenset(('directory-Task-OFF','conduit-Task-OFF',
  'oauth-access-Task-OFF','oauth-code-Task-OFF','oauth-authorization-Task-OFF',
- 'oauth-client-lifecycle-Task-OFF','assessment-credential-Task-OFF','api-credential-concurrency-Task-OFF','application-config-facts-Task-OFF','project-source-facts-Task-OFF','spaces-source-facts-Task-OFF'))
+ 'oauth-client-lifecycle-Task-OFF','assessment-credential-Task-OFF','api-credential-concurrency-Task-OFF','application-config-facts-Task-OFF','project-source-facts-Task-OFF','spaces-source-facts-Task-OFF','recovery-partial-composition-Task-OFF'))
+# Existing Task/File fixtures already close their own fixed auxiliary sockets.
+# The capture pair adds exactly two; preserve those original strict obligations.
+CAPTURE_NATIVE_AUXILIARY={
+ 'task-owner-source-facts-Task-OFF':(8,6),
+ 'file-source-facts-Task-OFF':(12,10)}
 PROFILE_KEYS={'schema','runtime_authorized','mode','run_id','hmac_key','source_root','source_revision','source_pins','namespace','server_uuid','fixture_nonce_sha256','standard_upgrade_receipt_sha256','patch_discovery','parent_table_names','parent_patch_keys','parent_migration_hashes','mysql_version'}
 def need(v):
  if v is not True:raise ValueError('Task_additive_schema_proof_refused')
@@ -45,7 +50,7 @@ def expected_schema():
  'governance_taskcontentaudit':table([column('id','bigint unsigned',False,True),column('approvalID','varbinary(64)'),column('grantID','varbinary(64)'),column('targetPHID','varbinary(64)'),column('actorPHID','varbinary(64)'),column('action','varbinary(32)'),column('createdAt','bigint unsigned')],{'PRIMARY':(['id'],True),'key_approval':(['approvalID'],False),'key_grant':(['grantID'],False)})}
 def profile(path,expected_sha):
  need(hex64(expected_sha));raw=private(path);need(sha(raw)==expected_sha);p=decode(raw)
- need(type(p)is dict and set(p)==PROFILE_KEYS and p['schema']=='Task-additive-schema-private-binding-v1'and p['runtime_authorized']is True and p['mode']in{'directory-Task-OFF','oauth-authorization-Task-OFF','oauth-client-lifecycle-Task-OFF','conduit-Task-OFF','oauth-access-Task-OFF','oauth-code-Task-OFF','assessment-credential-Task-OFF','api-credential-concurrency-Task-OFF','application-config-facts-Task-OFF','project-source-facts-Task-OFF','spaces-source-facts-Task-OFF','full-native-Task-OFF'})
+ need(type(p)is dict and set(p)==PROFILE_KEYS and p['schema']=='Task-additive-schema-private-binding-v1'and p['runtime_authorized']is True and p['mode']in{'directory-Task-OFF','oauth-authorization-Task-OFF','oauth-client-lifecycle-Task-OFF','conduit-Task-OFF','oauth-access-Task-OFF','oauth-code-Task-OFF','assessment-credential-Task-OFF','api-credential-concurrency-Task-OFF','application-config-facts-Task-OFF','project-source-facts-Task-OFF','spaces-source-facts-Task-OFF','recovery-partial-composition-Task-OFF','task-owner-source-facts-Task-OFF','file-source-facts-Task-OFF','full-native-Task-OFF'})
  need(hex64(p['hmac_key'])and re.fullmatch('[a-f0-9]{32}',p['run_id'])is not None)
  need(re.fullmatch('[a-f0-9]{40}',p['source_revision'])is not None and re.fullmatch('governance_native_[a-f0-9]{16}',p['namespace'])is not None)
  need(re.fullmatch('[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}',p['server_uuid'])is not None and hex64(p['fixture_nonce_sha256'])and hex64(p['standard_upgrade_receipt_sha256']))
@@ -81,7 +86,7 @@ def check_capture(sealed,p,pin,phase):
 
 def validate_envelope(envelope,profile_path,expected_profile_sha,*,expected_mode="directory-Task-OFF"):
  p=profile(profile_path,expected_profile_sha)
- need(expected_mode in{"directory-Task-OFF","oauth-authorization-Task-OFF","oauth-client-lifecycle-Task-OFF","conduit-Task-OFF","oauth-access-Task-OFF","oauth-code-Task-OFF","assessment-credential-Task-OFF","api-credential-concurrency-Task-OFF","application-config-facts-Task-OFF","project-source-facts-Task-OFF","spaces-source-facts-Task-OFF","full-native-Task-OFF"}and p["mode"]==expected_mode)
+ need(expected_mode in{"directory-Task-OFF","oauth-authorization-Task-OFF","oauth-client-lifecycle-Task-OFF","conduit-Task-OFF","oauth-access-Task-OFF","oauth-code-Task-OFF","assessment-credential-Task-OFF","api-credential-concurrency-Task-OFF","application-config-facts-Task-OFF","project-source-facts-Task-OFF","spaces-source-facts-Task-OFF","recovery-partial-composition-Task-OFF","task-owner-source-facts-Task-OFF","file-source-facts-Task-OFF","full-native-Task-OFF"}and p["mode"]==expected_mode)
  envelope_schema="Task-directory-native-envelope-v2"if expected_mode=="directory-Task-OFF"else"Task-native-envelope-v3"
  need(type(envelope)is dict and set(envelope)=={'schema','profile_sha256','native_receipt','before','after','mac'}and envelope['schema']==envelope_schema and envelope['profile_sha256']==expected_profile_sha and hex64(envelope['mac']))
  unsigned={k:v for k,v in envelope.items()if k!='mac'};need(hmac.compare_digest(hmac.new(bytes.fromhex(p['hmac_key']),encoded(unsigned),hashlib.sha256).hexdigest(),envelope['mac']))
@@ -94,11 +99,16 @@ def validate_envelope(envelope,profile_path,expected_profile_sha,*,expected_mode
  # Only these explicitly registered two-capture profiles project owned sockets.
  # This follows complete MAC/source/schema/capture-pair validation; original
  # strict consumers still validate every original cleanup field unchanged.
- if expected_mode in CAPTURE_CLEANUP_MODES:
+ if expected_mode in CAPTURE_NATIVE_AUXILIARY:
+  cleanup=projected.get('cleanup');need(type(cleanup)is dict and set(cleanup)=={'ownedSchemasRemoved','ownedRuntimeUsersRemoved','readerRemoved','ownedAuxiliarySetupConnectionsClosed'})
+  total,original=CAPTURE_NATIVE_AUXILIARY[expected_mode]
+  need(type(cleanup['ownedAuxiliarySetupConnectionsClosed'])is int and cleanup['ownedAuxiliarySetupConnectionsClosed']==total)
+  cleanup['ownedAuxiliarySetupConnectionsClosed']=original
+ elif expected_mode in CAPTURE_CLEANUP_MODES:
   cleanup=projected.get('cleanup');need(type(cleanup)is dict and set(cleanup)=={'ownedSchemasRemoved','ownedRuntimeUsersRemoved','readerRemoved','ownedAuxiliarySetupConnectionsClosed'})
   need(type(cleanup['ownedAuxiliarySetupConnectionsClosed'])is int and cleanup['ownedAuxiliarySetupConnectionsClosed']==2)
   del cleanup['ownedAuxiliarySetupConnectionsClosed']
- return projected,{'schema':'Task-additive-schema-verified-projection-v1','source_revision':p['source_revision'],'source_root':p['source_root'],'source_pins':p['source_pins'],'private_profile_sha256':expected_profile_sha,'native_profile_mode':p['mode'],'source_derived_expected_counts_only':False,'genuine_bound_capture_pair_verified':True,'native_SchemaSpec_three_tables_verified':True,'Task_OFF_empty_before_and_after_verified':True,'original_current_receipt_modified':False,'exact_projection':{'tables':[552,549],'patches':[1576,1575],'migrations_removed':1,**({'capture_auxiliary_setup_connections':[2,0]}if expected_mode in CAPTURE_CLEANUP_MODES else{})},'legacy_v1_validation_still_required':True,'actual_SQL_executed_by_validator':False,'production_authority':False}
+ return projected,{'schema':'Task-additive-schema-verified-projection-v1','source_revision':p['source_revision'],'source_root':p['source_root'],'source_pins':p['source_pins'],'private_profile_sha256':expected_profile_sha,'native_profile_mode':p['mode'],'source_derived_expected_counts_only':False,'genuine_bound_capture_pair_verified':True,'native_SchemaSpec_three_tables_verified':True,'Task_OFF_empty_before_and_after_verified':True,'original_current_receipt_modified':False,'exact_projection':{'tables':[552,549],'patches':[1576,1575],'migrations_removed':1,**({'capture_auxiliary_setup_connections':[2,0]}if expected_mode in CAPTURE_CLEANUP_MODES else({'native_auxiliary_setup_connections':list(CAPTURE_NATIVE_AUXILIARY[expected_mode]),'capture_pair_connections_removed':2}if expected_mode in CAPTURE_NATIVE_AUXILIARY else{}))},'legacy_v1_validation_still_required':True,'actual_SQL_executed_by_validator':False,'production_authority':False}
 if __name__=='__main__':
  parser=argparse.ArgumentParser();parser.add_argument('--envelope',required=True);parser.add_argument('--profile',required=True);parser.add_argument('--expected-profile-sha256',required=True);a=parser.parse_args()
  try:

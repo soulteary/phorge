@@ -11,7 +11,10 @@ SPEC_PATH='src/infrastructure/governance/content/PhorgeTaskContentGrantSchemaSpe
 NAMES=('governance_taskcontentapproval','governance_taskcontentaudit','governance_taskcontentgrant')
 CAPTURE_CLEANUP_MODES=frozenset(('directory-Task-OFF','conduit-Task-OFF',
  'oauth-access-Task-OFF','oauth-code-Task-OFF','oauth-authorization-Task-OFF',
- 'oauth-client-lifecycle-Task-OFF','assessment-credential-Task-OFF','api-credential-concurrency-Task-OFF','application-config-facts-Task-OFF','project-source-facts-Task-OFF','spaces-source-facts-Task-OFF'))
+ 'oauth-client-lifecycle-Task-OFF','assessment-credential-Task-OFF','api-credential-concurrency-Task-OFF','application-config-facts-Task-OFF','project-source-facts-Task-OFF','spaces-source-facts-Task-OFF','recovery-partial-composition-Task-OFF'))
+CAPTURE_NATIVE_AUXILIARY={
+ 'task-owner-source-facts-Task-OFF':(8,6),
+ 'file-source-facts-Task-OFF':(12,10)}
 PROFILE_KEYS={'schema','runtime_authorized','mode','run_id','hmac_key','source_root','source_revision','source_pins','namespace','server_uuid','fixture_nonce_sha256','standard_upgrade_receipt_sha256','patch_discovery','parent_table_names','parent_patch_keys','parent_migration_hashes','mysql_version'}
 def need(v):
  if v is not True:raise ValueError('Task_additive_schema_proof_refused')
@@ -96,14 +99,19 @@ def validate_envelope(envelope,profile_path,expected_profile_sha,*,expected_mode
  # Copy only AFTER bound native SchemaSpec/ledger/namespace/nonce/source/MAC
  # evidence succeeds. The raw original envelope/receipt remain unchanged.
  projected=copy.deepcopy(native);restore=projected['source_restore'];restore['current_table_count']=549;audit=restore['patch_audit'];audit['source_patch_count']=1575;audit['applied_patch_count']=1575;audit['migrations_executed']-=1;del audit['migration_source_hashes'][p['patch_discovery']['full_key']]
- # Only the explicitly enumerated focused profiles project their two sockets.
- # Completion-v3 remains outside that set and is projected by its own consumer.
- # The original strict checker still validates every original cleanup field.
- if expected_mode in CAPTURE_CLEANUP_MODES:
+ # Only these explicitly registered two-capture profiles project owned sockets.
+ # This follows complete MAC/source/schema/capture-pair validation; original
+ # strict consumers still validate every original cleanup field unchanged.
+ if expected_mode in CAPTURE_NATIVE_AUXILIARY:
+  cleanup=projected.get('cleanup');need(type(cleanup)is dict and set(cleanup)=={'ownedSchemasRemoved','ownedRuntimeUsersRemoved','readerRemoved','ownedAuxiliarySetupConnectionsClosed'})
+  total,original=CAPTURE_NATIVE_AUXILIARY[expected_mode]
+  need(type(cleanup['ownedAuxiliarySetupConnectionsClosed'])is int and cleanup['ownedAuxiliarySetupConnectionsClosed']==total)
+  cleanup['ownedAuxiliarySetupConnectionsClosed']=original
+ elif expected_mode in CAPTURE_CLEANUP_MODES:
   cleanup=projected.get('cleanup');need(type(cleanup)is dict and set(cleanup)=={'ownedSchemasRemoved','ownedRuntimeUsersRemoved','readerRemoved','ownedAuxiliarySetupConnectionsClosed'})
   need(type(cleanup['ownedAuxiliarySetupConnectionsClosed'])is int and cleanup['ownedAuxiliarySetupConnectionsClosed']==2)
   del cleanup['ownedAuxiliarySetupConnectionsClosed']
- return projected,{'schema':'Task-additive-schema-verified-projection-v1','source_revision':p['source_revision'],'source_root':p['source_root'],'source_pins':p['source_pins'],'private_profile_sha256':expected_profile_sha,'native_profile_mode':p['mode'],'source_derived_expected_counts_only':False,'genuine_bound_capture_pair_verified':True,'native_SchemaSpec_three_tables_verified':True,'Task_OFF_empty_before_and_after_verified':True,'original_current_receipt_modified':False,'exact_projection':{'tables':[552,549],'patches':[1576,1575],'migrations_removed':1,**({'capture_auxiliary_setup_connections':[2,0]}if expected_mode in CAPTURE_CLEANUP_MODES else{})},'legacy_v1_validation_still_required':True,'actual_SQL_executed_by_validator':False,'production_authority':False}
+ return projected,{'schema':'Task-additive-schema-verified-projection-v1','source_revision':p['source_revision'],'source_root':p['source_root'],'source_pins':p['source_pins'],'private_profile_sha256':expected_profile_sha,'native_profile_mode':p['mode'],'source_derived_expected_counts_only':False,'genuine_bound_capture_pair_verified':True,'native_SchemaSpec_three_tables_verified':True,'Task_OFF_empty_before_and_after_verified':True,'original_current_receipt_modified':False,'exact_projection':{'tables':[552,549],'patches':[1576,1575],'migrations_removed':1,**({'capture_auxiliary_setup_connections':[2,0]}if expected_mode in CAPTURE_CLEANUP_MODES else({'native_auxiliary_setup_connections':list(CAPTURE_NATIVE_AUXILIARY[expected_mode]),'capture_pair_connections_removed':2}if expected_mode in CAPTURE_NATIVE_AUXILIARY else{}))},'legacy_v1_validation_still_required':True,'actual_SQL_executed_by_validator':False,'production_authority':False}
 if __name__=='__main__':
  parser=argparse.ArgumentParser();parser.add_argument('--envelope',required=True);parser.add_argument('--profile',required=True);parser.add_argument('--expected-profile-sha256',required=True);a=parser.parse_args()
  try:

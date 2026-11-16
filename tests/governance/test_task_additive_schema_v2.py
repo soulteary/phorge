@@ -55,8 +55,31 @@ class TaskAdditiveSchemaVectors(unittest.TestCase):
   self.profile['mode']=mode;self.write_profile();self.native['cleanup']=cleanup;e=self.envelope()
   if mode!='directory-Task-OFF':e['schema']='Task-native-envelope-v3'
   self.reseal(e);return e
+ def test_existing_Task_File_auxiliary_obligations_are_preserved_exactly(self):
+  expected={'task-owner-source-facts-Task-OFF':(8,6),'file-source-facts-Task-OFF':(12,10)}
+  self.assertEqual(gate.CAPTURE_NATIVE_AUXILIARY,expected)
+  self.assertFalse(set(expected)&set(gate.CAPTURE_CLEANUP_MODES))
+  for mode,(total,native)in expected.items():
+   cleanup={'ownedSchemasRemoved':55,'ownedRuntimeUsersRemoved':2,'readerRemoved':True,'ownedAuxiliarySetupConnectionsClosed':total}
+   e=self.focused_envelope(mode,cleanup);before=copy.deepcopy(e);projected,proof=gate.validate_envelope(e,self.path,self.pin,expected_mode=mode)
+   self.assertEqual(e,before);self.assertEqual(projected['cleanup'],dict(cleanup,ownedAuxiliarySetupConnectionsClosed=native));self.assertEqual(proof['exact_projection']['native_auxiliary_setup_connections'],[total,native]);self.assertEqual(proof['exact_projection']['capture_pair_connections_removed'],2)
+ def test_Task_File_auxiliary_wrong_type_total_shape_or_MAC_cannot_be_projected(self):
+  for mode,(total,native)in {'task-owner-source-facts-Task-OFF':(8,6),'file-source-facts-Task-OFF':(12,10)}.items():
+   base={'ownedSchemasRemoved':55,'ownedRuntimeUsersRemoved':2,'readerRemoved':True,'ownedAuxiliarySetupConnectionsClosed':total}
+   for count in [None,True,False,0,1,2,native,total-1,total+1,str(total),float(total)]:
+    with self.subTest(mode=mode,count=count),self.assertRaises(ValueError):gate.validate_envelope(self.focused_envelope(mode,dict(base,ownedAuxiliarySetupConnectionsClosed=count)),self.path,self.pin,expected_mode=mode)
+   for key in base:
+    bad=dict(base);del bad[key]
+    with self.subTest(mode=mode,key=key),self.assertRaises(ValueError):gate.validate_envelope(self.focused_envelope(mode,bad),self.path,self.pin,expected_mode=mode)
+   with self.assertRaises(ValueError):gate.validate_envelope(self.focused_envelope(mode,dict(base,unknown=False)),self.path,self.pin,expected_mode=mode)
+   e=self.focused_envelope(mode,base);e['native_receipt']['cleanup']['ownedAuxiliarySetupConnectionsClosed']=total+1
+   with self.assertRaises(ValueError):gate.validate_envelope(e,self.path,self.pin,expected_mode=mode)
+ def test_Task_File_other_original_cleanup_fields_are_never_repaired(self):
+  for mode,(total,native)in {'task-owner-source-facts-Task-OFF':(8,6),'file-source-facts-Task-OFF':(12,10)}.items():
+   for key,bad in [('ownedSchemasRemoved',54),('ownedRuntimeUsersRemoved',1),('readerRemoved',False)]:
+    row={'ownedSchemasRemoved':55,'ownedRuntimeUsersRemoved':2,'readerRemoved':True,'ownedAuxiliarySetupConnectionsClosed':total};row[key]=bad;e=self.focused_envelope(mode,row);out,_=gate.validate_envelope(e,self.path,self.pin,expected_mode=mode);self.assertEqual(out['cleanup'][key],bad)
  def test_all_focused_roles_project_only_exact_two_capture_sockets(self):
-  modes={'directory-Task-OFF','conduit-Task-OFF','oauth-access-Task-OFF','oauth-code-Task-OFF','oauth-authorization-Task-OFF','oauth-client-lifecycle-Task-OFF','assessment-credential-Task-OFF','api-credential-concurrency-Task-OFF','application-config-facts-Task-OFF','project-source-facts-Task-OFF','spaces-source-facts-Task-OFF'}
+  modes={'directory-Task-OFF','conduit-Task-OFF','oauth-access-Task-OFF','oauth-code-Task-OFF','oauth-authorization-Task-OFF','oauth-client-lifecycle-Task-OFF','assessment-credential-Task-OFF','api-credential-concurrency-Task-OFF','application-config-facts-Task-OFF','project-source-facts-Task-OFF','spaces-source-facts-Task-OFF','recovery-partial-composition-Task-OFF'}
   self.assertEqual(gate.CAPTURE_CLEANUP_MODES,modes)
   for mode in sorted(modes):
    with self.subTest(mode=mode):
