@@ -49,6 +49,8 @@ CI_V2_NEW_PATHS.update({'tests/governance/test_full_native_task_capture_cleanup_
 
 CI_V2_NEW_PATHS.update({'tests/governance/test_api_credential_task_strict_body_v2.py', 'scripts/governance/check_api_credential_task_schema_receipt_v2.py', 'scripts/governance/api_credential_task_strict_body_v2.py'})
 
+CI_V2_NEW_PATHS.update({'scripts/governance/project_media_task_selected_v2.py', 'tests/governance/test_media_task_runtime_v2.py', 'scripts/governance/media_task_archive_v2.py', 'tests/governance/test_media_current_archive_owner_v2.py', 'scripts/governance/media_task_runtime_v2.py', 'scripts/governance/prepare_media_task_archive_v2.py', 'scripts/governance/run_media_task_selected_v2.py'})
+
 def need(v):
  if v is not True:raise ValueError('task_SourceOperation_admission_refused')
 def sha(raw):return hashlib.sha256(raw).hexdigest()
