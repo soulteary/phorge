@@ -1,11 +1,11 @@
-"""Closed nine-role deterministic adapter. Original tracked producers stay unchanged."""
+"""Closed twelve-role deterministic adapter. Original tracked producers stay unchanged."""
 import hashlib,json
 MARKER=b'const N05_TASK_DIRECTORY_RUN_PROFILE_SHA256=null;'
 def need(ok):
  if ok is not True:raise ValueError('Task_native_role_adapter_refused')
 def role_manifest(raw,role):
  data=json.loads(raw);need(type(data)is dict and set(data)=={'schema','roles'}and data['schema']=='Task-native-role-adapter-v2')
- need(set(data['roles'])=={'directory','oauth-authorization','oauth-client-lifecycle','conduit','oauth-access','oauth-code','assessment-credential','api-credential-concurrency','full-native'}and role in data['roles'])
+ need(set(data['roles'])=={'directory','oauth-authorization','oauth-client-lifecycle','conduit','oauth-access','oauth-code','assessment-credential','api-credential-concurrency','application-config-facts','project-source-facts','spaces-source-facts','full-native'}and role in data['roles'])
  value=data['roles'][role];need(set(value)=={'source','source_sha256','argument','native_call_anchor','mode'});return value
 
 def adapt(raw,prefix,role):
@@ -29,7 +29,7 @@ def adapt(raw,prefix,role):
  # Require one exact bootstrap seam for every admitted fixed registry role.
  need(role['mode'] in {'directory-Task-OFF','oauth-authorization-Task-OFF',
   'oauth-client-lifecycle-Task-OFF','conduit-Task-OFF','oauth-access-Task-OFF',
-  'oauth-code-Task-OFF','assessment-credential-Task-OFF','api-credential-concurrency-Task-OFF','full-native-Task-OFF'})
+  'oauth-code-Task-OFF','assessment-credential-Task-OFF','api-credential-concurrency-Task-OFF','application-config-facts-Task-OFF','project-source-facts-Task-OFF','spaces-source-facts-Task-OFF','full-native-Task-OFF'})
  # This producer clears all buffers in bootstrap; move only the wrapper's
  # capture registration immediately after its original bootstrap, before its
  # original inner capture, including dedicated directory and OAuth templates.

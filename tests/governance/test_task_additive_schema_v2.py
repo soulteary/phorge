@@ -56,7 +56,7 @@ class TaskAdditiveSchemaVectors(unittest.TestCase):
   if mode!='directory-Task-OFF':e['schema']='Task-native-envelope-v3'
   self.reseal(e);return e
  def test_all_focused_roles_project_only_exact_two_capture_sockets(self):
-  modes={'directory-Task-OFF','conduit-Task-OFF','oauth-access-Task-OFF','oauth-code-Task-OFF','oauth-authorization-Task-OFF','oauth-client-lifecycle-Task-OFF','assessment-credential-Task-OFF','api-credential-concurrency-Task-OFF'}
+  modes={'directory-Task-OFF','conduit-Task-OFF','oauth-access-Task-OFF','oauth-code-Task-OFF','oauth-authorization-Task-OFF','oauth-client-lifecycle-Task-OFF','assessment-credential-Task-OFF','api-credential-concurrency-Task-OFF','application-config-facts-Task-OFF','project-source-facts-Task-OFF','spaces-source-facts-Task-OFF'}
   self.assertEqual(gate.CAPTURE_CLEANUP_MODES,modes)
   for mode in sorted(modes):
    with self.subTest(mode=mode):
