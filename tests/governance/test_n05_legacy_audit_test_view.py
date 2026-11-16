@@ -39,7 +39,13 @@ class LegacyView(unittest.TestCase):
         self.assertIn(path, self._legacy.REPAIR_SOURCE_PINS)
         old = self._legacy.git_bytes(self._legacy.CURRENT_REVISION, path)
         actual = (ROOT / path).read_bytes()
-        self.assertEqual(actual, self._legacy.git_bytes(self._legacy.n05.TARGET, path))
+        parent = self._legacy.git_bytes(self._legacy.n05.TARGET, path)
+        current = self._source_operation._modules['project_description_admission_delta']
+        expected_parent_sha = hashlib.sha256(parent).hexdigest()
+        self.assertEqual(current.native_pair_parent_DATA(actual, expected_parent_sha), parent)
+        for bad in (parent, actual + b'\n', actual.replace(b'16318f87a017f82c28f3011b362364cf24b73ef8', b'0' * 40)):
+            with self.subTest(pair_input='unknown-or-historical'), self.assertRaises(ValueError):
+                current.native_pair_parent_DATA(bad, expected_parent_sha)
         self.assertNotEqual(actual, old)
         self.assertEqual(hashlib.sha256(old).hexdigest(), self._legacy.REPAIR_SOURCE_PINS[path])
         self.assertEqual(self._legacy.n05._normalize_metadata(path, actual), old)
