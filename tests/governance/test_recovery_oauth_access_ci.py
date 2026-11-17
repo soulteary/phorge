@@ -51,7 +51,13 @@ class OAuthCI(unittest.TestCase):
     self.assertEqual(s.encode(),subprocess.check_output(['git','-C',str(ROOT),'show','e804125e8ad0b716cbbbba59818fb140691bf4f0:.github/workflows/atomic-feature-regressions.yml']))
     path='.github/workflows/conduit-producer-focused.yml';self.assertEqual(operation._task_contexts[ROOT].current(path),(ROOT/path).read_bytes());self.assertEqual(operation._task_contexts[ROOT].parent(path),subprocess.check_output(['git','-C',str(ROOT),'show','e804125e8ad0b716cbbbba59818fb140691bf4f0:'+path]))
     current=operation._task_contexts[ROOT].current(path).decode();parent=operation._task_contexts[ROOT].parent(path).decode()
-    self.assertEqual(current.split('jobs:',1)[0],parent.split('jobs:',1)[0])
+    import yaml
+    current_header=yaml.safe_load(current);parent_header=yaml.safe_load(parent)
+    self.assertEqual({k:v for k,v in current_header.items()if k not in ('jobs','on',True,'concurrency')},{k:v for k,v in parent_header.items()if k not in ('jobs','on',True,'concurrency')})
+    events=current_header.get('on',current_header.get(True))
+    self.assertIn('workflow_dispatch',events)
+    self.assertNotIn('src/applications/auth/**',events['pull_request']['paths'])
+    self.assertEqual(current_header['permissions'],{'contents':'read'})
     for required in ['run_task_directory_native_v2.py','--role conduit','check_conduit_task_schema_receipt_v2.py','probe_conduit_task_mysql84.php before','probe_conduit_task_mysql84.php after','--expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT"','mysql:8.4.13@sha256:a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7']:
      self.assertIn(required,current)
     self.assertNotIn('secrets.',current);self.assertNotIn('workflow_run:',current);self.assertNotIn('docker push',current)
