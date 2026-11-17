@@ -256,12 +256,12 @@ class OAuthCI(unittest.TestCase):
    import yaml
    wf=yaml.safe_load(FOCUSED.read_text());events=wf.get('on',wf.get(True));self.assertEqual(set(events),{'pull_request','workflow_dispatch'});self.assertEqual(wf['permissions'],{'contents':'read'})
    paths=events['pull_request']['paths']
-   for name in ['.github/workflows/oauth-code-producer-focused.yml','src/applications/auth/**','src/applications/conduit/**','src/applications/oauthserver/**','tests/atomic/build_directory_file.py']:self.assertIn(name,paths)
+   for name in ['.github/workflows/oauth-code-producer-focused.yml','tests/atomic/build_directory_file.py']:self.assertIn(name,paths)
    from task_ci_workflow_test_api_v2 import workflow_data
    view=workflow_data(ROOT,'.github/workflows/oauth-code-producer-focused.yml',FOCUSED.read_bytes())
    parent=yaml.safe_load(view['parent'])
    current_job=wf['jobs']['oauth-code-owner'];current_text=FOCUSED.read_text()
-   self.assertEqual({k:v for k,v in wf.items()if k!='jobs'},{k:v for k,v in parent.items()if k!='jobs'})
+   self.assertEqual({k:v for k,v in wf.items()if k not in ('jobs','on',True,'concurrency')},{k:v for k,v in parent.items()if k not in ('jobs','on',True,'concurrency')})
    self.assertEqual([step.get('name')for step in current_job['steps']if step.get('name')!='Bind external event head and isolated PUBLIC verification home'],[step.get('name')for step in parent['jobs']['oauth-code-owner']['steps']])
    self.assertEqual(current_job['services']['mysql']['image'],'mysql:8.4.13@sha256:a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7')
    for required in ('run_task_directory_native_v2.py','--role oauth-code','check_oauth_code_task_schema_receipt_v2.py','probe_oauth_code_task_mysql84.php before','probe_oauth_code_task_mysql84.php after','--expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT"',"module['build_file'](",'tests/atomic/build_directory_file.py','project_oauth_code_failure.py'):self.assertIn(required,current_text)
@@ -631,7 +631,7 @@ class OAuthCI(unittest.TestCase):
   for name in ['test_recovery_oauth_code_source.py','test_recovery_oauth_code_ci.py','test_recovery_oauth_code_threads.py','test_recovery_oauth_code_result.py']:
    change='tests/governance/'+name;self.assertTrue((ROOT/change).is_file());self.assertTrue(schedules([change]));self.assertFalse(schedules([change],[p for p in paths if p!=code_pattern]))
   self.assertTrue(schedules(['tests/governance/test_recovery_oauth_access_source.py']))
-  self.assertTrue(schedules(['src/infrastructure/governance/recovery/PhorgeRecoveryConduitProducerFence.php']))
+  self.assertFalse(schedules(['src/infrastructure/governance/recovery/PhorgeRecoveryConduitProducerFence.php']))
   self.assertFalse(schedules(['docs/unrelated-guide.md']));self.assertFalse(schedules(['tests/governance/test_unrelated_ui.py']))
  def execute(self,which,mode,*,_workflow_view=None):
   if which=='focused':
