@@ -8,10 +8,6 @@ on:
     branches:
       - 'cleanup/apps-*'
 
-concurrency:
-  group: check-retired-app-references-${{ github.event_name }}-${{ github.event.pull_request.number || github.run_id }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
-
 permissions:
   contents: read
 
