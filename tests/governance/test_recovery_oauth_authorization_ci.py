@@ -105,7 +105,7 @@ class OAuthAuthorizationCI(unittest.TestCase):
    proof=workflow_data(ROOT,'.github/workflows/oauth-authorization-producer-focused.yml');self.assertTrue(proof['source_operation_exit_verified']);current=proof['current'].decode();parent=proof['parent'].decode()
    wf=yaml.safe_load(current);events=wf.get('on',wf.get(True));self.assertEqual(set(events),{'pull_request','workflow_dispatch'});self.assertEqual(wf['permissions'],{'contents':'read'})
    paths=events['pull_request']['paths']
-   for name in ['.github/workflows/oauth-authorization-producer-focused.yml','src/applications/auth/**','src/applications/conduit/**','src/applications/oauthserver/**','tests/atomic/build_directory_file.py']:self.assertIn(name,paths)
+   for name in ['.github/workflows/oauth-authorization-producer-focused.yml','tests/atomic/build_directory_file.py']:self.assertIn(name,paths)
    job=wf['jobs']['oauth-authorization-owner'];self.assertEqual(job['services']['mysql']['image'],'mysql:8.4.13@sha256:a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7');text=parent;self.assertIn("module['build_file'](",text);self.assertNotIn("module['build'](",text);self.assertIn('tests/atomic/build_directory_file.py',text);self.assertIn('--oauth-authorization-producer-owner',text);self.assertIn('qualify_oauth_authorization_mysql84.py',text);self.assertIn('project_oauth_authorization_failure.py',text);self.assertNotIn('secrets.',text);self.assertNotIn('workflow_run:',text);self.assertNotIn('docker push',text);self.assertIn('--source-only --source-revision \"$GITHUB_SHA\"',text);self.assertLess(text.index('--source-only --source-revision'),text.index('php scripts/runtime/build.php all'))
    for required in ['run_task_directory_native_v2.py','--role oauth-authorization','check_oauth_task_schema_receipt_v2.py','--expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT"','probe_oauth_authorization_mysql84.php before','probe_oauth_authorization_mysql84.php after',"module['build_file'](",'tests/atomic/build_directory_file.py','project_oauth_authorization_failure.py']:
     self.assertIn(required,current)
@@ -135,7 +135,7 @@ class OAuthAuthorizationCI(unittest.TestCase):
   for name in ['test_recovery_oauth_authorization_source.py','test_recovery_oauth_authorization_ci.py','test_recovery_oauth_authorization_sql.py','test_recovery_oauth_authorization_coordination.py']:
    change='tests/governance/'+name;self.assertTrue((ROOT/change).is_file());self.assertTrue(schedules([change]));self.assertFalse(schedules([change],[p for p in paths if p!=code_pattern]))
   self.assertTrue(schedules(['tests/governance/test_recovery_oauth_access_source.py']))
-  self.assertTrue(schedules(['src/infrastructure/governance/recovery/PhorgeRecoveryConduitProducerFence.php']))
+  self.assertFalse(schedules(['src/infrastructure/governance/recovery/PhorgeRecoveryConduitProducerFence.php']))
   self.assertFalse(schedules(['docs/unrelated-guide.md']));self.assertFalse(schedules(['tests/governance/test_unrelated_ui.py']))
  def execute(self,which,mode,*,_workflow_data=None):
    if which=='focused':

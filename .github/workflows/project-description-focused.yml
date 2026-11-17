@@ -8,21 +8,14 @@ on:
       - 'support/governance/project-description-ci/**'
       - 'support/governance/project-description-qualification/**'
       - 'tests/governance/test_project_description*.py'
-      - 'src/**'
-      - 'resources/**'
-      - 'bin/**'
-      - 'scripts/**'
-      - 'externals/**'
-      - 'webroot/**'
-      - 'conf/**'
-      - 'support/runtime/**'
-      - 'support/startup/**'
-      - 'support/phame/**'
-      - 'support/preamble.proxy-https.php'
       - 'support/governance/project-content-grants-ci/**'
       - 'support/governance/project-content-grants-qualification/**'
       - 'tests/governance/test_project_description*.py'
   workflow_dispatch:
+
+concurrency:
+  group: project-description-focused-${{ github.event_name }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read

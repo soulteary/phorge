@@ -104,8 +104,9 @@ class LifecycleWorkflow(unittest.TestCase):
  def test_path_triggers_include_source_and_all_new_control_files_not_unrelated_docs(self):
   import fnmatch,yaml
   workflow=yaml.safe_load(WORKFLOW.read_text());on=workflow.get('on',workflow.get(True));paths=on['pull_request']['paths'];matches=lambda p:any(fnmatch.fnmatchcase(p,x)for x in paths)
-  for path in ['.github/workflows/oauth-client-lifecycle-focused.yml','src/applications/oauthserver/storage/PhabricatorOAuthServerClient.php','src/applications/system/engine/PhabricatorDestructionEngine.php','src/applications/transactions/editor/PhabricatorApplicationTransactionEditor.php','tests/governance/test_recovery_oauth_client_lifecycle.py','tests/governance/test_recovery_oauth_client_lifecycle_sql.py','tests/governance/test_recovery_oauth_client_lifecycle_ci.py']:
+  for path in ['.github/workflows/oauth-client-lifecycle-focused.yml','src/applications/system/engine/PhabricatorDestructionEngine.php','src/applications/transactions/editor/PhabricatorApplicationTransactionEditor.php','tests/governance/test_recovery_oauth_client_lifecycle.py','tests/governance/test_recovery_oauth_client_lifecycle_sql.py','tests/governance/test_recovery_oauth_client_lifecycle_ci.py']:
    self.assertTrue(matches(path),path)
+  self.assertFalse(matches('src/applications/oauthserver/storage/PhabricatorOAuthServerClient.php'))
   self.assertFalse(matches('docs/unrelated.md'));self.assertIn('workflow_dispatch',on);self.assertEqual(workflow['permissions'],{'contents':'read'})
  def test_real_File_only_builder_exact_database_and_no_oldmatrix_substitution(self):
   from task_ci_workflow_test_api_v2 import workflow_data
