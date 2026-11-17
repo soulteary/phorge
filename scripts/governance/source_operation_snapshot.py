@@ -275,12 +275,13 @@ class _CalendarView:
         return self._module.reduce_calendar_wire_union(raw)
 
 class SourceOperation:
-    def __init__(self, key, producer_root, task_source=False, expected_checkpoint=None):
+    def __init__(self, key, producer_root, task_source=False, expected_checkpoint=None, project_proof=None):
         _need(key is _KEY)
         self._roots = (_root(ROOT), _root(producer_root))
         self._state = 'new'; self._modules = {}; self._snapshots = {}; self._auxiliary_modules = []
         self._prepared_ledgers = {}
         self._task_source = task_source; self._task_contexts = {}; self._task_expected_checkpoint=expected_checkpoint
+        self._project_proof_input = project_proof; self._project_proof_lease = None
         _ISSUED.add(self)
 
     def _require_task_context(self, context):
@@ -385,6 +386,7 @@ class SourceOperation:
         _need(type(self) is SourceOperation and self in _ISSUED
               and self._state == 'active' and self._thread == threading.get_ident()
               and self._task is _task() and _ACTIVE.get() is self._token_identity)
+        if self._project_proof_lease is not None:self._project_proof_lease.check()
         if root is not None: _need(_root(root) == self.producer_root)
         return self
 
@@ -488,6 +490,7 @@ class SourceOperation:
             for ledger in self._prepared_ledgers.values():ledger.verify_exit(self)
             return self
         except BaseException:
+            if self._project_proof_lease is not None:self._project_proof_lease.closed=True
             self._state = 'failed'; _ACTIVE.reset(self._reset)
             raise
 
@@ -565,7 +568,9 @@ class SourceOperation:
 
     def __exit__(self, kind, error, tb):
         # Foreign or repeated close must not invalidate/reset the owner's scope.
-        self.require()
+        _need(type(self) is SourceOperation and self in _ISSUED
+              and self._state == 'active' and self._thread == threading.get_ident()
+              and self._task is _task() and _ACTIVE.get() is self._token_identity)
         failure = None
         try:
             self.require()
@@ -587,9 +592,11 @@ class SourceOperation:
             for ledger in self._prepared_ledgers.values():ledger.verify_exit(self)
             self._verify_ancestor_identities()
             for context in self._task_contexts.values():context.exit()
+            if self._project_proof_lease is not None:self._project_proof_lease.close()
         except BaseException as caught:
             failure = caught
         finally:
+            if self._project_proof_lease is not None:self._project_proof_lease.closed=True
             self._state = 'closed'; _ACTIVE.reset(self._reset)
             self._modules.clear(); self._snapshots.clear(); self._prepared_ledgers.clear(); self._task_contexts.clear()
         if error is not None:
@@ -602,9 +609,9 @@ def open_source_operation(root=ROOT):
     # Original entry semantics retained; no automatic Task/env migration.
     return SourceOperation(_KEY,root)
 
-def open_task_source_operation(root=ROOT,expected_checkpoint=None):
+def open_task_source_operation(root=ROOT,expected_checkpoint=None,project_proof=None):
     # Exact Root-reviewed checkpoint is explicit, never inferred from HEAD.
-    return SourceOperation(_KEY,root,task_source=True,expected_checkpoint=expected_checkpoint)
+    return SourceOperation(_KEY,root,task_source=True,expected_checkpoint=expected_checkpoint,project_proof=project_proof)
 
 def require_task_operation(value,root):
     _need(type(value)is SourceOperation and value in _ISSUED and value._task_source)

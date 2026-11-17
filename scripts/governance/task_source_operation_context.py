@@ -4,6 +4,7 @@ No arbitrary reader callbacks, executable historical modules, DB or runtime gran
 import base64,hashlib,json,os,re,stat,subprocess,zlib
 from pathlib import Path
 from types import MappingProxyType
+import detached_source_proof as project_proof
 ROOT_SIGNER='CD85ED7465AFF2FFA2FFB686DBCDD8CBF440F8DE'
 BASE='356878fb64e33f62967e36eeff926abba285ff25'
 BASELINE='support/governance/source-operation/task-parent5903.json'
@@ -17,6 +18,7 @@ CI_INVERSE_SHA='d71e48e70f3f23755c28b9f16cf247fa5dace3cab6c09487c4a0705317cfeb51
 CI_V2_NEW_PATHS={'support/governance/task-additive-schema-v2/producer-roles-v2.json', 'support/governance/task-additive-schema-v2/producer-prefix.php', 'scripts/governance/run_task_directory_native_v2.py', 'scripts/governance/oauth_access_task_strict_body_v2.py', 'tests/governance/test_task_native_role_adapter_v2.py', 'tests/governance/test_paired_source_facts_task_strict_body_v2.py', 'tests/governance/test_project_description_current_consumers_task_v2.py', 'tests/governance/task_paired_workflow_shell_test_api_v2.py', 'support/governance/task-additive-schema-v2/oauth-reviewed-current-body-pins.json', 'scripts/governance/conduit_task_strict_body_v2.py', 'scripts/governance/probe_conduit_task_mysql84.php', 'tests/governance/task_ci_workflow_test_api_v2.py', 'support/governance/task-additive-schema-v2/bind.py', 'tests/governance/test_oauth_access_receipt_rejection_v3.py', 'scripts/governance/check_oauth_code_task_schema_receipt_v2.py', 'tests/governance/test_oauth_access_stage_diagnostic_v3.py', 'scripts/governance/oauth_code_task_strict_body_v2.py', 'tests/governance/task_partial_schema_test_api_v2.py', 'support/governance/source-operation/ci-source-verifier.asc', 'scripts/governance/check_directory_task_schema_receipt_v4.py', 'scripts/governance/check_oauth_task_schema_receipt_v2.py', 'support/governance/task-additive-schema-v2/capture.php', 'scripts/governance/check_directory_receipt_task_v2.py', 'scripts/governance/task_ci_native_source_v2.py', 'tests/governance/test_task_additive_schema_v2.py', 'scripts/governance/paired_source_facts_task_strict_body_v2.py', 'scripts/governance/prepare_task_directory_run_v2.py', 'scripts/governance/source_facts_task_strict_body_v2.py', 'support/governance/task-additive-schema-v2/producer_adapter.py', 'tests/governance/test_project_description_admission_task_v2.py', 'support/governance/project-description-ci/task-metadata-lock-v2.json', 'scripts/governance/probe_oauth_access_task_mysql84.php', 'support/governance/task-additive-schema-v2/run.php', 'scripts/governance/check_paired_source_facts_task_schema_receipt_v2.py', 'tests/governance/task_inverse_test_api_v2.py', 'tests/governance/test_task_ci_native_adopter_v2.py', 'scripts/governance/check_conduit_task_schema_receipt_v2.py', 'scripts/governance/oauth_task_strict_body_v2.py', 'tests/governance/task_admission_test_api_v2.py', 'tests/governance/recovery_oauth_code_task_test_cohort_v2.py', 'tests/governance/test_source_facts_task_strict_body_v2.py', 'scripts/governance/check_source_facts_task_schema_receipt_v2.py', 'scripts/governance/check_assessment_task_schema_receipt_v2.py', 'support/governance/task-additive-schema-v2/validate.py', 'scripts/governance/check_oauth_access_task_schema_receipt_v2.py', 'scripts/governance/check_task_ci_head_v1.py', 'support/governance/source-operation/task-ci-modified-parent-v1.json', 'tests/governance/task_description_consumer_test_api_v2.py', 'tests/governance/run_description_task_v2_controls.py', 'scripts/governance/probe_oauth_code_task_mysql84.php', 'scripts/governance/probe_assessment_task_mysql84.php', 'tests/governance/test_project_description_source_inverse_task_v2.py', 'scripts/governance/assessment_task_strict_body_v2.py', 'tests/governance/test_task_directory_run_binding_v2.py', 'tests/governance/test_project_description_main_task_v2.py'}
 CI_V2_NEW_PATHS.update({'scripts/governance/probe_full_native_task_mysql84.php', 'scripts/governance/full_native_task_strict_body_v2.py', 'scripts/governance/check_full_native_task_schema_receipt_v2.py'})
 CI_V2_NEW_PATHS.add('tests/governance/task_current_phase_shell_test_v2.py')
+CI_V2_NEW_PATHS.update({'scripts/governance/detached_source_proof.py','tests/governance/test_detached_source_proof.py','tests/governance/test_detached_source_proof_crypto.py'})
 CI_V2_NEW_PATHS.add('tests/governance/task_atomic_access_shell_test_v2.py')
 CI_V2_NEW_PATHS.update({'scripts/governance/check_native_directory_task_source_v2.py','tests/governance/test_native_directory_task_static_v2.py'})
 TASK_PREUPGRADE_FIXTURE='support/governance/completion/fixture.php'
@@ -108,14 +110,18 @@ def task_preupgrade_fixture_inverse(relative,raw,recipe_raw):
  need(len(restored)==TASK_PREUPGRADE_PARENT_PIN['bytes']and sha(restored)==TASK_PREUPGRADE_PARENT_PIN['sha256'])
  return restored
 
-def git_tree(root,expected_checkpoint):
+def git_tree(root,expected_checkpoint,proof_lease=None):
  need(type(expected_checkpoint)is str and re.fullmatch('[a-f0-9]{40}',expected_checkpoint)is not None)
  env={'PATH':'/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin','HOME':str(Path.home()),'LANG':'C','GIT_NO_REPLACE_OBJECTS':'1','GIT_OPTIONAL_LOCKS':'0'}
  def git(*args,**kw):return subprocess.run(['git','-C',str(root),*args],env=env,stdin=None if'input'in kw else subprocess.DEVNULL,capture_output=True,timeout=30,check=True,**kw)
  revision=git('rev-parse','HEAD').stdout.decode().strip();need(revision==expected_checkpoint)
- verified=git('verify-commit','--raw',revision)
- need(re.search(rb'^\[GNUPG:\] (?:BADSIG|ERRSIG|EXPSIG|EXPKEYSIG|REVKEYSIG|KEYREVOKED|SIGEXPIRED|KEYEXPIRED)(?: |$)',verified.stderr,re.M)is None)
- need(re.findall(rb'^\[GNUPG:\] VALIDSIG ([A-F0-9]{40}) ',verified.stderr,re.M)==[ROOT_SIGNER.encode()])
+ if proof_lease is None:
+  verified=git('verify-commit','--raw',revision)
+  need(re.search(rb'^\[GNUPG:\] (?:BADSIG|ERRSIG|EXPSIG|EXPKEYSIG|REVKEYSIG|KEYREVOKED|SIGEXPIRED|KEYEXPIRED)(?: |$)',verified.stderr,re.M)is None)
+  need(re.findall(rb'^\[GNUPG:\] VALIDSIG ([A-F0-9]{40}) ',verified.stderr,re.M)==[ROOT_SIGNER.encode()])
+ else:
+  need(type(proof_lease) is project_proof.ProofLease and proof_lease.root==Path(root) and proof_lease.expected_commit==revision)
+  proof_lease.check()
  git('merge-base','--is-ancestor',BASE,revision);git('diff','--quiet',revision,'--');git('diff','--cached','--quiet',revision,'--')
  rows=[];names=set()
  for item in git('ls-tree','-rz','--full-tree',revision).stdout.split(b'\0'):
@@ -190,6 +196,7 @@ class TaskContext:
   return value if inside else value[:5]
  def require(self):
   self.operation._require_task_context(self);need(not self.closed)
+  if self.operation._project_proof_lease is not None:self.operation._project_proof_lease.check()
  def current(self,relative):
   self.require();need(relative in self.current_raw)
   cached_root=getattr(self,'_path_cache_root',None)
@@ -216,7 +223,12 @@ class TaskContext:
   finally:self.closed=True
 
 def capture_current(operation,roots):
- code=roots[0];revision,entries,raws=git_tree(code,operation._task_expected_checkpoint)
+ code=roots[0]
+ if operation._project_proof_input is not None:
+  inputs=operation._project_proof_input
+  need(type(inputs)is tuple and len(inputs)==3 and all(isinstance(x,Path)for x in inputs))
+  operation._project_proof_lease=project_proof.ProofLease(code,operation._task_expected_checkpoint,*inputs)
+ revision,entries,raws=git_tree(code,operation._task_expected_checkpoint,operation._project_proof_lease)
  # The known-root signer authenticates exact CURRENT code and data. Producer
  # copies are checked against the identical real tree; prepared files are
  # still solely accepted by the original strict PreparedLedger policy.
