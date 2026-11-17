@@ -114,7 +114,9 @@ class CurrentAssessment(unittest.TestCase):
   path=ROOT/'.github/workflows/assessment-credential-focused.yml';workflow=yaml.safe_load(path.read_text());steps=workflow['jobs']['assessment-credential-owner']['steps'];run='\n'.join(s.get('run','')for s in steps)
   events=workflow.get('on',workflow.get(True));paths=events['pull_request']['paths']
   self.assertIn('.github/workflows/assessment-credential-focused.yml',paths)
-  for source in ('auth','conduit','oauthserver'):self.assertIn('src/applications/'+source+'/**',paths)
+  for source in ('auth','conduit','oauthserver'):self.assertNotIn('src/applications/'+source+'/**',paths)
+  self.assertIn('tests/governance/test_recovery_assessment_credential*.py',paths)
+  self.assertIn('workflow_dispatch',events)
   self.assertFalse(any('assessment-credential-producer-focused' in x or 'src/applications/assessment-credential/' in x for x in paths))
   from task_ci_workflow_test_api_v2 import workflow_data
   view=workflow_data(ROOT,'.github/workflows/assessment-credential-focused.yml')
@@ -126,7 +128,7 @@ class CurrentAssessment(unittest.TestCase):
   self.assertIn('probe_assessment_task_mysql84.php before',run);self.assertIn('probe_assessment_task_mysql84.php after',run)
   self.assertIn('--expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT"',run)
   self.assertEqual(workflow['jobs']['assessment-credential-owner']['services']['mysql']['image'],'mysql:8.4.13@sha256:a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7')
-  self.assertEqual({k:v for k,v in workflow.items()if k!='jobs'},{k:v for k,v in parent.items()if k!='jobs'})
+  self.assertEqual({k:v for k,v in workflow.items()if k not in ('jobs','on',True,'concurrency')},{k:v for k,v in parent.items()if k not in ('jobs','on',True,'concurrency')})
   self.assertEqual([step.get('name')for step in steps if step.get('name')!='Bind external event head and isolated PUBLIC verification home'],[step.get('name')for step in parent['jobs']['assessment-credential-owner']['steps']])
   self.assertEqual(run.count('php bin/rebuild-library-map'),2);self.assertNotIn('unittest discover',run)
   for step in steps:
