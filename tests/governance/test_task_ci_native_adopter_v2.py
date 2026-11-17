@@ -1,4 +1,39 @@
-"""Pure event/signature/native-consumer mutation controls, NOT CI/SQL proof."""
+"""Pure event/signature/native-consumer mutation controls, NOT CI/SQL proof.
+
+Integration runbook: preserve the qualified source signature.
+
+The source-admission gate intentionally accepts only the pinned project signer,
+not every signature GitHub marks as verified. A GitHub-created merge, squash or
+rebase commit has a new identity and may have another signer. Passing PR checks
+on the parent does not qualify that new main commit. Do not fix this by adding a
+provider key, skipping admission, rewriting `GITHUB_SHA`, selecting a signed
+ancestor, or transferring a report to a different tree or commit.
+
+Before integration, refresh the remote base, PR head, unresolved reviews and all
+required checks. Review the exact final diff. The candidate must include current
+main, have a clean checkout, and carry the existing project signature. Verify it
+using `check_task_ci_head_v1.py` and a new public-only trust home prepared from
+`support/governance/source-operation/ci-source-verifier.asc`. Use the actual PR
+or push event and its external expected checkpoint; never derive the expected
+checkpoint from the checkout being verified. Admission is only source identity:
+all unit shards, native integration, security, contracts and artifact reviews
+remain separate required gates on that same checkpoint.
+
+Integrate only through a normal protected, non-force fast-forward that preserves
+the reviewed signed commit, if repository protections permit it. Never disable
+branch protection or use an administrator bypass. If protection requires a
+server-created commit, stop: that integration method needs a separately reviewed
+signing design rather than an allowlist exception. If main advances first,
+integrate the new base, create a new project-signed candidate, and rerun its gates
+and final review. Do not reuse the earlier head's green checks.
+
+After integration, read main again and require equality with the reviewed head
+and tree. Require all main push workflows to pass on that exact commit. Preserve
+failed earlier run records; a later green run qualifies its own source, not the
+previous merge. Image publication is a later gate: verify paired source revisions,
+immutable image versions/digests and signatures independently. Source integration
+does not authorize deployment or activate optional governance/media features.
+"""
 import copy,hashlib,importlib.util,json,os,subprocess,sys,tempfile,unittest
 from pathlib import Path
 from unittest import mock
@@ -44,6 +79,46 @@ class CIHeadPure(unittest.TestCase):
    for signer,bad in [('A'*40,None)]+[(head.SIGNER,b)for b in('BADSIG','ERRSIG','EXPSIG','EXPKEYSIG','REVKEYSIG','KEYREVOKED','SIGEXPIRED','KEYEXPIRED')]:
     with mock.patch.object(head.subprocess,'run',side_effect=self.mock_git(signer=signer,bad=bad)):
      with self.assertRaises(ValueError):head.verify_checkout(Path(t).resolve(),A)
+ def test_project_signer_and_public_key_pins_remain_fixed(self):
+  self.assertEqual(head.SIGNER,'CD85ED7465AFF2FFA2FFB686DBCDD8CBF440F8DE')
+  self.assertEqual(head.PUBLIC_KEY_SHA256,'d3ffbebe7d73c4223e3a85e924913dcbd7ce0492649b117c8110074d4c5ffa7d')
+ def test_push_merge_event_does_not_inherit_reviewed_parent_signature(self):
+  # A valid provider signature is not a project signature. The exact pushed
+  # merge must be checked even when its reviewed parent passed every PR gate.
+  provider='968479A1AFF927E37D1A566BB5690EEEBB952194'
+  with tempfile.TemporaryDirectory()as t:
+   root=Path(t).resolve();path=root/'event.json'
+   path.write_text(json.dumps({'repository':{'full_name':'soulteary/phorge'},'after':B,'deleted':False}));path.chmod(0o600)
+   with mock.patch.dict(os.environ,{'GITHUB_SHA':B}),mock.patch.object(head.subprocess,'run',side_effect=self.mock_git(actual=B,signer=provider))as call:
+    with self.assertRaises(ValueError):head.verify(root,path,'push',B,B)
+    self.assertEqual(call.call_count,2)
+    self.assertEqual(call.call_args.args[0][-1],B)
+ def test_project_signed_fast_forward_push_qualifies_exact_event_head(self):
+  with tempfile.TemporaryDirectory()as t:
+   root=Path(t).resolve();path=root/'event.json'
+   path.write_text(json.dumps({'repository':{'full_name':'soulteary/phorge'},'after':A,'deleted':False}));path.chmod(0o600)
+   with mock.patch.dict(os.environ,{'GITHUB_SHA':A}),mock.patch.object(head.subprocess,'run',side_effect=self.mock_git()):
+    result=head.verify(root,path,'push',A,A)
+    self.assertTrue(result['Root_signer_fingerprint_matched']);self.assertEqual(result['expected_checkpoint'],A)
+    self.assertFalse(result['GITHUB_SHA_rewritten']);self.assertFalse(result['HEAD_adopted_as_authority'])
+    self.assertFalse(result['source_inventory_or_SQL_qualified']);self.assertEqual(os.environ['GITHUB_SHA'],A)
+ def test_pushed_merge_cannot_fall_back_to_reviewed_parent(self):
+  with tempfile.TemporaryDirectory()as t:
+   root=Path(t).resolve();path=root/'event.json'
+   path.write_text(json.dumps({'repository':{'full_name':'soulteary/phorge'},'after':B,'deleted':False}));path.chmod(0o600)
+   with mock.patch.dict(os.environ,{'GITHUB_SHA':B}),mock.patch.object(head.subprocess,'run')as call:
+    with self.assertRaises(ValueError):head.verify(root,path,'push',A,B)
+    call.assert_not_called()
+ def test_signed_checkout_with_staged_or_unstaged_changes_is_refused(self):
+  for staged in(False,True):
+   with self.subTest(staged=staged),tempfile.TemporaryDirectory()as t:
+    original=self.mock_git()
+    def dirty(argv,**kwargs):
+     if 'diff'in argv and ('--cached'in argv)==staged:
+      raise subprocess.CalledProcessError(1,argv)
+     return original(argv,**kwargs)
+    with mock.patch.object(head.subprocess,'run',side_effect=dirty):
+     with self.assertRaises(subprocess.CalledProcessError):head.verify_checkout(Path(t).resolve(),A)
  def test_missing_public_key_or_signature_failure_not_passed(self):
   with tempfile.TemporaryDirectory()as t,mock.patch.object(head.subprocess,'run',side_effect=subprocess.CalledProcessError(2,['git'])):
    with self.assertRaises(subprocess.CalledProcessError):head.verify_checkout(Path(t).resolve(),A)
