@@ -91,4 +91,51 @@ final class PhabricatorTraefikAuthProviderTestCase extends PhutilTestCase {
     $this->assertEqual('/auth/login/example/', $forms->item(0)->getAttribute('action'));
     $this->assertEqual(0, $dom->getElementsByTagName('a')->length);
   }
+
+  public function testStableIdentityDoesNotFollowDisplayFields() {
+    $adapter = (new PhutilTraefikAuthAdapter())
+      ->setAccountID('directory-user-101')
+      ->setAccountEmail('first@example.test')
+      ->setAccountName('first')
+      ->setAccountRealName('First Name');
+    $before = mpull($adapter->getAccountIdentifiers(), 'getIdentifierRaw');
+    $adapter->setAccountEmail('changed@example.test')
+      ->setAccountName('changed')->setAccountRealName('Changed Name');
+    $this->assertEqual(array('directory-user-101'), $before);
+    $this->assertEqual($before,
+      mpull($adapter->getAccountIdentifiers(), 'getIdentifierRaw'));
+  }
+
+  public function testSameEmailDoesNotMergeDistinctDirectoryIdentities() {
+    $first = (new PhutilTraefikAuthAdapter())
+      ->setAccountID('directory-user-101')->setAccountEmail('same@example.test');
+    $second = (new PhutilTraefikAuthAdapter())
+      ->setAccountID('directory-user-102')->setAccountEmail('same@example.test');
+    $this->assertEqual(array('directory-user-101'),
+      mpull($first->getAccountIdentifiers(), 'getIdentifierRaw'));
+    $this->assertEqual(array('directory-user-102'),
+      mpull($second->getAccountIdentifiers(), 'getIdentifierRaw'));
+  }
+
+  public function testIdentityIsNotInventedFromEmail() {
+    $adapter = (new PhutilTraefikAuthAdapter())
+      ->setAccountEmail('someone@example.test')->setAccountName('someone');
+    $this->assertEqual(array(), $adapter->getAccountIdentifiers());
+  }
+
+  public function testUsernameSuggestionDoesNotChangeIdentity() {
+    $provider = $this->newProvider();
+    $method = new ReflectionMethod($provider, 'deriveUsernameFromEmail');
+    $this->assertEqual('alice',
+      $method->invoke($provider, 'alice@example.test', 'directory-user-101'));
+    $this->assertEqual('directory-user-101',
+      $method->invoke($provider, null, 'directory-user-101'));
+    $adapter = (new PhutilTraefikAuthAdapter())
+      ->setAccountID('directory-user-101')
+      ->setAccountName($method->invoke(
+        $provider, 'alice@example.test', 'directory-user-101'));
+    $this->assertEqual(array('directory-user-101'),
+      mpull($adapter->getAccountIdentifiers(), 'getIdentifierRaw'));
+  }
+
 }
