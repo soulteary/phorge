@@ -2,7 +2,7 @@
 """Extract an actual reviewed renderer image; no service starts or public ports."""
 import argparse,hashlib,json,os,re,secrets,shutil,subprocess,tempfile
 from pathlib import Path
-EXPECTED='83351b0e7eba38e50ff076ba6763ca68ebc57e1b'
+EXPECTED='16318f87a017f82c28f3011b362364cf24b73ef8'
 
 def image_identity(info,revision):
     if revision!=EXPECTED or type(info)is not dict or type(info.get('Id'))is not str or not re.fullmatch(r'sha256:[a-f0-9]{64}',info['Id']):

@@ -190,6 +190,27 @@ def historical_atomic_source(path='.github/workflows/atomic-feature-regressions.
   expected=subprocess.check_output(['/usr/bin/git','--no-replace-objects','-C',str(ROOT),'show','20b138b4cd9a2cf61522613b4a8e5e21eca7341b:'+path])
   if prior!=expected:raise ValueError('unknown Atomic historical stage')
   return prior.decode('utf-8')
+def reviewed_pair_value(raw):
+ # Closed test-only continuation, not a source issuer or runtime authorization.
+ if type(raw)is not bytes:raise ValueError('unreviewed pair bytes')
+ def unique(pairs):
+  out={}
+  for key,value in pairs:
+   if key in out:raise ValueError('duplicate pair field')
+   out[key]=value
+  return out
+ value=json.loads(raw,object_pairs_hook=unique)
+ expected={'schemaVersion':1,'revision':'16318f87a017f82c28f3011b362364cf24b73ef8','release':None,'scope':'unreleased-source-only-test-pair'}
+ if value!=expected or type(value.get('schemaVersion'))is not int:raise ValueError('unreviewed pair continuation')
+
+def reviewed_pair_parent(path,raw,*,_operation):
+ if path!='tests/atomic/paired-gorge.json':raise ValueError('unreviewed pair role')
+ with _workflow_owner(_operation)as operation:
+  context=operation._task_contexts[ROOT]
+  if type(raw)is not bytes or raw!=context.current(path)or raw!=(ROOT/path).read_bytes():raise ValueError('unknown current pair bytes')
+  reviewed_pair_value(raw)
+  return context.parent(path)
+
 class OAuthCI(unittest.TestCase):
  def test_current_Atomic_history_refuses_unknown_names_bytes_and_producer_role(self):
      with _workflow_owner() as operation:
@@ -210,8 +231,21 @@ class OAuthCI(unittest.TestCase):
  def test_existing_workflows_and_real_File_builder_are_unchanged(self):
      with _workflow_owner() as operation:
          for name in ['.github/workflows/atomic-feature-regressions.yml', '.github/workflows/oauth-access-producer-focused.yml', '.github/workflows/conduit-producer-focused.yml', 'tests/atomic/build_directory_file.py', 'tests/atomic/build_gorge.py', 'tests/atomic/paired-gorge.json']:
-             actual = historical_atomic_source(_operation=operation).encode() if name == '.github/workflows/atomic-feature-regressions.yml' else operation._task_contexts[ROOT].parent(name) if name.startswith('.github/workflows/') else (ROOT / name).read_bytes()
+             actual = historical_atomic_source(_operation=operation).encode() if name == '.github/workflows/atomic-feature-regressions.yml' else operation._task_contexts[ROOT].parent(name) if name.startswith('.github/workflows/') else reviewed_pair_parent(name,(ROOT/name).read_bytes(),_operation=operation) if name=='tests/atomic/paired-gorge.json' else (ROOT / name).read_bytes()
              self.assertEqual(actual, subprocess.check_output(['git', '-C', str(ROOT), 'show', '060ac7f2b631cc5964f28cd783082dd6e2fb1565:' + name]))
+ def test_reviewed_pair_continuation_is_closed_and_retains_builder_guards(self):
+  with _workflow_owner()as operation:
+   path='tests/atomic/paired-gorge.json';raw=(ROOT/path).read_bytes()
+   self.assertEqual(reviewed_pair_parent(path,raw,_operation=operation),operation._task_contexts[ROOT].parent(path))
+   for name,body in [('tests/atomic/build_directory_file.py',raw),('tests/atomic/build_gorge.py',raw),('.github/workflows/atomic-feature-regressions.yml',raw),(path,raw+b'\n'),(path,raw.decode())]:
+    with self.subTest(name=name),self.assertRaises(ValueError):reviewed_pair_parent(name,body,_operation=operation)
+ def test_reviewed_pair_semantics_refuse_unapproved_revision_or_release(self):
+  value={'schemaVersion':1,'revision':'16318f87a017f82c28f3011b362364cf24b73ef8','release':None,'scope':'unreleased-source-only-test-pair'}
+  reviewed_pair_value(json.dumps(value).encode())
+  for key,bad in [('schemaVersion',True),('revision','83351b0e7eba38e50ff076ba6763ca68ebc57e1b'),('revision','a'*40),('release','v1'),('scope','production')]:
+   changed=dict(value);changed[key]=bad
+   with self.subTest(key=key),self.assertRaises(ValueError):reviewed_pair_value(json.dumps(changed).encode())
+  with self.assertRaises(ValueError):reviewed_pair_value(b'{"schemaVersion":1,"schemaVersion":1}')
  def test_actual_all_new_Bash_blocks_syntax_and_owned_artifact_conditions(self):
   for p in [FOCUSED]:
    s=p.read_text();blocks=re.findall(r'        run: \|\n((?:(?:          .*|)\n)*)',s)

@@ -55,6 +55,26 @@ class OAuthCI(unittest.TestCase):
     for required in ['run_task_directory_native_v2.py','--role conduit','check_conduit_task_schema_receipt_v2.py','probe_conduit_task_mysql84.php before','probe_conduit_task_mysql84.php after','--expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT"','mysql:8.4.13@sha256:a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7']:
      self.assertIn(required,current)
     self.assertNotIn('secrets.',current);self.assertNotIn('workflow_run:',current);self.assertNotIn('docker push',current)
+ def test_Atomic_current_pair_continuation_keeps_physical_File_builders_closed(self):
+  from task_atomic_access_shell_test_v2 import BUILDERS,builder_parent_DATA
+  with _workflow_owner()as operation:
+   context=operation._task_contexts[ROOT]
+   for name in BUILDERS:
+    current=context.current(name);parent=context.parent(name)
+    self.assertEqual(builder_parent_DATA(name,current,parent,current),parent)
+    for body in [current+b'\n',bytearray(current)]:
+     with self.subTest(name=name),self.assertRaises(ValueError):builder_parent_DATA(name,current,parent,body)
+   pair='tests/atomic/paired-gorge.json';current=context.current(pair);parent=context.parent(pair)
+   with self.assertRaises(ValueError):builder_parent_DATA(pair,parent,parent)
+   for name in ['tests/atomic/build_directory_file.py','tests/atomic/build_gorge.py']:
+    raw=context.current(name)
+    self.assertEqual(raw,context.parent(name))
+    with self.assertRaises(ValueError):builder_parent_DATA(name,raw+b'\n',context.parent(name))
+   with self.assertRaises(ValueError):builder_parent_DATA('tests/atomic/unreviewed.py',current,parent)
+   value=json.loads(current)
+   for key,bad in [('schemaVersion',True),('revision','a'*40),('release','v1'),('scope','production')]:
+    changed=dict(value);changed[key]=bad
+    with self.subTest(key=key),self.assertRaises(ValueError):builder_parent_DATA(pair,json.dumps(changed).encode(),parent)
  def test_actual_all_new_Bash_blocks_syntax_and_owned_artifact_conditions(self):
   for p in [ATOMIC,FOCUSED]:
    s=p.read_text();blocks=re.findall(r'        run: \|\n((?:(?:          .*|)\n)*)',s)
@@ -68,6 +88,7 @@ class OAuthCI(unittest.TestCase):
     self.assertTrue(proof['source_operation_exit_verified'])
     self.assertTrue(proof['strict_contract_positive_and_negatives'])
     self.assertTrue(proof['real_File_only_builder_and_pair_source_preserved'])
+    self.assertTrue(proof['reviewed_current_pair_continuation'])
     self.assertEqual((proof['source_SQL_obligations'],proof['total_contract_checks'],proof['source_inputs']),(8,18,50))
     self.assertFalse(proof['native_or_source_SQL_HMAC_qualified'])
     return run_atomic_phase(ROOT,mode,workflow_current=proof['workflow_current'],revision=proof['checkpoint'])
