@@ -186,37 +186,3 @@ ATOMIC_TEST_DISPOSABLE=1 python3 tests/atomic/daemon_shutdown.py \
 # Local Podman fixtures are also supported; Compose rendering uses Docker CLI.
 # Add --engine podman and use a fresh report filename.
 ```
-
-## Preserve the qualified source signature when integrating main
-
-The source-admission gate intentionally accepts only the pinned project signer,
-not every signature GitHub marks as verified. A GitHub-created merge, squash or
-rebase commit has a new identity and may have another signer. Passing PR checks
-on the parent does not qualify that new main commit. Do not fix this by adding a
-provider key, skipping admission, rewriting `GITHUB_SHA`, selecting a signed
-ancestor, or transferring a report to a different tree or commit.
-
-Before integration, refresh the remote base, PR head, unresolved reviews and all
-required checks. Review the exact final diff. The candidate must include current
-main, have a clean checkout, and carry the existing project signature. Verify it
-using `check_task_ci_head_v1.py` and a new public-only trust home prepared from
-`support/governance/source-operation/ci-source-verifier.asc`. Use the actual PR
-or push event and its external expected checkpoint; never derive the expected
-checkpoint from the checkout being verified. Admission is only source identity:
-all unit shards, native integration, security, contracts and artifact reviews
-remain separate required gates on that same checkpoint.
-
-Integrate only through a normal protected, non-force fast-forward that preserves
-the reviewed signed commit, if repository protections permit it. Never disable
-branch protection or use an administrator bypass. If protection requires a
-server-created commit, stop: that integration method needs a separately reviewed
-signing design rather than an allowlist exception. If main advances first,
-integrate the new base, create a new project-signed candidate, and rerun its gates
-and final review. Do not reuse the earlier head's green checks.
-
-After integration, read main again and require equality with the reviewed head
-and tree. Require all main push workflows to pass on that exact commit. Preserve
-failed earlier run records; a later green run qualifies its own source, not the
-previous merge. Image publication is a later gate: verify paired source revisions,
-immutable image versions/digests and signatures independently. Source integration
-does not authorize deployment or activate optional governance/media features.
