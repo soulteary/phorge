@@ -31,7 +31,7 @@ def union_namespace(route_validator=None):
 
 def summary(index):
  groups,full=make();groups,full,routes=r.route_groups(groups,full);u=union_namespace();assigned=[row['id']for row in full if u['owner'](row['module'])==index]
- return {'schema':'atomic-governance-unit-shard-v5','metadata':{'synthetic':'not-a-run'},'partition':'module-sha256-explicit73-v1','task_routes':routes,'shard':index,'shards':2,'full':full,'full_digest':u['digest'](full),'assigned':assigned,'assigned_digest':u['digest'](assigned),'results':[{'id':ident,'status':'ok'}for ident in assigned],'test_count':len(assigned),'skipped_ids':[],'protocol_errors':0,'failure_count':0,'error_count':0,'refusal_stage':None,'passed':True}
+ return {'schema':'atomic-governance-unit-shard-v6','metadata':{'synthetic':'not-a-run'},'partition':'module-sha256-explicit73-tools-v1','task_routes':routes,'shard':index,'shards':3,'full':full,'full_digest':u['digest'](full),'assigned':assigned,'assigned_digest':u['digest'](assigned),'results':[{'id':ident,'status':'ok'}for ident in assigned],'test_count':len(assigned),'skipped_ids':[],'protocol_errors':0,'failure_count':0,'error_count':0,'refusal_stage':None,'passed':True}
 class Controls(unittest.TestCase):
  def test_closed39_exact_original_objects_and_order(self):
   groups,full=make();before=copy.deepcopy(full);selected,rows,metadata=r.route_groups(groups,full);old={a for a,b in r.ROUTES}
@@ -80,7 +80,7 @@ class Controls(unittest.TestCase):
   for index,data in enumerate((a,b)):self.assertEqual(u['validate'](data,index,data['metadata'])[1],data['assigned'])
  def test_union_every_original_failure_gate_remains(self):
   u=union_namespace();data=summary(0)
-  mutations=[('passed',False),('skipped_ids',[data['assigned'][0]]),('protocol_errors',1),('failure_count',1),('error_count',1),('refusal_stage','failed'),('test_count',True),('test_count',len(data['assigned'])-1),('shard',True),('shards',3),('partition','module-sha256-v1'),('schema','atomic-governance-unit-shard-v2'),('results',data['results'][:-1]),('results',data['results'][::-1]),('assigned',data['assigned'][::-1]),('assigned_digest','0'*64),('full_digest','0'*64),('task_routes',{}),('metadata',{})]
+  mutations=[('passed',False),('skipped_ids',[data['assigned'][0]]),('protocol_errors',1),('failure_count',1),('error_count',1),('refusal_stage','failed'),('test_count',True),('test_count',len(data['assigned'])-1),('shard',True),('shards',2),('partition','module-sha256-v1'),('schema','atomic-governance-unit-shard-v2'),('results',data['results'][:-1]),('results',data['results'][::-1]),('assigned',data['assigned'][::-1]),('assigned_digest','0'*64),('full_digest','0'*64),('task_routes',{}),('metadata',{})]
   for key,value in mutations:
    bad=copy.deepcopy(data);bad[key]=value
    with self.subTest(key=key),self.assertRaises((RuntimeError,ValueError)):u['validate'](bad,0,data['metadata'])
@@ -89,7 +89,7 @@ class Controls(unittest.TestCase):
   from test_task_explicit_shard_routes_v5 import make as current_inventory
   groups,full=current_inventory();_,rows,routes=current.route_groups(groups,full)
   u=union_namespace(current.validate_routed_inventory);parts=[]
-  for index in range(2):
+  for index in range(3):
    data=summary(index);assigned=[row['id']for row in rows if u['owner'](row['module'])==index]
    data.update(full=rows,full_digest=u['digest'](rows),task_routes=routes,
     assigned=assigned,assigned_digest=u['digest'](assigned),
@@ -98,7 +98,7 @@ class Controls(unittest.TestCase):
    for key,value in [('schema','atomic-governance-unit-shard-v4'),('partition','module-sha256-explicit72-v1'),('task_routes',r.route_metadata())]:
     bad=copy.deepcopy(data);bad[key]=value
     with self.subTest(index=index,key=key),self.assertRaises((RuntimeError,ValueError)):u['validate'](bad,index,data['metadata'])
-  self.assertFalse(parts[0]&parts[1]);self.assertEqual(parts[0]|parts[1],{row['id']for row in rows})
+  self.assertTrue(all(not(parts[a]&parts[b])for a,b in ((0,1),(0,2),(1,2))));self.assertEqual(set().union(*parts),{row['id']for row in rows})
  def test_standalone_routes_exact_same39(self):
   groups,full=make();cases=[]
   for row in full:
@@ -106,7 +106,7 @@ class Controls(unittest.TestCase):
   actual=r.route_test_cases(cases);_,rows,_=r.route_groups(groups,full)
   self.assertEqual([x.id()for x in actual],[row['id']for row in rows])
  def test_both_current_inline_shards_identical_and_all_execution_guards_present(self):
-  blocks=inline_blocks(WORKFLOW.read_text(),'PYUNIT');self.assertEqual(len(blocks),2);self.assertEqual(blocks[0],blocks[1])
+  blocks=inline_blocks(WORKFLOW.read_text(),'PYUNIT');self.assertEqual(len(blocks),3);self.assertEqual(blocks[0],blocks[1]);self.assertEqual(blocks[1],blocks[2])
   tree=ast.parse(blocks[0]);functions={n.name:n for n in tree.body if isinstance(n,(ast.FunctionDef,ast.ClassDef))}
   for name in ('need','digest','owner','inspect_suite','discover_plan','RecordedResult','metadata','main'):self.assertIn(name,functions)
   # Current source still discovers all tests, denies custom hooks and suites,
@@ -115,7 +115,7 @@ class Controls(unittest.TestCase):
   for obligation in ("pattern='test_*.py'",'loader_errors','custom_suite_unsupported','custom_root_suite_unsupported','cross_module_wrapper_unsupported','split_module_wrapper_unsupported','load_tests_hook_unsupported','route_groups(groups, full)',"'assigned_tests_failed_or_incomplete'",'not result.skipped','result.protocol_errors == 0','result.testsRun == len(assigned)','result.events ==',"'status': 'ok'",'unittest.TestSuite(selected)'):
    self.assertIn(obligation,text)
  def test_truthful_current_metadata_keeps_workflow_context_and_external_source_distinct(self):
-  blocks=inline_blocks(WORKFLOW.read_text(),'PYUNIT')+inline_blocks(WORKFLOW.read_text(),'PYUNION');self.assertEqual(len(blocks),3)
+  blocks=inline_blocks(WORKFLOW.read_text(),'PYUNIT')+inline_blocks(WORKFLOW.read_text(),'PYUNION');self.assertEqual(len(blocks),4)
   for block in blocks:
    tree=ast.parse(block);function=next(n for n in tree.body if isinstance(n,ast.FunctionDef)and n.name in ('metadata','expected_metadata'))
    dictionaries=[n for n in ast.walk(function)if isinstance(n,ast.Dict)and any(isinstance(k,ast.Constant)and k.value=='workflow_sha'for k in n.keys)]
@@ -130,7 +130,7 @@ class Controls(unittest.TestCase):
    self.assertIn("'[0-9a-f]{40}'",ast.unparse(function))
  def test_current_union_keeps_same_run_complete_disjoint_inventory(self):
   blocks=inline_blocks(WORKFLOW.read_text(),'PYUNION');self.assertEqual(len(blocks),1);tree=ast.parse(blocks[0]);text=ast.unparse(tree)
-  for obligation in ('expected_metadata()',"data['metadata'] == metadata","validate_routed_inventory(full, data['task_routes'])","summaries[0]['full'] == summaries[1]['full']",'exact_disjoint_union','same_complete_discovery','no_skip_or_refusal','no_errors','deterministic_assignment','every_assigned_once_ok_in_original_order'):
+  for obligation in ('expected_metadata()',"data['metadata'] == metadata","validate_routed_inventory(full, data['task_routes'])","x['full'] == summaries[0]['full']",'exact_disjoint_union','same_complete_discovery','no_skip_or_refusal','no_errors','deterministic_assignment','every_assigned_once_ok_in_original_order'):
    self.assertIn(obligation,text)
  def test_all39_current_target_methods_resolve_directly_or_exact_existing_inheritance(self):
   modules={}

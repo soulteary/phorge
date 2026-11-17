@@ -5,21 +5,14 @@ on:
   pull_request:
     paths:
       - '.github/workflows/project-content-grants-focused.yml'
-      - 'src/**'
-      - 'resources/**'
-      - 'bin/**'
-      - 'scripts/**'
-      - 'externals/**'
-      - 'webroot/**'
-      - 'conf/**'
-      - 'support/runtime/**'
-      - 'support/startup/**'
-      - 'support/phame/**'
-      - 'support/preamble.proxy-https.php'
       - 'support/governance/project-content-grants-ci/**'
       - 'support/governance/project-content-grants-qualification/**'
       - 'tests/governance/test_project_content_grant*.py'
   workflow_dispatch:
+
+concurrency:
+  group: project-content-grants-focused-${{ github.event_name }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read

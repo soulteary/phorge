@@ -20,6 +20,10 @@ on:
       - 'support/governance/recovery/native-writer-rr-parent.php'
       - '.github/workflows/native-rr-owner-build.yml'
   workflow_dispatch:
+concurrency:
+  group: native-rr-owner-build-${{ github.event_name }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 permissions:
   contents: read
 jobs:

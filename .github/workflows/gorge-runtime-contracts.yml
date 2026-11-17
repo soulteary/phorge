@@ -13,6 +13,10 @@ on:
         description: Published Gorge image service reference for cross-repository contracts
         required: false
         default: ''
+concurrency:
+  group: gorge-runtime-contracts-${{ github.event_name }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   runtime-compatibility:
     runs-on: ubuntu-latest

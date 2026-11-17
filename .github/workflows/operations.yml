@@ -5,6 +5,10 @@ on:
   pull_request:
     paths: ['scripts/operations/**', 'tests/operations/**', 'bin/ops', '.github/workflows/operations.yml']
   workflow_dispatch:
+concurrency:
+  group: operations-${{ github.event_name }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   safety:
     runs-on: ubuntu-latest
