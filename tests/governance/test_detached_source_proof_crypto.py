@@ -11,7 +11,7 @@ class Crypto(unittest.TestCase):
  def test_real_signature(self):self.assertEqual(self.verify()['commit'],self.commit)
  def test_tampered_proof(self):
   with tempfile.TemporaryDirectory()as d:
-   file=pathlib.Path(d).resolve()/'proof';raw=self.file.read_bytes();file.write_bytes(raw.replace(b'"pull_request":146',b'"pull_request":147'));self.assertNotEqual(raw,file.read_bytes())
+   file=pathlib.Path(d).resolve()/'proof';raw=self.file.read_bytes();value=p.decode(raw);value['pull_request']+=1;file.write_bytes((p.json.dumps(value,sort_keys=True,separators=(',',':'))+'\n').encode());self.assertNotEqual(raw,file.read_bytes())
    with self.assertRaises(ValueError):self.verify(file=file)
  def test_tampered_signature(self):
   with tempfile.TemporaryDirectory()as d:
@@ -30,4 +30,17 @@ class Crypto(unittest.TestCase):
  def test_closed_lease_refuses_reuse(self):
   lease=p.ProofLease(self.root,self.commit,self.file,self.sig,self.home);lease.close()
   with self.assertRaises(ValueError):lease.check()
+ def test_keyring_replacement_refused_after_admission(self):
+  import shutil
+  with tempfile.TemporaryDirectory()as d:
+   home=pathlib.Path(d).resolve()/'home';shutil.copytree(self.home,home);home.chmod(0o700)
+   lease=p.ProofLease(self.root,self.commit,self.file,self.sig,home)
+   ring=home/'.gnupg/pubring.kbx';replacement=ring.with_name('replacement');replacement.write_bytes(ring.read_bytes());replacement.chmod(ring.stat().st_mode&0o777);replacement.replace(ring)
+   with self.assertRaises(ValueError):lease.check()
+ def test_keyring_directory_lock_churn_preserves_admission(self):
+  import shutil
+  with tempfile.TemporaryDirectory()as d:
+   home=pathlib.Path(d).resolve()/'home';shutil.copytree(self.home,home);home.chmod(0o700)
+   lease=p.ProofLease(self.root,self.commit,self.file,self.sig,home)
+   lock=home/'.gnupg/transient-test-lock';lock.write_bytes(b'lock');lock.unlink();lease.check();lease.close()
 if __name__=='__main__':unittest.main()

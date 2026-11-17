@@ -125,8 +125,9 @@ class ProofLease:
         self.identities = (self._identity(self.proof_path), self._identity(self.signature_path))
         ring = self.public_home / '.gnupg'
         self.ring_paths = (ring, ring / 'pubring.kbx', ring / 'trustdb.gpg')
+        self.ring_identities = tuple(self._key_identity(x) for x in self.ring_paths)
+        self.ring_bytes = tuple(read_owned(x, 4 * 1024 * 1024) for x in self.ring_paths[1:])
         self.value = verify(root, expected_commit, proof_path, signature_path, public_home)
-        self.ring_identities = tuple(self._identity(x) for x in self.ring_paths)
         self.closed = False
         self.check()
 
@@ -136,10 +137,19 @@ class ProofLease:
         return (s.st_dev, s.st_ino, s.st_mode, s.st_uid, s.st_gid,
                 s.st_nlink, s.st_size, s.st_mtime_ns, s.st_ctime_ns)
 
+    @staticmethod
+    def _key_identity(path):
+        s = path.lstat()
+        # GPG may create/remove locks; directory identity and permissions remain bound.
+        if stat.S_ISDIR(s.st_mode):
+            return (s.st_dev, s.st_ino, s.st_mode, s.st_uid, s.st_gid)
+        return ProofLease._identity(path)
+
     def check(self):
         need(not self.closed)
-        need(tuple(self._identity(x) for x in self.ring_paths) == self.ring_identities)
+        need(tuple(self._key_identity(x) for x in self.ring_paths) == self.ring_identities)
         need((self._identity(self.proof_path), self._identity(self.signature_path)) == self.identities)
+        need(tuple(read_owned(x, 4 * 1024 * 1024) for x in self.ring_paths[1:]) == self.ring_bytes)
         need(read_owned(self.proof_path, 16384) == self.raw)
         need(read_owned(self.signature_path, 16384) == self.signature)
 
