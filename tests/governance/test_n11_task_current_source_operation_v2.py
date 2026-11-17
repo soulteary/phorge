@@ -49,8 +49,11 @@ class CurrentPairParentData(unittest.TestCase):
  def test_genuine_current_pair_and_exact_parent_DATA(self):
   with owner(ROOT)as operation:
    ctx=operation._task_contexts[ROOT]
-   self.assertEqual(len(ctx.ci_inverse),86)
-   prior={k:v for k,v in ctx.ci_inverse.items()if k not in self.CONTINUATION}
+   self.assertEqual(len(ctx.ci_inverse),88)
+   identity_inputs={'src/applications/auth/__tests__/PhabricatorTraefikAuthProviderTestCase.php','tests/atomic/packages/D01.json'}
+   for name in identity_inputs:
+    self.assertEqual(ctx.parent(name),subprocess.check_output(['git','-C',str(ROOT),'show','5903d98b14926401f0be49cb0a9d6168026a2642:'+name]))
+   prior={k:v for k,v in ctx.ci_inverse.items()if k not in self.CONTINUATION and k not in identity_inputs}
    self.assertEqual(len(prior),78)
    self.assertEqual(hashlib.sha256(json.dumps(prior,sort_keys=True,separators=(',',':')).encode()).hexdigest(),'a6019af54c1f0b5bfb67e3d3a2ac5967412b6114f122aadda209f5662d5e972d')
    for name in self.CONTINUATION:
