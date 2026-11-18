@@ -25,10 +25,16 @@ class TaskStaticInventory(unittest.TestCase):
  def test_fake_owner_refuses_before_source_capture(self):
   with self.assertRaises(ValueError):gate.verify_in_operation(object(),ROOT)
  def test_only_two_exact_current_parent_metadata_deltas(self):
+  # Retain the existing test ID/count; the reviewed closed set now has three.
+  self.assertEqual(set(gate.METADATA_DELTAS),{
+   'src/applications/people/governance/auth/PhorgeGovernanceNativeIdentitySource.php',
+   'src/infrastructure/governance/execution/PhorgeProjectConfigEpochScope.php',
+   'src/infrastructure/governance/media/PhorgeGovernanceMediaExchangeService.php'})
   for name,(old,new)in gate.METADATA_DELTAS.items():
    current=(ROOT/name).read_bytes();parent=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'show','5903d98b14926401f0be49cb0a9d6168026a2642:'+name])
    self.assertEqual((gate.sha(parent),gate.sha(current)),(old,new));self.assertEqual(gate._metadata_data(name,current,parent),parent)
-   for raw,prior in((current+b'unknown',parent),(current,parent+b'unknown'),(current,None)):
+   for raw,prior in((current+b'unknown',parent),(current,parent+b'unknown'),(current,None),
+     (b'!'+current[1:],parent),(current,b'!'+parent[1:]),(current.decode(),parent),(current,bytearray(parent))):
     with self.assertRaises(ValueError):gate._metadata_data(name,raw,prior)
  def test_unknown_metadata_path_cannot_gain_inverse_role(self):
   with self.assertRaises(ValueError):gate._metadata_data('src/unknown.php',b'current',b'parent')

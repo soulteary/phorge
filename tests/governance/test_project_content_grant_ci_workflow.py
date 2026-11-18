@@ -6,6 +6,22 @@ from unittest.mock import patch
 from project_grant_source_task_test_api_v2 import GrantSourceCurrentCase
 import yaml
 ROOT=Path(__file__).resolve().parents[2]
+
+
+def _full_trigger_contract(raw,relative):
+ # CURRENT invocation remains full-only and exact-head bound. The old PR
+ # filter below is immutable historical metadata DATA, never source authority.
+ import importlib.util,yaml
+ spec=importlib.util.spec_from_file_location('focused_contract_DATA',ROOT/'scripts/ci/focused_workflows.py')
+ contract=importlib.util.module_from_spec(spec);spec.loader.exec_module(contract)
+ contract.focused_contract(yaml.load(raw,Loader=yaml.BaseLoader),Path(relative).name)
+ inventory=contract.inventory(ROOT)
+ assert inventory['focused_full_workflows']==12 and inventory['release_full_workflows']==13
+ old=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'show',
+  '7b23c47e329f32e4fe083d0efa23fd82d6eefe6f:'+relative],timeout=10)
+ historical=yaml.safe_load(old);events=historical.get('on',historical.get(True))
+ return events['pull_request']['paths']
+
 DIR=ROOT/'support/governance/project-content-grants-ci'
 _spec=importlib.util.spec_from_file_location('N05_workflow_ci',DIR/'ci.py');ci=importlib.util.module_from_spec(_spec);_spec.loader.exec_module(ci)
 WORKFLOW=ROOT/'.github/workflows/project-content-grants-focused.yml'
@@ -14,7 +30,7 @@ def load(name,path):
 class Workflow(GrantSourceCurrentCase):
  def workflow(self):return yaml.safe_load(WORKFLOW.read_text())
  def test_event_permissions_and_exact_loopback_service(self):
-  w=self.workflow();events=w.get('on',w.get(True));self.assertEqual(set(events),{'pull_request','workflow_dispatch'});self.assertEqual(w['permissions'],{'contents':'read'})
+  w=self.workflow();events=w.get('on',w.get(True));self.assertEqual(set(events),{'workflow_call','workflow_dispatch'});_full_trigger_contract(WORKFLOW.read_bytes(),'.github/workflows/project-content-grants-focused.yml');self.assertEqual(w['permissions'],{'contents':'read'})
   job=w['jobs']['native-content-grants'];self.assertNotIn('container',job)
   service=job['services']['mysql'];self.assertEqual(service['image'],ci.MYSQL);self.assertEqual(service['ports'],['127.0.0.1:3306:3306']);self.assertNotIn('-p',service['options'])
   text=WORKFLOW.read_text();self.assertNotIn('secrets.',text);self.assertNotIn('pull_request_target',text);self.assertNotIn('git push',text)

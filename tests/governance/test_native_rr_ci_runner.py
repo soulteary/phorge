@@ -21,10 +21,13 @@ def snapshot(path):
 class Flow(unittest.TestCase):
  def exercise(self,fault=None):
   with tempfile.TemporaryDirectory()as tmp:
-   base=Path(tmp);checkout=base/'checkout';checkout.mkdir();temp=base/'runner-temp';temp.mkdir();modules=base/'modules';modules.mkdir();go=base/'go';go.write_bytes(b'synthetic-go');go.chmod(0o700)
+   base=Path(tmp).resolve();checkout=base/'checkout';checkout.mkdir();temp=base/'runner-temp';temp.mkdir();modules=base/'modules';modules.mkdir();go=base/'go';go.write_bytes(b'synthetic-go');go.chmod(0o700)
    for path in p.OWNER_FILES+p.RECIPE_FILES:
     target=checkout/path;target.parent.mkdir(parents=True,exist_ok=True);target.write_bytes(path.encode())
-   (checkout/'src').mkdir();(checkout/'src/__phutil_library_map__.php').write_bytes(b'<?php // signed synthetic map')
+   for path in r.execution.CURRENT_RESTORE_PATHS:
+    target=checkout/path;target.parent.mkdir(parents=True,exist_ok=True)
+    target.write_bytes((ROOT/path).read_bytes()if path in r.execution.CURRENT_RESTORE_ASSETS else b'# synthetic committed CLI; strict validation mocked separately\n')
+   (checkout/'src').mkdir(exist_ok=True);(checkout/'src/__phutil_library_map__.php').write_bytes(b'<?php // signed synthetic map')
    archive=io.BytesIO()
    with tarfile.open(fileobj=archive,mode='w')as tar:
     for file in checkout.rglob('*'):
@@ -41,7 +44,7 @@ class Flow(unittest.TestCase):
     else:sentinel(public_path)
     state['before']=snapshot(public_path)
    env={'GITHUB_ACTIONS':'true','RUNNER_OS':'Linux','RUNNER_ARCH':'X64','GITHUB_SHA':REV,'GITHUB_RUN_ID':'12','GITHUB_RUN_ATTEMPT':'1','GITHUB_EVENT_NAME':'pull_request','GITHUB_REF':'refs/pull/12/merge','GITHUB_JOB':'owner-build','GITHUB_WORKFLOW_REF':'soulteary/phorge/.github/workflows/native-rr-owner-build.yml@refs/pull/12/merge','NATIVE_RR_LOCKED_GOMODCACHE':str(modules),'RUNNER_TEMP':str(temp),'NATIVE_RR_MYSQL_SERVICE_ID':ID}
-   sources=p.source_bindings(checkout,lambda path:(checkout/path).read_bytes());ids={f'Synthetic::test{i}'for i in range(280)}
+   sources=p.source_bindings(checkout,lambda path:(checkout/path).read_bytes());ids={f'Synthetic::test{i}'for i in range(285)}
    def build(args):
     out=Path(args[args.index('--output-dir')+1]);out.mkdir();raw=json.dumps(info()).encode();body=b'synthetic-owner'
     record={'schema_version':1,'source_revision':REV,'source_kind':'pull-request-synthetic-merge','PR_head_measured':False,'run_id':'12','run_attempt':'1','profile':'isolated-native-RR21-linux-amd64-v1','source_sha256':sources,'binary_sha256':p.digest(body),'build_info_sha256':p.digest(raw),'go_binary_sha256':p.digest(go.read_bytes()),'source_clean_before_after':True,'build_info_verified':True,'descriptor_is_execution_authority':False,'external_trusted_anchor_established':False,'PHP_executed':False,'SQL_executed':False}
@@ -49,7 +52,7 @@ class Flow(unittest.TestCase):
    def command(args,**kwargs):
     calls.append(args)
     if args[0]=='git':
-     if 'rev-parse'in args:return(REV+'\n').encode()
+     if 'rev-parse'in args:return(('b'*40 if fault=='restore-head-drift'and native_called else REV)+'\n').encode()
      if 'status'in args:return b''
      if 'show'in args:return(checkout/args[-1].split(':',1)[1]).read_bytes()
      if 'archive'in args:return archive.getvalue()
@@ -65,7 +68,7 @@ class Flow(unittest.TestCase):
      if args[1]=='bin/rebuild-library-map':return b''
      if args[1]=='-r'and 'profile_accepted'in args[2]:return b'{"profile_accepted":true,"production_authority":false}'
      if args[1]=='-r'and 'new mysqli'in args[2]:return b'{"version":"8.4.13","principal":"root@%","role":"NONE","proxy":null}'
-     if args[1].endswith('/tests/governance/run.php'):return json.dumps({'passed':True,'runtime':'8.5.12','expected_methods':280,'results':[{'id':i,'result':'pass'}for i in ids]}).encode()
+     if args[1].endswith('/tests/governance/run.php'):return json.dumps({'passed':True,'runtime':'8.5.12','expected_methods':285,'results':[{'id':i,'result':'pass'}for i in ids]}).encode()
     raise AssertionError('unexpected fixed command')
    real_seed=r.create_seed
    def seed(*args):seed_dirs.append(args[0]);return real_seed(*args)
@@ -81,6 +84,7 @@ class Flow(unittest.TestCase):
     if fault=='unknown-SQL-cleanup':data['cleanup']={}
     if fault=='global-clean-local-unknown':data['native']['local_cleanup'][0]['owned_SQL_sessions_ended']=False
     if fault=='source-drift':(source/'support/governance/recovery/native-writer-rr-parent.php').write_bytes(b'drift')
+    if fault=='restore-cli-drift':(source/r.execution.CURRENT_RESTORE_CLI).write_bytes(b'changed-current-CLI')
     raw=b'not-json'if fault=='malformed-receipt'else json.dumps(data).encode()
     code=1 if fault in ('known-case-failure','unknown-SQL-cleanup','global-clean-local-unknown')else 0
     # Re-encode a genuine failure header; cleanup evidence remains independent.
@@ -92,8 +96,11 @@ class Flow(unittest.TestCase):
     if path==source and fault in ('public-late-replacement','public-late-symlink'):drift_public(fault.endswith('symlink'))
     return value
    original_read=Path.read_bytes
+   def accept_v2(root,data,revision,path,commitment,**kwargs):
+    r.execution.verify_current_restore_inputs(root,revision,commitment,**kwargs)
+    return ({'schema':'native-user-RR-current-restore-metadata-v2','passed':True,'checks':21,'raw_v1_accepted':False},b'{"schema":"native-user-RR-current-restore-metadata-v2","passed":true,"checks":21,"raw_v1_accepted":false}\n')
    try:
-    with patch.object(Path,'read_bytes',lambda path:b'synthetic-runtime-PHP'if path==Path('/usr/bin/php')else original_read(path)),patch.object(r,'ROOT',checkout),patch.object(r,'SOURCE',source),patch.object(r,'BINDIR',bindir),patch.object(r,'BINARY',binary),patch.object(r,'command',command),patch.object(r,'create_seed',seed),patch.object(r,'private_file',write),patch.object(r,'remove_owned_directory',remove),patch.object(r.build_owner,'main',build),patch.object(r.execution,'pure_inventory',return_value=ids),patch.object(r.execution,'strict_accept',return_value=({'passed':True,'checks':21},b'{"passed":true,"checks":21}\n')),patch.object(r.subprocess,'run',side_effect=native),patch.dict(os.environ,env,clear=True):
+    with patch.object(Path,'read_bytes',lambda path:b'synthetic-runtime-PHP'if path==Path('/usr/bin/php')else original_read(path)),patch.object(r,'ROOT',checkout),patch.object(r,'SOURCE',source),patch.object(r,'BINDIR',bindir),patch.object(r,'BINARY',binary),patch.object(r,'command',command),patch.object(r,'create_seed',seed),patch.object(r,'private_file',write),patch.object(r,'remove_owned_directory',remove),patch.object(r.build_owner,'main',build),patch.object(r.execution,'pure_inventory',return_value=ids),patch.object(r.execution,'strict_accept',side_effect=AssertionError('legacy automatic fallback forbidden')),patch.object(r.execution,'strict_accept_current_restore_v2',side_effect=accept_v2),patch.object(r.subprocess,'run',side_effect=native),patch.dict(os.environ,env,clear=True):
      if fault:
       with self.assertRaises((RuntimeError,ValueError,FileExistsError))as caught:r.main(['--go',str(go),'--execute-sql'])
       if fault=='parser-map-drift':self.assertEqual('parser preparation changed signed application map',str(caught.exception));self.assertEqual([],native_called);self.assertFalse(source.exists())
@@ -102,8 +109,13 @@ class Flow(unittest.TestCase):
     public=temp/'native-rr-owner-build';check=public/'checkpoint.json'
     if not fault:
      self.assertTrue(check.exists());proof=json.loads(check.read_text());self.assertTrue(proof['portable_RR21_accepted']);self.assertEqual(21,proof['SQL_checks']);self.assertFalse(source.exists());self.assertFalse(binary.exists());self.assertEqual([],proof['cleanup_failures']);self.assertFalse(proof['TERM_KILL_fault_matrix_proved'])
+     self.assertEqual(proof['restore_metadata_profile'],'native-user-RR-current-restore-metadata-v2');self.assertFalse(proof['raw_v1_profile_qualified']);self.assertFalse(proof['legacy_physical_restore_profile_proved']);self.assertFalse(proof['Task_physical_schema_verified']);self.assertFalse(proof['source_owner_issued'])
+     commitments=list(temp.glob('native-rr-run-*/current-restore-input-commitment.private.json'));self.assertEqual(len(commitments),1)
+     c=json.loads(commitments[0].read_text());self.assertEqual(set(c['files']),r.execution.CURRENT_RESTORE_PATHS);self.assertEqual(c['source_revision'],REV)
+     self.assertEqual(len(sources),15)  # The Go/PHP anchor remains unchanged.
     else:
      self.assertFalse(check.exists())
+     reports=list(temp.glob('native-rr-run-*/prepare-result.json'));self.assertEqual(len(reports),1);self.assertFalse(json.loads(reports[0].read_text())['raw_v1_profile_qualified'])
      if fault and fault.startswith('public-'):
       self.assertEqual('successful-runner-only',artifact_upload_policy());self.assertIsNotNone(caught.exception) # Real main failed: this path is not upload-authorized.
       self.assertEqual(state['before'],snapshot(public_path))
@@ -123,7 +135,7 @@ class Flow(unittest.TestCase):
      if directory.exists():shutil.rmtree(directory)
  def test_full_runner_known_success_with_real_owned_files(self):self.exercise()
  def test_failure_never_seals_unknown_SQL_retains_owned_objects(self):
-  for fault in ('known-case-failure','unknown-SQL-cleanup','global-clean-local-unknown','malformed-receipt','source-drift','lost-install-reply','parser-map-drift'):
+  for fault in ('known-case-failure','unknown-SQL-cleanup','global-clean-local-unknown','malformed-receipt','source-drift','lost-install-reply','parser-map-drift','restore-cli-drift','restore-head-drift'):
    with self.subTest(fault=fault):self.exercise(fault)
  def test_preexisting_foreign_directory_and_symlink_untouched(self):
   for fault in ('public-preexisting-directory','public-preexisting-symlink'):

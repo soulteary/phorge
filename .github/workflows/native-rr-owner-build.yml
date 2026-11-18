@@ -28,6 +28,9 @@ jobs:
         options: --health-cmd "mysqladmin ping -pnative-rr-ci-disposable-only" --health-interval 5s --health-timeout 3s --health-retries 30
     env:
       PYTHONDONTWRITEBYTECODE: '1'
+      NATIVE_RR_EXPECTED_HEAD: ${{ inputs.expected_head }}
+      NATIVE_RR_WORKFLOW_SHA: ${{ github.workflow_sha }}
+      NATIVE_RR_RELEASE_TAG: ${{ github.event.inputs.release_tag }}
     steps:
       - uses: actions/checkout@v6
         with:

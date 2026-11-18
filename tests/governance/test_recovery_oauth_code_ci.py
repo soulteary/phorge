@@ -6,6 +6,22 @@ from pathlib import Path
 import copy,json,os,re,shlex,shutil,subprocess,sys,tempfile,textwrap,unittest
 from unittest.mock import patch
 ROOT=Path(__file__).resolve().parents[2]
+
+
+def _full_trigger_contract(raw,relative):
+ # CURRENT invocation remains full-only and exact-head bound. The old PR
+ # filter below is immutable historical metadata DATA, never source authority.
+ import importlib.util,yaml
+ spec=importlib.util.spec_from_file_location('focused_contract_DATA',ROOT/'scripts/ci/focused_workflows.py')
+ contract=importlib.util.module_from_spec(spec);spec.loader.exec_module(contract)
+ contract.focused_contract(yaml.load(raw,Loader=yaml.BaseLoader),Path(relative).name)
+ inventory=contract.inventory(ROOT)
+ assert inventory['focused_full_workflows']==12 and inventory['release_full_workflows']==13
+ old=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'show',
+  '7b23c47e329f32e4fe083d0efa23fd82d6eefe6f:'+relative],timeout=10)
+ historical=yaml.safe_load(old);events=historical.get('on',historical.get(True))
+ return events['pull_request']['paths']
+
 sys.path.insert(0,str(ROOT/'scripts/governance'))
 import project_oauth_code_failure as projector
 import check_recovery_oauth_code_producer_v1 as code_gate
@@ -254,15 +270,15 @@ class OAuthCI(unittest.TestCase):
   self.assertIn('if: success()',FOCUSED.read_text());self.assertNotIn('if: always()',FOCUSED.read_text());self.assertIn("failure() && steps.oauth-code-owner.outputs.diagnostic_owned == 'true'",FOCUSED.read_text())
  def test_path_scoped_readonly_job_exact_File_builder_and_real_phase(self):
    import yaml
-   wf=yaml.safe_load(FOCUSED.read_text());events=wf.get('on',wf.get(True));self.assertEqual(set(events),{'pull_request','workflow_dispatch'});self.assertEqual(wf['permissions'],{'contents':'read'})
-   paths=events['pull_request']['paths']
+   wf=yaml.safe_load(FOCUSED.read_text());events=wf.get('on',wf.get(True));self.assertEqual(set(events),{'workflow_call','workflow_dispatch'});self.assertEqual(wf['permissions'],{'contents':'read'})
+   paths=_full_trigger_contract(FOCUSED.read_bytes(),'.github/workflows/oauth-code-producer-focused.yml')
    for name in ['.github/workflows/oauth-code-producer-focused.yml','tests/atomic/build_directory_file.py']:self.assertIn(name,paths)
    from task_ci_workflow_test_api_v2 import workflow_data
    view=workflow_data(ROOT,'.github/workflows/oauth-code-producer-focused.yml',FOCUSED.read_bytes())
    parent=yaml.safe_load(view['parent'])
    current_job=wf['jobs']['oauth-code-owner'];current_text=FOCUSED.read_text()
    self.assertEqual({k:v for k,v in wf.items()if k not in ('jobs','on',True,'concurrency')},{k:v for k,v in parent.items()if k not in ('jobs','on',True,'concurrency')})
-   self.assertEqual([step.get('name')for step in current_job['steps']if step.get('name')!='Bind external event head and isolated PUBLIC verification home'],[step.get('name')for step in parent['jobs']['oauth-code-owner']['steps']])
+   self.assertEqual([step.get('name')for step in current_job['steps']if step.get('name')not in ('Bind external event head and isolated PUBLIC verification home','Require exact full-tier caller checkpoint')],[step.get('name')for step in parent['jobs']['oauth-code-owner']['steps']])
    self.assertEqual(current_job['services']['mysql']['image'],'mysql:8.4.13@sha256:a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7')
    for required in ('run_task_directory_native_v2.py','--role oauth-code','check_oauth_code_task_schema_receipt_v2.py','probe_oauth_code_task_mysql84.php before','probe_oauth_code_task_mysql84.php after','--expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT"',"module['build_file'](",'tests/atomic/build_directory_file.py','project_oauth_code_failure.py'):self.assertIn(required,current_text)
    for prohibited in ('secrets.','workflow_run:','docker push',"module['build']("):self.assertNotIn(prohibited,current_text)
@@ -625,7 +641,7 @@ class OAuthCI(unittest.TestCase):
    with self.assertRaises((AssertionError,StopIteration)):check(altered)
  def test_code_only_PR_changes_schedule_job_and_unrelated_docs_do_not(self):
   import fnmatch,yaml
-  wf=yaml.safe_load(FOCUSED.read_text());events=wf.get('on',wf.get(True));paths=events['pull_request']['paths']
+  wf=yaml.safe_load(FOCUSED.read_text());events=wf.get('on',wf.get(True));paths=_full_trigger_contract(FOCUSED.read_bytes(),'.github/workflows/oauth-code-producer-focused.yml')
   def schedules(files,patterns=paths):return any(fnmatch.fnmatchcase(name,pattern)for name in files for pattern in patterns)
   code_pattern='tests/governance/test_recovery_oauth_code_*.py';self.assertIn(code_pattern,paths)
   for name in ['test_recovery_oauth_code_source.py','test_recovery_oauth_code_ci.py','test_recovery_oauth_code_threads.py','test_recovery_oauth_code_result.py']:

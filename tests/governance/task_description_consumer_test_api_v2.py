@@ -11,8 +11,12 @@ def known_dirty_rejection(error,root,expected_checkpoint):
  if type(expected_checkpoint)is not str or re.fullmatch('[a-f0-9]{40}',expected_checkpoint)is None or expected_checkpoint=='0'*40:return False
  if not isinstance(root,Path)or not root.is_absolute()or type(error.cmd)is not list:return False
  if type(error.stdout)is not bytes or type(error.stderr)is not bytes or error.stdout!=b''or error.stderr!=b'':return False
- prefix=['git','-C',str(root),'diff']
- return error.cmd in(prefix+['--quiet',expected_checkpoint,'--'],prefix+['--cached','--quiet',expected_checkpoint,'--'])
+ prefixes=(['git','-C',str(root),'diff'],
+  ['git','--no-replace-objects','-c','core.hooksPath=/dev/null','-c','core.fsmonitor=false',
+   '-c','gpg.format=openpgp','-c','gpg.program=/usr/bin/gpg','-c','gpg.openpgp.program=/usr/bin/gpg',
+   '-C',str(root),'diff'])
+ return any(error.cmd==prefix+tail for prefix in prefixes for tail in
+  (['--quiet',expected_checkpoint,'--'],['--cached','--quiet',expected_checkpoint,'--']))
 def checkpoint():
  value=os.environ.get('PHORGE_TASK_TEST_CHECKPOINT')
  if type(value)is not str or re.fullmatch('[a-f0-9]{40}',value)is None or value=='0'*40:raise ValueError('external_Task_checkpoint_required')

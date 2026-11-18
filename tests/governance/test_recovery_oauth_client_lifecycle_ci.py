@@ -3,6 +3,22 @@ import copy,hashlib,json,re,subprocess,sys,tempfile,unittest
 from pathlib import Path
 from unittest.mock import patch
 ROOT=Path(__file__).resolve().parents[2]
+
+
+def _full_trigger_contract(raw,relative):
+ # CURRENT invocation remains full-only and exact-head bound. The old PR
+ # filter below is immutable historical metadata DATA, never source authority.
+ import importlib.util,yaml
+ spec=importlib.util.spec_from_file_location('focused_contract_DATA',ROOT/'scripts/ci/focused_workflows.py')
+ contract=importlib.util.module_from_spec(spec);spec.loader.exec_module(contract)
+ contract.focused_contract(yaml.load(raw,Loader=yaml.BaseLoader),Path(relative).name)
+ inventory=contract.inventory(ROOT)
+ assert inventory['focused_full_workflows']==12 and inventory['release_full_workflows']==13
+ old=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'show',
+  '7b23c47e329f32e4fe083d0efa23fd82d6eefe6f:'+relative],timeout=10)
+ historical=yaml.safe_load(old);events=historical.get('on',historical.get(True))
+ return events['pull_request']['paths']
+
 sys.path.insert(0,str(ROOT/'scripts/governance'))
 import check_recovery_oauth_client_lifecycle as gate
 import qualify_oauth_client_lifecycle_mysql84 as qualified
@@ -103,7 +119,7 @@ class LifecycleWorkflow(unittest.TestCase):
 
  def test_path_triggers_include_source_and_all_new_control_files_not_unrelated_docs(self):
   import fnmatch,yaml
-  workflow=yaml.safe_load(WORKFLOW.read_text());on=workflow.get('on',workflow.get(True));paths=on['pull_request']['paths'];matches=lambda p:any(fnmatch.fnmatchcase(p,x)for x in paths)
+  workflow=yaml.safe_load(WORKFLOW.read_text());on=workflow.get('on',workflow.get(True));paths=_full_trigger_contract(WORKFLOW.read_bytes(),'.github/workflows/oauth-client-lifecycle-focused.yml');matches=lambda p:any(fnmatch.fnmatchcase(p,x)for x in paths)
   for path in ['.github/workflows/oauth-client-lifecycle-focused.yml','src/applications/system/engine/PhabricatorDestructionEngine.php','src/applications/transactions/editor/PhabricatorApplicationTransactionEditor.php','tests/governance/test_recovery_oauth_client_lifecycle.py','tests/governance/test_recovery_oauth_client_lifecycle_sql.py','tests/governance/test_recovery_oauth_client_lifecycle_ci.py']:
    self.assertTrue(matches(path),path)
   self.assertFalse(matches('src/applications/oauthserver/storage/PhabricatorOAuthServerClient.php'))

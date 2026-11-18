@@ -91,6 +91,19 @@ CI_V2_NEW_PATHS.update({
 })
 # Exact additions for the external CI proof tool and its runbook.
 CI_V2_NEW_PATHS.update({'scripts/ci/create_merge_source_proof.py','docs/ci/merge-source-proof.md'})
+# Exact reviewed main additions: identity regression and portable SQL isolation.
+CI_V2_NEW_PATHS.update({'src/applications/auth/__tests__/PhabricatorTraefikSessionIdentityTestCase.php','tests/contract/runtime/media-isolation.php'})
+
+# Explicit RR current-restore metadata consumer and pure negative tests.
+CI_V2_NEW_PATHS.update({'scripts/governance/check_native_user_rr_mdl_current_restore_v2.py','tests/ci/test_rr_current_restore_v2.py'})
+
+# Fixed release history is inert literal DATA, never executable historical code.
+RELEASE_HISTORY='support/governance/source-operation/task-release-source-history-v1.json'
+RELEASE_HISTORY_BYTES=82093
+RELEASE_HISTORY_SHA='ad8b73ded8544ac8fc16de585fc734525fa2d5ab76ac70a9eef31f85c3d8d677'
+RELEASE_HISTORY_PATHS=frozenset(['.github/workflows/container-image.yml', '.github/workflows/gorge-runtime-contracts.yml', '.github/workflows/native-rr-owner-build.yml', '.gitignore', 'docs/README.md', 'docs/upstream/atomic-release-protocol.md', 'src/__phutil_library_map__.php', 'src/applications/auth/provider/PhabricatorTraefikAuthProvider.php', 'src/applications/base/controller/PhabricatorController.php', 'src/infrastructure/governance/media/PhorgeGovernanceMediaExchangeService.php', 'src/infrastructure/governance/media/README.md', 'src/infrastructure/governance/media/__tests__/PhorgeGovernanceMediaExchangeServiceTestCase.php', 'src/infrastructure/governance/media/__tests__/PhorgeGovernanceMediaFileGuardTestCase.php', 'src/infrastructure/governance/media/__tests__/PhorgeGovernanceMediaHTTPProtocolTestCase.php', 'tests/governance/native_rr_ci/build_owner.py', 'tests/governance/native_rr_ci/execution.py', 'tests/governance/native_rr_ci/runner.py', 'tests/governance/test_native_rr_ci_execution.py', 'tests/governance/test_native_rr_ci_provenance.py', 'tests/governance/test_native_rr_ci_runner.py', 'tests/governance/test_native_user_rr_mdl_source.py'])
+CI_V2_NEW_PATHS.add(RELEASE_HISTORY)
+
 def need(v):
  if v is not True:raise ValueError('task_SourceOperation_admission_refused')
 def sha(raw):return hashlib.sha256(raw).hexdigest()
@@ -110,6 +123,65 @@ def decode(raw):
   for k,v in items:need(k not in d);d[k]=v
   return d
  return json.loads(raw,object_pairs_hook=pairs,parse_constant=lambda _:need(False))
+def validate_release_history(doc):
+ need(type(doc)is dict and set(doc)=={'schema','base_checkpoint','files'})
+ need(doc['schema']=='Task-release-source-history-literal-inverse-v1'
+      and doc['base_checkpoint']=='e3c4632f5ca63b79fb8ec08875a651080cba3d7c')
+ files=doc['files'];need(type(files)is dict and set(files)==RELEASE_HISTORY_PATHS)
+ total=0
+ for relative,row in files.items():
+  need(type(relative)is str and type(row)is dict
+       and set(row)=={'current_bytes','current_sha256','target_bytes','target_sha256','edits'})
+  need(all(type(row[k])is int and 0<row[k]<=16777216 for k in ('current_bytes','target_bytes')))
+  need(all(type(row[k])is str and re.fullmatch('[a-f0-9]{64}',row[k])is not None for k in ('current_sha256','target_sha256')))
+  edits=row['edits'];need(type(edits)is list and 0<len(edits)<=128)
+  previous=-1;current_end=target_end=delta=0
+  for edit in edits:
+   need(type(edit)is dict and set(edit)=={'offset','current','parent'}
+        and type(edit['offset'])is int and type(edit['current'])is type(edit['parent'])is str)
+   offset=edit['offset'];old=edit['current'].encode('utf-8');new=edit['parent'].encode('utf-8')
+   total+=len(old)+len(new);need(total<=1048576 and old!=new)
+   need(offset>previous and offset>=current_end and offset+len(old)<=row['current_bytes'])
+   target_offset=offset+delta
+   need(target_offset>=target_end and target_offset+len(new)<=row['target_bytes'])
+   previous=offset;current_end=offset+len(old);target_end=target_offset+len(new)
+   delta+=len(new)-len(old)
+  need(row['current_bytes']+delta==row['target_bytes'])
+
+
+def load_release_history(raw):
+ need(type(raw)is bytes and len(raw)==RELEASE_HISTORY_BYTES and sha(raw)==RELEASE_HISTORY_SHA)
+ doc=decode(raw);validate_release_history(doc);return doc
+
+
+def release_history_roundtrip(relative,target,doc):
+ # Independent forward reconstruction, using target offsets derived from the
+ # original current offsets. No historical payload is compiled or executed.
+ validate_release_history(doc);need(relative in RELEASE_HISTORY_PATHS and type(target)is bytes)
+ row=doc['files'][relative]
+ need(len(target)==row['target_bytes']and sha(target)==row['target_sha256'])
+ parts=[];cursor=delta=0
+ for edit in row['edits']:
+  old=edit['current'].encode('utf-8');new=edit['parent'].encode('utf-8');offset=edit['offset']+delta
+  need(target[offset:offset+len(new)]==new)
+  parts.extend((target[cursor:offset],old));cursor=offset+len(new);delta+=len(new)-len(old)
+ result=b''.join(parts)+target[cursor:]
+ need(len(result)==row['current_bytes']and sha(result)==row['current_sha256']);return result
+
+
+def release_history_inverse(relative,current,doc):
+ validate_release_history(doc);need(relative in RELEASE_HISTORY_PATHS and type(current)is bytes)
+ row=doc['files'][relative]
+ need(len(current)==row['current_bytes']and sha(current)==row['current_sha256'])
+ parts=[];cursor=0
+ for edit in row['edits']:
+  offset=edit['offset'];old=edit['current'].encode('utf-8');new=edit['parent'].encode('utf-8')
+  need(current[offset:offset+len(old)]==old)
+  parts.extend((current[cursor:offset],new));cursor=offset+len(old)
+ target=b''.join(parts)+current[cursor:]
+ need(len(target)==row['target_bytes']and sha(target)==row['target_sha256'])
+ need(release_history_roundtrip(relative,target,doc)==current);return target
+
 def task_preupgrade_fixture_inverse(relative,raw,recipe_raw):
  """Pure fixed DATA inverse; never executes a fixture, recipe, or source code."""
  need(type(relative)is str and relative==TASK_PREUPGRADE_FIXTURE)
@@ -182,6 +254,7 @@ class TaskContext:
   self._directory_scopes=MappingProxyType({path:path.is_relative_to(self.root)for path in self.directories})
   need(sha(self.current_raw[BASELINE])==BASELINE_SHA and sha(self.current_raw[INVERSE])==INVERSE_SHA)
   self.parent_pins=decode(self.current_raw[BASELINE])['entries'];self.api_inverse=decode(self.current_raw[INVERSE]);self.reduced={}
+  release_history=load_release_history(self.current_raw[RELEASE_HISTORY])
   need(sha(self.current_raw[CI_INVERSE])==CI_INVERSE_SHA)
   ci=decode(self.current_raw[CI_INVERSE]);need(set(ci)=={'schema','parent_revision','files'}and ci['schema']=='Task-CI-modified-parent5903-v1'and ci['parent_revision']=='5903d98b14926401f0be49cb0a9d6168026a2642')
   self.ci_inverse=ci['files'];need(set(self.ci_inverse)=={'tests/governance/test_recovery_spaces_source_gate.py', 'tests/governance/test_restore_current_schema_profile.py', 'tests/governance/test_recovery_borrowed_native_producer.py', 'tests/governance/test_application_config_atomic_ci.py', 'scripts/governance/check_native_organization.py', '.github/workflows/atomic-feature-regressions.yml', 'tests/atomic/test_current_pair_consumers.py', 'tests/governance/test_recovery_session_lease_ci.py', 'tests/governance/recovery_oauth_code_test_cohort.py', 'tests/governance/test_task_owner_atomic_ci.py', 'tests/governance/test_recovery_oauth_access_sql.py', 'src/applications/auth/__tests__/PhabricatorTraefikAuthProviderTestCase.php', 'deploy/acceptance/build-lock.json', 'tests/governance/test_recovery_oauth_authorization_coordination.py', 'support/governance/notification/wiki-render-service.php', 'tests/governance/test_private_calendar_sql_gate.py', 'tests/governance/test_notice_native_admin_wire_source.py', 'tests/governance/test_callers.py', 'tests/governance/test_n05_r3_historical_test_view.py', 'tests/governance/test_directory_transports_receipt_v1.py', 'tests/governance/test_recovery_session_lease_gate.py', 'tests/governance/test_recovery_conduit_participant.py', 'tests/governance/test_native_directory.py', 'tests/governance/test_media_fixture_contentgrant_migration.py', 'tests/governance/test_directory_terminal_failure_v1.py', 'tests/governance/test_directory_transport_failure_v1.py', 'tests/governance/test_organization_approval_workbench_atomic_ci.py', 'tests/governance/test_recovery_borrowed_wiring.py', 'tests/governance/test_project_content_grant_source_cohort.py', 'tests/governance/test_source_operation_snapshot.py', 'tests/governance/test_recovery_oauth_code_ci.py', '.github/workflows/private-mail-wire.yml', '.github/workflows/native-media-session-positive-sql.yml', 'tests/governance/test_project_content_grant_ci_runtime.py', 'tests/governance/test_recovery_assessment_current.py', 'tests/governance/test_project_content_grant_ci_workflow.py', 'tests/governance/test_recovery_oauth_authorization_mysql84.py', 'tests/governance/test_file_source_atomic_ci.py', 'tests/atomic/packages/D01.json', 'tests/governance/test_recovery_oauth_authorization_sql.py', 'scripts/governance/project_description_admission_delta.py', 'tests/governance/test_recovery_borrowed_session.py', 'tests/atomic/paired-gorge.json', 'src/applications/config/schema/PhabricatorConfigSchemaSpec.php', 'tests/governance/test_native_worker_terminal.py', '.github/workflows/oauth-access-producer-focused.yml', '.github/workflows/project-content-grants-focused.yml', 'tests/governance/test_recovery_conduit_wiring.py', 'tests/governance/test_private_calendar_wire.py', 'tests/governance/test_recovery_borrowed_worker_diagnostic.py', 'support/governance/project-content-grants-ci/ci.py', 'tests/governance/test_recovery_assessment_credentials.py', 'tests/governance/test_recovery_oauth_access_source.py', 'tests/governance/test_recovery_oauth_authorization_ci.py', 'tests/governance/test_recovery_session_actor_order.py', 'tests/governance/test_notice_history_lifecycle.py', 'tests/governance/test_recovery_file_parent_ci.py', '.github/workflows/oauth-authorization-producer-focused.yml', 'tests/atomic/extract_native_renderer.py', '.github/workflows/conduit-producer-focused.yml', 'tests/governance/test_project_content_grant_target_binding.py', 'tests/governance/test_calendar_conduit_union.py', 'docs/governance/batch-2-callers.json', 'tests/governance/test_api_concurrency_atomic_ci.py', '.github/workflows/project-description-focused.yml', 'tests/governance/test_recovery_oauth_code_sql.py', '.github/workflows/native-directory-transports-v1.yml', 'tests/governance/test_project_source_atomic_ci.py', 'tests/governance/test_media_remote_native_profile.py', 'tests/governance/test_recovery_oauth_code_media_binding.py', '.github/workflows/oauth-code-producer-focused.yml', 'tests/governance/test_private_calendar_failure_diagnostic.py', 'tests/governance/test_recovery_assessment_credential_sql.py', 'tests/governance/test_recovery_oauth_code_coordination.py', 'tests/governance/test_native_organization.py', 'tests/governance/test_directory_source_inventory_pin.py', 'tests/governance/test_recovery_oauth_access_ci.py', 'tests/governance/test_recovery_file_parent_gate.py', 'support/governance/project-description-ci/ci.py', '.github/workflows/assessment-credential-focused.yml', 'support/governance/media-session-ci/test_ci.py', 'tests/governance/test_recovery_file_parent_policy.py', 'tests/governance/test_recovery_oauth_client_lifecycle_ci.py', 'tests/governance/test_n05_legacy_audit_test_view.py', 'tests/governance/test_recovery_partial_wiring.py', '.github/workflows/oauth-client-lifecycle-focused.yml', 'tests/governance/test_recovery_oauth_client_lifecycle_coordination.py', 'tests/governance/test_recovery_partial_schema_coordination.py'})
@@ -197,6 +270,7 @@ class TaskContext:
    elif rel in self.api_inverse:
     inverse=self.api_inverse[rel];decoder=zlib.decompressobj();raw=decoder.decompress(base64.b64decode(inverse['zlib_base64'],validate=True),inverse['bytes']+1);need(decoder.eof and not decoder.unused_data and not decoder.unconsumed_tail and len(raw)==inverse['bytes']and sha(raw)==inverse['sha256'])
    elif rel in self.parent_pins:
+    if rel in RELEASE_HISTORY_PATHS:raw=release_history_inverse(rel,raw,release_history)
     if rel==TASK_PREUPGRADE_FIXTURE:
      raw=task_preupgrade_fixture_inverse(rel,raw,self.current_raw[TASK_PREUPGRADE_RECIPE])
     raw=self.reduce(rel,raw)

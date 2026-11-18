@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Explicit current Task source inventory; static reference only, never a permit.
-The old CLI/manifest are unchanged. Only two metadata hashes and the original
-inventory expression receive typed seams; class/JX text checks remain CURRENT.
+The old CLI/manifest are unchanged. Two metadata-read seams admit only three
+exact reviewed file-version deltas; the single inventory seam and CURRENT
+class/JX text checks remain unchanged.
 """
 import argparse,ast,copy,hashlib,json,types
 from pathlib import Path
@@ -13,7 +14,8 @@ GATE_SHA='961bd869db320e7d34a9f7cbdb854f85151dff0a2feeef28331525909ef7b0fb'
 MANIFEST_SHA='1deb47e0184ae4cafc525de506f673ea3a6186e0f667ccfd9e973cfc6cbbb2b1'
 METADATA_DELTAS={
  'src/applications/people/governance/auth/PhorgeGovernanceNativeIdentitySource.php':('0a26b43c0462773969098d78616136a7ec0c2323d98511542d85e828f0103922','3f57b08aedd111158bc12b56fb13398e7de22f29a512244c7ec6b13f5ff23402'),
- 'src/infrastructure/governance/execution/PhorgeProjectConfigEpochScope.php':('64d0b0ca41b7fe557a12b5c7df33c3a1c5ad45d001386312e813b3353c7c26c4','6003325bbb90f4b544d79955372457679ece96baec265dc2546c1f9335dfa70b')}
+ 'src/infrastructure/governance/execution/PhorgeProjectConfigEpochScope.php':('64d0b0ca41b7fe557a12b5c7df33c3a1c5ad45d001386312e813b3353c7c26c4','6003325bbb90f4b544d79955372457679ece96baec265dc2546c1f9335dfa70b'),
+ 'src/infrastructure/governance/media/PhorgeGovernanceMediaExchangeService.php':('9afb37b7d3b409333dfd01f614f85423ecd1192d795dffe1999cb0a5f8f3c7b0','de96d90606515128ff310f01a614db122d877b7df2a496d50d204ab371eea163')}
 TASK_RUNTIME=frozenset(('src/infrastructure/governance/content/PhorgeTaskContentApprovalBinding.php','src/infrastructure/governance/content/PhorgeTaskContentGrantCommitProof.php','src/infrastructure/governance/content/PhorgeTaskContentGrantConfigOptions.php','src/infrastructure/governance/content/PhorgeTaskContentGrantConfiguration.php','src/infrastructure/governance/content/PhorgeTaskContentGrantPlan.php','src/infrastructure/governance/content/PhorgeTaskContentGrantRequest.php','src/infrastructure/governance/content/PhorgeTaskContentGrantSchemaSpec.php','src/infrastructure/governance/content/PhorgeTaskContentGrantService.php','src/infrastructure/governance/content/PhorgeTaskContentGrantStore.php','src/infrastructure/governance/content/PhorgeTaskContentGrantValue.php','src/infrastructure/governance/content/PhorgeTaskContentGrantWriteScope.php','src/infrastructure/governance/content/PhorgeTaskContentSource.php','src/infrastructure/governance/execution/PhorgeTaskGrantExecutionConfigSource.php'))
 HASH_EXPRESSIONS=('path.read_bytes()','file(root, raw).read_bytes()')
 INVENTORY_EXPRESSION="sorted(str(path.relative_to(root)) for prefix in ROOTS for path in (root / prefix).rglob('*.php') if '__tests__' not in path.parts)"

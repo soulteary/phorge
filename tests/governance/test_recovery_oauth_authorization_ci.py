@@ -6,6 +6,22 @@ from pathlib import Path
 import copy,json,os,re,shlex,shutil,subprocess,sys,tempfile,textwrap,unittest
 from unittest.mock import patch
 ROOT=Path(__file__).resolve().parents[2]
+
+
+def _full_trigger_contract(raw,relative):
+ # CURRENT invocation remains full-only and exact-head bound. The old PR
+ # filter below is immutable historical metadata DATA, never source authority.
+ import importlib.util,yaml
+ spec=importlib.util.spec_from_file_location('focused_contract_DATA',ROOT/'scripts/ci/focused_workflows.py')
+ contract=importlib.util.module_from_spec(spec);spec.loader.exec_module(contract)
+ contract.focused_contract(yaml.load(raw,Loader=yaml.BaseLoader),Path(relative).name)
+ inventory=contract.inventory(ROOT)
+ assert inventory['focused_full_workflows']==12 and inventory['release_full_workflows']==13
+ old=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'show',
+  '7b23c47e329f32e4fe083d0efa23fd82d6eefe6f:'+relative],timeout=10)
+ historical=yaml.safe_load(old);events=historical.get('on',historical.get(True))
+ return events['pull_request']['paths']
+
 sys.path.insert(0,str(ROOT/'scripts/governance'))
 import project_oauth_authorization_failure as projector
 import check_recovery_oauth_authorization_producer_v1 as code_gate
@@ -103,8 +119,8 @@ class OAuthAuthorizationCI(unittest.TestCase):
    import yaml
    from task_ci_workflow_test_api_v2 import workflow_data
    proof=workflow_data(ROOT,'.github/workflows/oauth-authorization-producer-focused.yml');self.assertTrue(proof['source_operation_exit_verified']);current=proof['current'].decode();parent=proof['parent'].decode()
-   wf=yaml.safe_load(current);events=wf.get('on',wf.get(True));self.assertEqual(set(events),{'pull_request','workflow_dispatch'});self.assertEqual(wf['permissions'],{'contents':'read'})
-   paths=events['pull_request']['paths']
+   wf=yaml.safe_load(current);events=wf.get('on',wf.get(True));self.assertEqual(set(events),{'workflow_call','workflow_dispatch'});self.assertEqual(wf['permissions'],{'contents':'read'})
+   paths=_full_trigger_contract(FOCUSED.read_bytes(),'.github/workflows/oauth-authorization-producer-focused.yml')
    for name in ['.github/workflows/oauth-authorization-producer-focused.yml','tests/atomic/build_directory_file.py']:self.assertIn(name,paths)
    job=wf['jobs']['oauth-authorization-owner'];self.assertEqual(job['services']['mysql']['image'],'mysql:8.4.13@sha256:a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7');text=parent;self.assertIn("module['build_file'](",text);self.assertNotIn("module['build'](",text);self.assertIn('tests/atomic/build_directory_file.py',text);self.assertIn('--oauth-authorization-producer-owner',text);self.assertIn('qualify_oauth_authorization_mysql84.py',text);self.assertIn('project_oauth_authorization_failure.py',text);self.assertNotIn('secrets.',text);self.assertNotIn('workflow_run:',text);self.assertNotIn('docker push',text);self.assertIn('--source-only --source-revision \"$GITHUB_SHA\"',text);self.assertLess(text.index('--source-only --source-revision'),text.index('php scripts/runtime/build.php all'))
    for required in ['run_task_directory_native_v2.py','--role oauth-authorization','check_oauth_task_schema_receipt_v2.py','--expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT"','probe_oauth_authorization_mysql84.php before','probe_oauth_authorization_mysql84.php after',"module['build_file'](",'tests/atomic/build_directory_file.py','project_oauth_authorization_failure.py']:
@@ -129,7 +145,7 @@ class OAuthAuthorizationCI(unittest.TestCase):
    with self.assertRaises((AssertionError,StopIteration)):check(altered)
  def test_code_only_PR_changes_schedule_job_and_unrelated_docs_do_not(self):
   import fnmatch,yaml
-  wf=yaml.safe_load(FOCUSED.read_text());events=wf.get('on',wf.get(True));paths=events['pull_request']['paths']
+  wf=yaml.safe_load(FOCUSED.read_text());events=wf.get('on',wf.get(True));paths=_full_trigger_contract(FOCUSED.read_bytes(),'.github/workflows/oauth-authorization-producer-focused.yml')
   def schedules(files,patterns=paths):return any(fnmatch.fnmatchcase(name,pattern)for name in files for pattern in patterns)
   code_pattern='tests/governance/test_recovery_oauth_authorization_*.py';self.assertIn(code_pattern,paths)
   for name in ['test_recovery_oauth_authorization_source.py','test_recovery_oauth_authorization_ci.py','test_recovery_oauth_authorization_sql.py','test_recovery_oauth_authorization_coordination.py']:

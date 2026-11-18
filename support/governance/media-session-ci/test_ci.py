@@ -7,9 +7,48 @@ CURRENT_DRIVER = 'python3 -B scripts/governance/run_media_task_selected_v2.py --
 CURRENT_PROJECTOR = 'python3 -B scripts/governance/project_media_task_selected_v2.py --input "$RUNNER_TEMP/media-current-driver.private.json" --expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT" > media-positive-safe/selected-safe.json'
 CURRENT_HEAD = 'python3 -B scripts/governance/check_task_ci_head_v1.py --root "$GITHUB_WORKSPACE" --event-file "$GITHUB_EVENT_PATH" --event-name "$GITHUB_EVENT_NAME" --expected-head "$EXPECTED_SOURCE_CHECKPOINT" --github-sha "$GITHUB_SHA" --trust-home "$trust_home"'
 CURRENT_PUBLIC = 'python3 -B scripts/governance/check_task_ci_head_v1.py --prepare-public-trust --public-key "$GITHUB_WORKSPACE/support/governance/source-operation/ci-source-verifier.asc" --trust-home "$trust_home"'
+CURRENT_INTRO = '''name: Native media session selected SQL
+on:
+  workflow_call:
+    inputs:
+      expected_head:
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      expected_head:
+        description: Exact signed source commit for this manual full qualification
+        required: true
+        type: string
+
+'''
+CURRENT_BIND = '''      - name: Require exact full-tier caller checkpoint
+        env:
+          FOCUSED_EXPECTED_HEAD: ${{ inputs.expected_head }}
+        run: |
+          python3 -B scripts/ci/focused_workflows.py bind-head --expected-head "$FOCUSED_EXPECTED_HEAD"
+'''
+CURRENT_PROOF_FLAG = ' --external-proof-tag "source-proof/$EXPECTED_SOURCE_CHECKPOINT"'
+CURRENT_PROOF_ENV = '          echo "PHORGE_CI_MERGE_SOURCE_PROOF=source-proof/$EXPECTED_SOURCE_CHECKPOINT" >> "$GITHUB_ENV"\n'
 def require_current_workflow(s):
  def need(value):
   if value is not True:raise ValueError('media_current_workflow_contract_refused')
+ # CURRENT wiring must be exact before inverse comparison. The immutable old
+ # PR workflow is DATA only; it is neither executed nor accepted as CURRENT.
+ need(type(s)is str and s.startswith(CURRENT_INTRO)and s.count(CURRENT_INTRO)==1)
+ need(s.count(CURRENT_BIND)==1 and s.count('        run: |')==6)
+ need(s.count(CURRENT_PROOF_FLAG)==s.count(CURRENT_PROOF_ENV)==1)
+ need(s.index(CURRENT_BIND)<s.index(CURRENT_PUBLIC)<s.index(CURRENT_HEAD+CURRENT_PROOF_FLAG)<s.index(CURRENT_PROOF_ENV)<s.index(CURRENT_DRIVER)<s.index(CURRENT_PROJECTOR))
+ root=Path(__file__).resolve().parents[3]
+ golden=subprocess.check_output(['git','--no-replace-objects','-C',str(root),'show',
+  '7b23c47e329f32e4fe083d0efa23fd82d6eefe6f:.github/workflows/native-media-session-positive-sql.yml'],timeout=10)
+ need(hashlib.sha256(golden).hexdigest()=='df876a1606950fc0960bc0a136cd0ee4673f1acd6d15b6c1803a007a7761c519')
+ old=golden.decode();old_intro=old.split('concurrency:',1)[0]
+ normalized=s.replace(CURRENT_INTRO,old_intro,1).replace(CURRENT_BIND,'',1)
+ normalized=normalized.replace(CURRENT_PROOF_FLAG,'',1).replace(CURRENT_PROOF_ENV,'',1)
+ need(normalized==old)
+ s=normalized
+ # Retain every original runtime/cleanup/upload assertion on the exact inverse.
  need(s.count('        run: |')==5 and s.count('timeout-minutes: 30')==1)
  for command in (CURRENT_PUBLIC,CURRENT_HEAD,CURRENT_DRIVER,CURRENT_PROJECTOR):
   need([x.strip()for x in s.splitlines()if command.split(' ',3)[2]in x and ('--prepare-public-trust'in x if command==CURRENT_PUBLIC else '--root'in x if command==CURRENT_HEAD else True)]==[command])
@@ -154,7 +193,7 @@ class Controls(unittest.TestCase):
      if not following.startswith('          '):break
      body.append(following[10:])
     blocks.append('\n'.join(body)+'\n')
-  self.assertEqual(len(blocks),5)
+  self.assertEqual(len(blocks),6)
   for body in blocks:
    p=subprocess.run(['bash','-n'],input=body,capture_output=True,text=True,timeout=5);self.assertEqual(p.returncode,0,p.stderr)
  def test_workflow_fixed_indexes_permissions_and_safe_artifact(self):
@@ -177,4 +216,23 @@ class Controls(unittest.TestCase):
     with self.assertRaises(ValueError):require_current_workflow(s.replace(command,changed,1))
   for old,new in [('        id: selected\n','        id: selected\n        if: false\n'),('          set -euo pipefail','          set +e'),('timeout-minutes: 30','timeout-minutes: 60'),('steps.selected.outcome','steps.preparation.outcome'),('path: media-positive-safe/selected-safe.json','path: ${{ runner.temp }}/media-positive-run'),('if: always()','if: success()'),(prepare.PHP,prepare.PHP[:-1]+'0'),('"cleanup_verified":False','"cleanup_verified":True')]:
    with self.subTest(old=old),self.assertRaises(ValueError):require_current_workflow(s.replace(old,new,1))
+  for old,new in [(CURRENT_INTRO,CURRENT_INTRO.replace('  workflow_call:','  pull_request:')),
+                 (CURRENT_INTRO,CURRENT_INTRO.replace('  workflow_dispatch:','  push:')),
+                 ('        required: true','        required: false'),
+                 ('        type: string','        type: boolean'),
+                 ('  contents: read','  contents: write'),
+                 (CURRENT_BIND,''),(CURRENT_BIND,CURRENT_BIND+CURRENT_BIND),
+                 ('FOCUSED_EXPECTED_HEAD: ${{ inputs.expected_head }}','FOCUSED_EXPECTED_HEAD: ${{ github.sha }}'),
+                 ('bind-head --expected-head "$FOCUSED_EXPECTED_HEAD"','bind-head --expected-head "$GITHUB_SHA"'),
+                 ('bind-head --expected-head','bind-head --omitted-expected-head'),
+                 (CURRENT_PROOF_FLAG,''),(CURRENT_PROOF_FLAG,CURRENT_PROOF_FLAG*2),
+                 (CURRENT_PROOF_FLAG,CURRENT_PROOF_FLAG.replace('$EXPECTED_SOURCE_CHECKPOINT','$GITHUB_SHA')),
+                 (CURRENT_PROOF_FLAG,' --external-proof-tag "source-proof/ancestor"'),
+                 (CURRENT_PROOF_ENV,''),(CURRENT_PROOF_ENV,CURRENT_PROOF_ENV*2),
+                 (CURRENT_PROOF_ENV,CURRENT_PROOF_ENV.replace('$EXPECTED_SOURCE_CHECKPOINT','$GITHUB_SHA'))]:
+   with self.subTest(wiring=old),self.assertRaises(ValueError):require_current_workflow(s.replace(old,new,1))
+  early=s.replace(CURRENT_PROOF_ENV,'',1).replace('          '+CURRENT_PUBLIC,CURRENT_PROOF_ENV+'          '+CURRENT_PUBLIC,1)
+  with self.assertRaises(ValueError):require_current_workflow(early)
+  late=s.replace(CURRENT_BIND,'',1).replace('      - name: Safe failure or success projection as DATA only',CURRENT_BIND+'      - name: Safe failure or success projection as DATA only',1)
+  with self.assertRaises(ValueError):require_current_workflow(late)
 if __name__=='__main__':unittest.main()

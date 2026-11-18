@@ -1,7 +1,7 @@
 """Closed full-tier workflow inventory and exact caller-head binding.
 This does not replace Root signature, source admission, SQL or receipt checks.
 """
-import argparse,json,os,re,subprocess,sys
+import argparse,json,os,re,shlex,subprocess,sys
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]
 FOCUSED=tuple(name+'.yml'for name in (
@@ -12,6 +12,11 @@ FOCUSED=tuple(name+'.yml'for name in (
  'native-rr-owner-build','private-mail-wire',
  'project-content-grants-focused','project-description-focused'))
 FULL=('atomic-feature-regressions.yml',)+FOCUSED
+PROOF_FOCUSED=tuple(n for n in FOCUSED if n not in ('native-rr-owner-build.yml','private-mail-wire.yml'))
+PROOF_ENV='echo "PHORGE_CI_MERGE_SOURCE_PROOF=source-proof/$EXPECTED_SOURCE_CHECKPOINT" >> "$GITHUB_ENV"'
+PROOF_ARGV=['python3','-B','scripts/governance/check_task_ci_head_v1.py','--root','$GITHUB_WORKSPACE',
+ '--event-file','$GITHUB_EVENT_PATH','--event-name','$GITHUB_EVENT_NAME','--expected-head','$EXPECTED_SOURCE_CHECKPOINT',
+ '--github-sha','$GITHUB_SHA','--trust-home','$trust_home','--external-proof-tag','source-proof/$EXPECTED_SOURCE_CHECKPOINT']
 BIND_STEP='Require exact full-tier caller checkpoint'
 BIND_RUN='python3 -B scripts/ci/focused_workflows.py bind-head --expected-head "$FOCUSED_EXPECTED_HEAD"\n'
 def need(ok,label):
@@ -25,7 +30,7 @@ def bind_head(expected,event_name,github_sha,event,checkout):
  from check_task_ci_head_v1 import bind_event
  result=bind_event(event_name,event,expected,github_sha)
  return {**result,'tier':'full','Root_signature_or_SQL_qualified':False}
-def focused_contract(document):
+def focused_contract(document,workflow=None):
  need(set(document['on'])=={'workflow_call','workflow_dispatch'},'full_only_triggers')
  for trigger in ('workflow_call','workflow_dispatch'):
   spec=document['on'][trigger]['inputs'];need(set(spec)=={'expected_head'},'closed_inputs')
@@ -37,6 +42,16 @@ def focused_contract(document):
   bind=binds[0];need(bind.get('env')=={'FOCUSED_EXPECTED_HEAD':'${{ inputs.expected_head }}'}and bind.get('run')==BIND_RUN and 'if'not in bind and 'continue-on-error'not in bind,'exact_binding')
   checkout=next(i for i,s in enumerate(steps)if s.get('uses','').startswith('actions/checkout@'))
   need(steps.index(bind)==checkout+1,'binding_before_runtime')
+  admissions=[s for s in steps if 'check_task_ci_head_v1.py --root' in s.get('run','')]
+  if workflow in PROOF_FOCUSED or admissions:
+   need(len(admissions)==1,'one_source_proof_admission')
+   admission=admissions[0];need('if'not in admission and 'continue-on-error'not in admission,'proof_not_skipped')
+   need(job.get('env',{}).get('EXPECTED_SOURCE_CHECKPOINT')=='${{ github.event.pull_request.head.sha || github.sha }}','proof_exact_checkpoint')
+   lines=[line.strip()for line in admission['run'].replace('\\\n','').splitlines()]
+   commands=[(i,shlex.split(line))for i,line in enumerate(lines)if 'check_task_ci_head_v1.py --root' in line]
+   need(len(commands)==1 and commands[0][1]==PROOF_ARGV,'exact_merge_proof_request')
+   need(lines.count(PROOF_ENV)==1 and lines.index(PROOF_ENV)>commands[0][0],'source_owner_proof_environment')
+   need(steps.index(admission)==steps.index(bind)+1,'proof_before_runtime')
  return True
 def fanout_contract(document,baseline):
  need(tuple(baseline['releaseFullWorkflows'])==FULL,'documented_full_inventory')
@@ -54,7 +69,7 @@ def inventory(root=ROOT):
  need(yaml.__version__=='6.0.3','yaml_version')
  load=lambda p:yaml.load(p.read_text(),Loader=yaml.BaseLoader)
  workflows=root/'.github/workflows'
- for name in FOCUSED:focused_contract(load(workflows/name))
+ for name in FOCUSED:focused_contract(load(workflows/name),name)
  fanout_contract(load(workflows/'release-full.yml'),json.loads((root/'docs/ci/support-baseline.json').read_text()))
  return {'focused_full_workflows':len(FOCUSED),'release_full_workflows':len(FULL),'full_fanout_complete':True,'runtime_SQL_executed':False}
 def main():
