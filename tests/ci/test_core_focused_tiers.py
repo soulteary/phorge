@@ -1,5 +1,6 @@
 """Full-only focused routing and metadata binding; never SQL/signature proof."""
-import ast,copy,importlib.util,json,pathlib,subprocess,unittest
+import ast,base64,copy,hashlib,importlib.util,json,pathlib,subprocess,unittest,zlib
+from unittest.mock import patch
 import yaml
 ROOT=pathlib.Path(__file__).resolve().parents[2]
 spec=importlib.util.spec_from_file_location('focused_workflows',ROOT/'scripts/ci/focused_workflows.py');m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
@@ -96,7 +97,8 @@ class DeclaredSourceInventory(unittest.TestCase):
   module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
   parent=json.loads((ROOT/module.BASELINE).read_bytes())['entries']
   current={v.decode()for v in subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),
-   'ls-tree','-rz','--name-only','HEAD'],timeout=10).split(b'\0')if v}
+   'ls-files','--cached','--others','--exclude-standard','-z'],timeout=10).split(b'\0')if v}
+  # Candidate names only: no SourceOwner/dirty-checkout admission is claimed.
   tree=ast.parse(path.read_bytes());cls=next(n for n in tree.body if isinstance(n,ast.ClassDef)and n.name=='TaskContext')
   init=next(n for n in cls.body if isinstance(n,ast.FunctionDef)and n.name=='__init__')
   predicate=next(n.args[0]for n in ast.walk(init)if isinstance(n,ast.Call)and isinstance(n.func,ast.Name)
@@ -113,6 +115,85 @@ class DeclaredSourceInventory(unittest.TestCase):
   self.assertTrue(reviewed<=module.CI_V2_NEW_PATHS)
   for rows in [current|{'tests/contract/runtime/unreviewed.php'}]+[current-{p}for p in reviewed]:
    with self.assertRaises(ValueError):check(rows)
+
+class ReleaseHistoryLiteralData(unittest.TestCase):
+ @classmethod
+ def setUpClass(cls):
+  path=ROOT/'scripts/governance/task_source_operation_context.py'
+  spec=importlib.util.spec_from_file_location('release_history_DATA',path)
+  cls.scope=importlib.util.module_from_spec(spec);spec.loader.exec_module(cls.scope)
+  cls.raw=(ROOT/cls.scope.RELEASE_HISTORY).read_bytes();cls.doc=cls.scope.load_release_history(cls.raw)
+  path=ROOT/'scripts/governance/task_content_grant_source_delta.py'
+  spec=importlib.util.spec_from_file_location('unchanged_Task_reducer_DATA',path)
+  cls.delta=importlib.util.module_from_spec(spec);spec.loader.exec_module(cls.delta)
+ def test_all_21_current_payloads_roundtrip_and_original_parent_pins_still_match(self):
+  self.assertEqual(len(self.doc['files']),21)
+  parent=json.loads((ROOT/self.scope.BASELINE).read_bytes())['entries']
+  for path in self.doc['files']:
+   with self.subTest(path=path):
+    current=(ROOT/path).read_bytes();target=self.scope.release_history_inverse(path,current,self.doc)
+    self.assertEqual(self.scope.release_history_roundtrip(path,target,self.doc),current)
+    restored=self.delta.reduce_selected(path,target);old=parent[path]
+    self.assertEqual(len(restored),old['bytes']);self.assertEqual(hashlib.sha256(restored).hexdigest(),old['sha256'])
+ def test_entire_existing_parent_payload_loop_has_no_remaining_mismatch(self):
+  parent=json.loads((ROOT/self.scope.BASELINE).read_bytes())['entries']
+  ci=json.loads((ROOT/self.scope.CI_INVERSE).read_bytes())['files'];api=json.loads((ROOT/self.scope.INVERSE).read_bytes())
+  checked=0
+  for path,pin in parent.items():
+   if pin['kind']!='file':continue
+   raw=(ROOT/path).read_bytes()
+   if path in ci or path in api:
+    entry=(ci if path in ci else api)[path];decoder=zlib.decompressobj()
+    raw=decoder.decompress(base64.b64decode(entry['zlib_base64'],validate=True),entry['bytes']+1)
+    self.assertTrue(decoder.eof and not decoder.unused_data and not decoder.unconsumed_tail)
+    self.assertEqual(len(raw),entry['bytes']);self.assertEqual(hashlib.sha256(raw).hexdigest(),entry['sha256'])
+   else:
+    if path in self.scope.RELEASE_HISTORY_PATHS:raw=self.scope.release_history_inverse(path,raw,self.doc)
+    if path==self.scope.TASK_PREUPGRADE_FIXTURE:
+     raw=self.scope.task_preupgrade_fixture_inverse(path,raw,(ROOT/self.scope.TASK_PREUPGRADE_RECIPE).read_bytes())
+    raw=self.delta.reduce_selected(path,raw)
+   self.assertEqual((len(raw),hashlib.sha256(raw).hexdigest()),(pin['bytes'],pin['sha256']),path);checked+=1
+  self.assertEqual(checked,9289)
+ def test_library_map_targets_old_Task_intermediate_before_original_reducer(self):
+  path='src/__phutil_library_map__.php';target=self.scope.release_history_inverse(path,(ROOT/path).read_bytes(),self.doc)
+  pin=self.delta.CURRENT_SHARED[path]
+  self.assertEqual((len(target),hashlib.sha256(target).hexdigest()),(pin['current_bytes'],pin['current_sha256']))
+  self.assertEqual(pin['current_sha256'],'081e5cf740a2aa893274774885a949f3d90fd233370517ce08f7f6ab007765a2')
+ def test_unknown_current_bytes_length_type_and_path_refuse(self):
+  for path in self.doc['files']:
+   raw=(ROOT/path).read_bytes()
+   for changed in (raw+b' ',b'!'+raw[1:],bytearray(raw)):
+    with self.subTest(path=path),self.assertRaises(ValueError):self.scope.release_history_inverse(path,changed,self.doc)
+  with self.assertRaises(ValueError):self.scope.release_history_inverse('src/unreviewed.php',b'unknown',self.doc)
+ def test_wrong_hash_target_path_offset_fragment_and_duplicate_edits_refuse(self):
+  path=max(self.doc['files'],key=lambda p:len(self.doc['files'][p]['edits']));raw=(ROOT/path).read_bytes()
+  for mutation in ('current_hash','target_hash','target_size','missing_path','unknown_path','negative_offset',
+                   'bool_offset','out_of_bounds','current_fragment','parent_fragment','duplicate_edit','reverse_edits'):
+   doc=copy.deepcopy(self.doc);row=doc['files'][path]
+   if mutation=='current_hash':row['current_sha256']='0'*64
+   elif mutation=='target_hash':row['target_sha256']='0'*64
+   elif mutation=='target_size':row['target_bytes']+=1
+   elif mutation=='missing_path':del doc['files'][next(p for p in doc['files']if p!=path)]
+   elif mutation=='unknown_path':doc['files']['src/unreviewed.php']=doc['files'].pop(next(p for p in doc['files']if p!=path))
+   elif mutation=='negative_offset':row['edits'][0]['offset']=-1
+   elif mutation=='bool_offset':row['edits'][0]['offset']=True
+   elif mutation=='out_of_bounds':row['edits'][0]['offset']=row['current_bytes']+1
+   elif mutation=='current_fragment':row['edits'][0]['current']='!'+row['edits'][0]['current']
+   elif mutation=='parent_fragment':row['edits'][0]['parent']='!'+row['edits'][0]['parent']
+   elif mutation=='duplicate_edit':row['edits'].insert(1,copy.deepcopy(row['edits'][0]))
+   else:row['edits'].reverse()
+   with self.subTest(mutation=mutation),self.assertRaises(ValueError):self.scope.release_history_inverse(path,raw,doc)
+ def test_fixed_raw_recipe_pin_duplicate_JSON_and_failed_roundtrip_refuse(self):
+  for raw in (self.raw+b' ',self.raw.replace(b'literal-inverse-v1',b'literal-inverse-v2'),bytearray(self.raw)):
+   with self.assertRaises(ValueError):self.scope.load_release_history(raw)
+  path=next(iter(self.doc['files']));row=self.doc['files'][path]
+  duplicate=json.dumps(self.doc).replace('"files": {','"files": {'+json.dumps(path)+':'+json.dumps(row)+',',1)
+  with self.assertRaises(ValueError):self.scope.decode(duplicate)
+  # Negative DATA fault injection only; no real Source graph/owner is patched.
+  with patch.object(self.scope,'release_history_roundtrip',return_value=b'wrong'):
+   with self.assertRaises(ValueError):self.scope.release_history_inverse(path,(ROOT/path).read_bytes(),self.doc)
+  target=self.scope.release_history_inverse(path,(ROOT/path).read_bytes(),self.doc)
+  with self.assertRaises(ValueError):self.scope.release_history_roundtrip(path,target+b' ',self.doc)
 
 class CallerBinding(unittest.TestCase):
  def event(self):return {'repository':{'full_name':'soulteary/phorge'},'after':'a'*40,'deleted':False}

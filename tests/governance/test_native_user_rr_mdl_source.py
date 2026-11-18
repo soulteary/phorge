@@ -12,7 +12,7 @@ def inventory():
  return classes,ids
 class Source(unittest.TestCase):
  def test_inventory_is_source_derived_not_runtime(self):
-  classes,ids=inventory();self.assertEqual(49,len(classes));self.assertEqual(280,len(ids));self.assertEqual(len(ids),len(set(ids)))
+  classes,ids=inventory();self.assertEqual(49,len(classes));self.assertEqual(285,len(ids));self.assertEqual(len(ids),len(set(ids)))
   baseline='e41afddcb6c7fc76274a8273eeca4cb8e3599d1a'
   old=subprocess.check_output(['git','-C',str(ROOT),'show',baseline+':tests/governance/run.php'],text=True)
   old_classes=re.findall(r"'([A-Za-z0-9_]+TestCase)'",old.split('$classes = array(',1)[1].split(');',1)[0]);old_ids=set()
@@ -21,7 +21,7 @@ class Source(unittest.TestCase):
    body=subprocess.check_output(['git','-C',str(ROOT),'show',baseline+':'+path],text=True)
    old_ids.update(name+'::'+m for m in re.findall(r'public function (test[A-Za-z0-9_]+)\(',body))
   self.assertEqual(266,len(old_ids));self.assertTrue(old_ids<=set(ids))
-  self.assertEqual({'PhorgeRecoveryFileSourceFactsTestCase::testNativeFileAuthorAutomaticIsNotAccountOrPolicyAdmission',
+  original_delta={'PhorgeRecoveryFileSourceFactsTestCase::testNativeFileAuthorAutomaticIsNotAccountOrPolicyAdmission',
    'PhorgeRecoveryFileSourceFactsTestCase::testNativeFileAttachmentModesAndAlreadyAuthorizedViewInputs',
    'PhorgeRecoveryFileSourceFactsTestCase::testNativeFileIndexesAndMetadataBuiltinProfileDistinction',
    'PhorgeRecoveryTaskOwnerSourceTestCase::testActualTaskOwnerNotAuthorAndCapabilityArgumentBehavior',
@@ -34,7 +34,23 @@ class Source(unittest.TestCase):
    'PhorgeRecoveryProjectSourceFactsTestCase::testRealNativeUserPHIDIndexOverridesInheritedSchemaName',
    'PhorgeRecoveryProjectSourceFactsTestCase::testRealNativeProjectStorageAndMilestoneDelegation',
    'PhorgeRecoveryProjectSourceFactsTestCase::testDistinctCurrentRowsDoNotImportHistoricalMembership',
-   'PhorgeRecoveryProjectSourceFactsTestCase::testPrimitiveAndLengthBoundsCannotInvokeSerializationCallbacks'},set(ids)-old_ids)
+   'PhorgeRecoveryProjectSourceFactsTestCase::testPrimitiveAndLengthBoundsCannotInvokeSerializationCallbacks'}
+  additions={'PhorgeGovernanceMediaExchangeServiceTestCase::testIsolationRowsKeepExactNamesAndKnownNativeValues',
+   'PhorgeGovernanceMediaFileGuardTestCase::testDisabledFileGuardDeniesBeforeInterpretingRouteOrIdentity',
+   'PhorgeGovernanceMediaFileGuardTestCase::testPrivateResponsesDisableCachingAndConstrainActiveContent',
+   'PhorgeGovernanceMediaHTTPProtocolTestCase::testDisabledCandidateEndpointsDenyWithoutCreatingAuthority',
+   'PhorgeGovernanceMediaHTTPProtocolTestCase::testDisabledHTTPPreservesNativeCredentialsAndOmitsBootstrap'}
+  self.assertEqual(14,len(original_delta));self.assertEqual(5,len(additions));self.assertFalse(original_delta&additions)
+  def require_current(actual):
+   self.assertEqual(285,len(actual));self.assertEqual(len(actual),len(set(actual)))
+   self.assertTrue(old_ids<=set(actual));self.assertEqual(19,len(set(actual)-old_ids))
+   self.assertEqual(original_delta|additions,set(actual)-old_ids)
+  require_current(ids)
+  # Count alone cannot admit a missing/replaced baseline, original14, or new5 ID.
+  for method in ids:
+   missing=[value for value in ids if value!=method]
+   with self.subTest(method=method,mutation='missing'),self.assertRaises(AssertionError):require_current(missing)
+   with self.subTest(method=method,mutation='same-count-replacement'),self.assertRaises(AssertionError):require_current(missing+['Unreviewed::testReplacement'])
  def test_default_off_and_real_entry(self):
   options=(ROOT/'src/infrastructure/governance/recovery/PhorgeGovernanceRecoveryConfigOptions.php').read_text()
   self.assertIn("'governance.account-recovery.owned-rr-scope.enabled','bool',false",options)

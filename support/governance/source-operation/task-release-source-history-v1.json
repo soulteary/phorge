@@ -1,0 +1,384 @@
+{
+  "schema": "Task-release-source-history-literal-inverse-v1",
+  "base_checkpoint": "e3c4632f5ca63b79fb8ec08875a651080cba3d7c",
+  "files": {
+    ".github/workflows/container-image.yml": {
+      "current_bytes": 8824,
+      "current_sha256": "f0031d78b65f9bd697c94c1a74bdb81d70b459fbf4ab84b02bb72dc549c78c83",
+      "target_bytes": 7025,
+      "target_sha256": "aa476d68759dd7bbf38193f585b1480b168a8218dc7d1927d1ea575a5ca1b5a2",
+      "edits": [
+        {
+          "offset": 397,
+          "current": "  release-identity:\n    runs-on: ubuntu-latest\n    timeout-minutes: 5\n    steps:\n      - uses: actions/checkout@v6\n        with:\n          ref: ${{ github.sha }}\n          fetch-depth: 0\n          persist-credentials: false\n      - name: Require publication workflow and source from the exact release tag\n        env:\n          WORKFLOW_REF: ${{ github.workflow_ref }}\n          WORKFLOW_SHA: ${{ github.workflow_sha }}\n        run: |\n          python3 deploy/release/ci_policy.py --repository \"$GITHUB_REPOSITORY\" \\\n            --tag \"$RELEASE_TAG\" --sha \"$GITHUB_SHA\" --ref \"$GITHUB_REF\" \\\n            --workflow-ref \"$WORKFLOW_REF\" --workflow-sha \"$WORKFLOW_SHA\" \\\n            --output \"$RUNNER_TEMP/phorge-release-ci-identity.json\"\n      - name: Verify release rejection paths\n        run: python3 -m unittest discover -s tests/release -p 'test_*.py' -v\n  full-regressions:\n    needs: release-identity\n    uses: ./.github/workflows/release-full.yml\n    with:\n      expected_head: ${{ github.sha }}\n",
+          "parent": ""
+        },
+        {
+          "offset": 1410,
+          "current": "    needs: [release-identity, full-regressions]\n",
+          "parent": ""
+        },
+        {
+          "offset": 1676,
+          "current": "          ref: ${{ github.sha }}\n          fetch-depth: 0\n          persist-credentials: false\n      - name: Require successful full qualification of this exact release source\n        env:\n          WORKFLOW_REF: ${{ github.workflow_ref }}\n          WORKFLOW_SHA: ${{ github.workflow_sha }}\n          FULL_HEAD: ${{ needs.full-regressions.outputs.qualified_head }}\n          FULL_RESULT: ${{ needs.full-regressions.result }}\n        run: |\n          python3 deploy/release/ci_policy.py --repository \"$GITHUB_REPOSITORY\" \\\n            --tag \"$RELEASE_TAG\" --sha \"$GITHUB_SHA\" --ref \"$GITHUB_REF\" \\\n            --workflow-ref \"$WORKFLOW_REF\" --workflow-sha \"$WORKFLOW_SHA\" \\\n            --full-head \"$FULL_HEAD\" --full-result \"$FULL_RESULT\" \\\n            --output \"$RUNNER_TEMP/phorge-release-ci.json\"\n",
+          "parent": "          ref: refs/tags/${{ inputs.release_tag }}\n"
+        }
+      ]
+    },
+    ".github/workflows/gorge-runtime-contracts.yml": {
+      "current_bytes": 17530,
+      "current_sha256": "d9851b8d7bb8b0a37d76e346adeb30ed1bd89b692fd3a0e2561e9a913a8068e2",
+      "target_bytes": 14318,
+      "target_sha256": "1fac4ce6d96459d41d5f86f618c987b0e9678a180afe19111888a369d623ef77",
+      "edits": [
+        {
+          "offset": 414,
+          "current": "  media-isolation:\n    runs-on: ubuntu-latest\n    timeout-minutes: 10\n    strategy:\n      fail-fast: false\n      matrix:\n        include:\n          - family: mysql\n            image: mysql:8.4.13@sha256:a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7\n          - family: mariadb\n            image: mariadb@sha256:d769e37960821dfdcf096954f6e7ac89f747e116c1bba98e48edd265dfc7deae\n    services:\n      database:\n        image: ${{ matrix.image }}\n        env:\n          MYSQL_ROOT_PASSWORD: media-isolation-test-only\n          MYSQL_ROOT_HOST: '%'\n        ports: ['3306:3306']\n        options: --health-cmd \"mysqladmin --protocol=tcp --host=127.0.0.1 ping --silent\" --health-interval 5s --health-timeout 3s --health-retries 30\n    steps:\n      - uses: actions/checkout@v6\n      - uses: shivammathur/setup-php@v2\n        with:\n          php-version: '8.5.12'\n          ini-values: opcache.jit=disable, opcache.jit_buffer_size=0\n          extensions: mysqli, mbstring, curl\n          coverage: none\n      - name: Verify isolation row validation without database access\n        run: |\n          php -r 'require \"tests/contract/bootstrap.php\"; $test = new PhorgeGovernanceMediaExchangeServiceTestCase(); $test->testIsolationRowsKeepExactNamesAndKnownNativeValues(); $assertions = new ReflectionProperty(PhutilTestCase::class, \"assertions\"); if ($assertions->getValue($test) !== 22) { throw new RuntimeException(\"Unexpected assertion count.\"); }'\n      - name: Verify isolated media transactions and cleanup\n        env:\n          PHORGE_MEDIA_ISOLATION_TEST: '1'\n          PHORGE_MEDIA_DATABASE_FAMILY: ${{ matrix.family }}\n          PHORGE_MEDIA_MYSQL_HOST: 127.0.0.1\n          PHORGE_MEDIA_MYSQL_PASSWORD: media-isolation-test-only\n        run: php tests/contract/runtime/media-isolation.php\n  proxy-session-identity:\n    runs-on: ubuntu-latest\n    services:\n      mysql:\n        image: mysql:8.0\n        env:\n          MYSQL_ROOT_PASSWORD: proxy-session-test-only\n          MYSQL_ROOT_HOST: '%'\n        ports: ['3306:3306']\n        options: --health-cmd \"mysqladmin ping -pproxy-session-test-only\" --health-interval 5s --health-timeout 3s --health-retries 30\n    steps:\n      - uses: actions/checkout@v6\n      - uses: shivammathur/setup-php@v2\n        with:\n          php-version: '8.5.12'\n          ini-values: opcache.jit=disable, opcache.jit_buffer_size=0\n          extensions: mysqli, mbstring, curl, dom\n          coverage: none\n      - name: Prepare isolated authentication test database\n        run: |\n          php scripts/runtime/build.php all\n          mkdir -p conf/local\n          php -r '$db=new mysqli(\"127.0.0.1\",\"root\",\"proxy-session-test-only\",\"\",3306); $db->query(\"SET GLOBAL sql_mode = '\\''STRICT_ALL_TABLES'\\''\"); file_put_contents(\"conf/local/local.json\",json_encode([\"mysql.host\"=>\"127.0.0.1\",\"mysql.port\"=>\"3306\",\"mysql.user\"=>\"root\",\"mysql.pass\"=>\"proxy-session-test-only\"]));'\n      - name: Verify proxy identity and explicit account linking\n        run: |\n          php bin/unit --no-coverage \\\n            src/applications/auth/__tests__/PhabricatorTraefikSessionIdentityTestCase.php \\\n            src/applications/auth/__tests__/PhabricatorTraefikAuthProviderTestCase.php\n",
+          "parent": ""
+        }
+      ]
+    },
+    ".github/workflows/native-rr-owner-build.yml": {
+      "current_bytes": 2978,
+      "current_sha256": "c1477f17447ec20ce70f0688e89a03ea44578087eb1c10f77b65372f105e073a",
+      "target_bytes": 3380,
+      "target_sha256": "025e5f5d8d9eb73952539c7bf8efb7c66b62c06de5c19aab9b3d9df69d04a432",
+      "edits": [
+        {
+          "offset": 41,
+          "current": "  workflow_call:\n    inputs:\n      expected_head:\n        required: true\n        type: string\n",
+          "parent": "  pull_request:\n    paths:\n      - 'support/governance/recovery/owned-process/**' # Trigger on any new module entry so inventory refusal is exercised.\n      - 'support/governance/recovery/owned-process/go.mod'\n      - 'support/governance/recovery/owned-process/go.sum'\n      - 'support/governance/recovery/owned-process/main_linux.go'\n      - 'support/governance/recovery/owned-process/request.go'\n      - 'support/governance/recovery/owned-process/request_test.go'\n      - 'tests/governance/native_rr_ci/build_owner.py'\n      - 'tests/governance/native_rr_ci/provenance.py'\n      - 'tests/governance/test_native_rr_ci_provenance.py'\n      - 'tests/governance/test_native_rr_ci_anchor.py'\n      - 'tests/governance/native_rr_ci/anchor.py'\n      - 'tests/governance/native_rr_ci/execution.py'\n      - 'tests/governance/test_native_rr_ci_execution.py'\n      - 'tests/governance/native_rr_ci/runner.py'\n      - 'support/governance/recovery/native-writer-rr-ci-profile.php'\n      - 'support/governance/recovery/native-writer-rr-parent.php'\n      - '.github/workflows/native-rr-owner-build.yml'\n"
+        },
+        {
+          "offset": 156,
+          "current": "    inputs:\n      expected_head:\n        description: Exact signed source commit for this manual full qualification\n        required: true\n        type: string\n\n",
+          "parent": ""
+        },
+        {
+          "offset": 801,
+          "current": "      NATIVE_RR_EXPECTED_HEAD: ${{ inputs.expected_head }}\n      NATIVE_RR_WORKFLOW_SHA: ${{ github.workflow_sha }}\n      NATIVE_RR_RELEASE_TAG: ${{ github.event.inputs.release_tag }}\n",
+          "parent": ""
+        },
+        {
+          "offset": 1106,
+          "current": "      - name: Require exact full-tier caller checkpoint\n        env:\n          FOCUSED_EXPECTED_HEAD: ${{ inputs.expected_head }}\n        run: |\n          python3 -B scripts/ci/focused_workflows.py bind-head --expected-head \"$FOCUSED_EXPECTED_HEAD\"\n",
+          "parent": ""
+        }
+      ]
+    },
+    ".gitignore": {
+      "current_bytes": 2242,
+      "current_sha256": "fe74d3177f4e1f8ff2d5a6c055ee8cc4a356b9e59ade38842593c099c6da5b9d",
+      "target_bytes": 2188,
+      "target_sha256": "b539b8fa61c241f108472ab2ad2d891138daffb74352ed3225c872e687d97ba8",
+      "edits": [
+        {
+          "offset": 221,
+          "current": "!/docs/ci/\n/docs/ci/*\n!/docs/ci/*.md\n!/docs/ci/*.json\n",
+          "parent": ""
+        }
+      ]
+    },
+    "docs/README.md": {
+      "current_bytes": 3268,
+      "current_sha256": "7b4e4295647a4f552392cd8ec305d1c944fcfd3d98ff2081c06789bd236041e1",
+      "target_bytes": 2940,
+      "target_sha256": "3e2b7b8fdb3a88784fa38949dd867b74d8a81cfb160c9ee5b87e3f7a3fea771b",
+      "edits": [
+        {
+          "offset": 1430,
+          "current": "## \u5f00\u53d1\u4e0e\u4ea4\u4ed8\u9a8c\u6536\u8303\u56f4\n\n- [CI \u5206\u5c42\u4e0e\u53d1\u5e03\u95e8\u7981](ci/README.md)\uff1a\u6838\u5fc3\u5f00\u53d1\u68c0\u67e5\u3001\u53d1\u5e03\u5b8c\u6574\u56de\u5f52\u548c\u5fc5\u9700\u68c0\u67e5\u6c47\u603b\u3002\n- [\u539f\u751f\u6838\u5fc3\u8bd5\u7528\u8303\u56f4](upstream/native-trial-acceptance-scope.md)\uff1a\u5173\u95ed\u529f\u80fd\u3001Owlmail \u5206\u5de5\u3001\u6062\u590d\u4e0e\u7248\u672c\u56de\u9000\u3001\u5355\u4e00 Linux \u5a92\u4f53\u9a8c\u6536\u73af\u5883\u53ca\u5f53\u524d\u72b6\u6001\u8bb0\u5f55\u3002\n\n",
+          "parent": ""
+        }
+      ]
+    },
+    "docs/upstream/atomic-release-protocol.md": {
+      "current_bytes": 5400,
+      "current_sha256": "b9e3156e587541eebd480061f08070f7805af6fca8d4bfb1040a094a78771d5d",
+      "target_bytes": 5233,
+      "target_sha256": "66bdfeaccd79f8c83bc9c4937f69c8a82df3443988c205cce65a70b538199930",
+      "edits": [
+        {
+          "offset": 4464,
+          "current": "identities, PHP version and result JSON with the applicable CI tier. Core checks\nrun for each PR; full optional integration qualification is mandatory before\npublication, as specified in [the CI policy](../ci/README.md). PHP 8.5.12 is the sole\n",
+          "parent": "identities, PHP version and result JSON with each PR. PHP 8.5.12 is the sole\n"
+        }
+      ]
+    },
+    "src/__phutil_library_map__.php": {
+      "current_bytes": 871377,
+      "current_sha256": "fedf4562d50c59db02b7bc460ba431c2efae8eeef36375479ed8f0e1094af01d",
+      "target_bytes": 871175,
+      "target_sha256": "081e5cf740a2aa893274774885a949f3d90fd233370517ce08f7f6ab007765a2",
+      "edits": [
+        {
+          "offset": 418943,
+          "current": "    'PhabricatorTraefikSessionIdentityTestCase' => 'applications/auth/__tests__/PhabricatorTraefikSessionIdentityTestCase.php',\n",
+          "parent": ""
+        },
+        {
+          "offset": 804888,
+          "current": "    'PhabricatorTraefikSessionIdentityTestCase' => 'PhabricatorTestCase',\n",
+          "parent": ""
+        }
+      ]
+    },
+    "src/applications/auth/provider/PhabricatorTraefikAuthProvider.php": {
+      "current_bytes": 8406,
+      "current_sha256": "f22818d852fd78d8a6f442dd78339d1d7e1e405bf832ae4682f0f1bc3fb99d72",
+      "target_bytes": 4592,
+      "target_sha256": "dda17d026920289436f46d0d5945cd730f31629405377362c947f3d4a6a64cec",
+      "edits": [
+        {
+          "offset": 1375,
+          "current": "  }\n\n  public function isSessionIdentityCompatible(\n    PhabricatorUser $user,\n    $identity) {\n\n    if (!phutil_nonempty_string($identity) || !$user->getPHID()) {\n      return false;\n    }\n\n    // Only a persisted link under this provider can authorize reuse of a\n    // native session. Display names and email addresses are not identities.\n    $account = id(new PhabricatorExternalAccountQuery())\n      ->setViewer($user)\n      ->requireCapabilities(array(PhabricatorPolicyCapability::CAN_EDIT))\n      ->withProviderConfigPHIDs(array($this->getProviderConfig()->getPHID()))\n      ->withUserPHIDs(array($user->getPHID()))\n      ->withRawAccountIdentifiers(array($identity))\n      ->executeOne();\n\n    return (bool)$account;\n  }\n\n  public static function canReuseSessionForProxyIdentity(\n    PhabricatorUser $user,\n    PhabricatorController $controller) {\n\n    $identity = AphrontRequest::getHTTPHeader('X-Auth-User');\n    if (!phutil_nonempty_string($identity)) {\n      return true;\n    }\n\n    $has_proxy_provider = false;\n    foreach (PhabricatorAuthProvider::getAllEnabledProviders() as $provider) {\n      if (!($provider instanceof self)) {\n        continue;\n      }\n      $has_proxy_provider = true;\n      if ($provider->isSessionIdentityCompatible($user, $identity)) {\n        return true;\n      }\n      if ($provider->canUseSessionForAccountLink(\n          $user, $identity, $controller)) {\n        return true;\n      }\n    }\n\n    return !$has_proxy_provider;\n  }\n\n  public function canUseSessionForAccountLink(\n    PhabricatorUser $user,\n    $identity,\n    PhabricatorController $controller) {\n\n    if (!$this->shouldAllowAccountLink() ||\n        !phutil_nonempty_string($identity)) {\n      return false;\n    }\n\n    $request = $controller->getRequest();\n    $config = $this->getProviderConfig();\n    $link_uri = '/auth/link/'.$config->getID().'/';\n    if ($controller instanceof PhabricatorAuthLinkController) {\n      $is_link_flow = ($request->getURIData('action') === 'link' &&\n        (string)$request->getURIData('id') === (string)$config->getID());\n    } else if ($controller instanceof PhabricatorAuthLoginController) {\n      $is_link_flow =\n        ($request->getURIData('pkey') === $this->getProviderKey());\n    } else if ($controller instanceof PhabricatorAuthConfirmLinkController) {\n      $is_link_flow = true;\n    } else if ($controller instanceof PhabricatorAuthValidateController ||\n               $controller instanceof PhabricatorAuthFinishController) {\n      $is_link_flow =\n        (PhabricatorCookies::getNextURICookie($request) === $link_uri);\n    } else {\n      $is_link_flow = false;\n    }\n    if (!$is_link_flow) {\n      return false;\n    }\n\n    // Never use the linking exception to swap an already-linked identity.\n    $existing = id(new PhabricatorExternalAccountQuery())\n      ->setViewer($user)\n      ->requireCapabilities(array(PhabricatorPolicyCapability::CAN_EDIT))\n      ->withProviderConfigPHIDs(array($config->getPHID()))\n      ->withUserPHIDs(array($user->getPHID()))\n      ->executeOne();\n    if ($existing) {\n      return false;\n    }\n\n    $account = id(new PhabricatorExternalAccountQuery())\n      ->setViewer(PhabricatorUser::getOmnipotentUser())\n      ->requireCapabilities(array(PhabricatorPolicyCapability::CAN_EDIT))\n      ->withProviderConfigPHIDs(array($config->getPHID()))\n      ->withRawAccountIdentifiers(array($identity))\n      ->executeOne();\n    if ($account && $account->getUserPHID()) {\n      return false;\n    }\n\n    if ($controller instanceof PhabricatorAuthConfirmLinkController) {\n      // The ordinary controller still verifies the registration cookie,\n      // CSRF, Allow Linking, and the native high-security confirmation.\n      return $account &&\n        ($request->getURIData('akey') === $account->getAccountSecret());\n    }\n\n    return true;\n",
+          "parent": ""
+        }
+      ]
+    },
+    "src/applications/base/controller/PhabricatorController.php": {
+      "current_bytes": 20327,
+      "current_sha256": "3d870b9a8d41cfd81b4794ed1bfa3149c8e9df39850f8af500ce9b4d5a0fa354",
+      "target_bytes": 19649,
+      "target_sha256": "a2dfa7c0f2c2b6984537be3a35fad38649527131d6a0f2d264bbfce12cba31ce",
+      "edits": [
+        {
+          "offset": 2260,
+          "current": "        if ($session_user &&\n            !PhabricatorTraefikAuthProvider::canReuseSessionForProxyIdentity(\n              $session_user, $this)) {\n          // The gateway account changed. Do not reuse the previous account's\n          // native session, including on read-only or file requests.\n          $session_user = null;\n          $phsid = $session_engine->establishSession(\n            PhabricatorAuthSession::TYPE_WEB,\n            null,\n            false);\n          if ($request->canSetCookies()) {\n            $request->clearCookie(PhabricatorCookies::COOKIE_USERNAME);\n            $request->setCookie(PhabricatorCookies::COOKIE_SESSION, $phsid);\n          }\n        }\n",
+          "parent": ""
+        }
+      ]
+    },
+    "src/infrastructure/governance/media/PhorgeGovernanceMediaExchangeService.php": {
+      "current_bytes": 22247,
+      "current_sha256": "de96d90606515128ff310f01a614db122d877b7df2a496d50d204ab371eea163",
+      "target_bytes": 21334,
+      "target_sha256": "9afb37b7d3b409333dfd01f614f85423ecd1192d795dffe1999cb0a5f8f3c7b0",
+      "edits": [
+        {
+          "offset": 2035,
+          "current": "  private static function normalizeIsolationLevelRow($row,$name) {\n    $levels=array('READ-UNCOMMITTED','READ-COMMITTED','REPEATABLE-READ','SERIALIZABLE');\n    if (!is_array($row) || ($row['Variable_name']??null)!==$name ||\n        !is_string($row['Value']??null) || !in_array($row['Value'],$levels,true)) {\n      throw new RuntimeException('media_transaction_isolation_refused');\n    }\n    return $row['Value'];\n  }\n\n  private static function readSessionIsolationLevel(AphrontDatabaseConnection $connection) {\n    // MariaDB 10.11 uses tx_isolation; MySQL 8 uses transaction_isolation.\n    // Only absence selects the alias. Query errors and malformed values fail closed.\n    foreach (array('transaction_isolation','tx_isolation') as $name) {\n      $row=queryfx_one($connection,'SHOW SESSION VARIABLES WHERE Variable_name = %s',$name);\n      if ($row!==null) { return self::normalizeIsolationLevelRow($row,$name); }\n    }\n    throw new RuntimeException('media_transaction_isolation_refused');\n  }\n\n",
+          "parent": ""
+        },
+        {
+          "offset": 3316,
+          "current": "    $default=self::readSessionIsolationLevel($connection);\n",
+          "parent": "    $default=queryfx_one($connection,'SELECT @@SESSION.transaction_isolation AS isolationLevel');\n"
+        },
+        {
+          "offset": 3687,
+          "current": "    if(!isset($restore[$default])){throw new RuntimeException('media_transaction_isolation_refused');}\n",
+          "parent": "    if(!$default||!isset($restore[$default['isolationLevel']])){throw new RuntimeException('media_transaction_isolation_refused');}\n"
+        },
+        {
+          "offset": 4827,
+          "current": "      if($queued){queryfx($connection,$restore[$default]);}\n",
+          "parent": "      if($queued){queryfx($connection,$restore[$default['isolationLevel']]);}\n"
+        }
+      ]
+    },
+    "src/infrastructure/governance/media/README.md": {
+      "current_bytes": 4922,
+      "current_sha256": "53ac5d73ee460a001d6b876a13b282c2b72e184830a02707ae733b093f5d0356",
+      "target_bytes": 4271,
+      "target_sha256": "fde35edcce24474a9aafa2e60e1d2c9e4eaeae9152b343a16468e3e7d8d156d6",
+      "edits": [
+        {
+          "offset": 103,
+          "current": "`governance.media-exchange.enabled` is true. The exchange backend alone does not activate the HTTP controllers, cookie\nwriter, file guards, or an anonymous fallback. The separately locked\n`governance.media-exchange.http-enabled` option also defaults to false.\n",
+          "parent": "`governance.media-exchange.enabled` is true. No public controller, cookie writer,\nfile authorization bypass, or anonymous fallback is registered by this component.\n"
+        },
+        {
+          "offset": 3471,
+          "current": "The source now includes the origin-bound HTTP handoff, host-only cookie\nattributes, native file/read/transform guards, and cache/active-content controls.\nTheir presence and unit tests are not proof of complete N09/N10 qualification.\nAcceptance still requires the exact candidate revision to pass real TLS and\nbrowser exchange, cross-account and session lifecycle, all retained file routes,\nand cleanup/recovery tests together. Private-mail producer integration has its\nown N11 qualification. This engine alone is not N09/N10/N11 completion,\nproduction enablement, or a migration of any native project permission axis.\n\nWith both options disabled, the existing native file capability-link semantics\nremain. In particular, rejecting another account at a file details page does not\nprove that account cannot read a secret raw-file URL. Ordinary application login\nor gateway admission must not be reported as session-bound media authorization.\n",
+          "parent": "Remaining package work includes the origin-bound HTTP handoff, host-only cookie\nattributes and clearing, concrete file/read/transform guards, cache and active\ncontent controls, native session lifecycle tests, browser tests, and all mail\nproducer integration. This engine alone is not N09/N10/N11 completion, production\nenablement, or a migration of any native project permission axis.\n"
+        }
+      ]
+    },
+    "src/infrastructure/governance/media/__tests__/PhorgeGovernanceMediaExchangeServiceTestCase.php": {
+      "current_bytes": 4157,
+      "current_sha256": "e1f1905a9d0905a5845e0da0085f93e8b9fb1ae96e99620e91d9447277f02fe2",
+      "target_bytes": 3210,
+      "target_sha256": "9a7660f1a240344cafda5849602b5cecf752134b40ceb797f8f902a144d8309f",
+      "edits": [
+        {
+          "offset": 762,
+          "current": "  }\n\n  public function testIsolationRowsKeepExactNamesAndKnownNativeValues() {\n    $method=new ReflectionMethod(PhorgeGovernanceMediaExchangeService::class,'normalizeIsolationLevelRow');\n    foreach (array('transaction_isolation','tx_isolation') as $name) {\n      foreach(array('READ-UNCOMMITTED','READ-COMMITTED','REPEATABLE-READ','SERIALIZABLE') as $level){\n        $this->assertEqual($level,$method->invoke(null,array('Variable_name'=>$name,'Value'=>$level),$name));\n      }\n      foreach(array(null,array(),array('Variable_name'=>'other','Value'=>'READ-COMMITTED'),\n        array('Variable_name'=>$name,'Value'=>'read-committed'),array('Variable_name'=>$name,'Value'=>null),\n        array('Variable_name'=>$name,'Value'=>0),array('Variable_name'=>$name,'Value'=>'UNKNOWN')) as $row){\n        $refused=false;try{$method->invoke(null,$row,$name);}catch(RuntimeException $error){$refused=true;}\n        $this->assertTrue($refused);\n      }\n    }\n",
+          "parent": ""
+        }
+      ]
+    },
+    "src/infrastructure/governance/media/__tests__/PhorgeGovernanceMediaFileGuardTestCase.php": {
+      "current_bytes": 3292,
+      "current_sha256": "3c73b81e85de4608424fb8ee9fd020395e69cc96ac2a2a2d2e252292b5f3acc9",
+      "target_bytes": 1744,
+      "target_sha256": "f4a86c3b806b3bea69219aef62745532849c5585f47bff99a69bac6df42e4153",
+      "edits": [
+        {
+          "offset": 83,
+          "current": "  public function testDisabledFileGuardDeniesBeforeInterpretingRouteOrIdentity(){\n    $env=PhorgeGovernanceMediaHTTPProtocolTestCase::newDisabledConfigurationForTest();\n    try{\n      PhorgeGovernanceMediaFileGuard::authorize(new AphrontRequest('example.invalid','/'));\n      $this->assertFailure('Disabled media guard unexpectedly authorized a request.');\n    }catch(RuntimeException $error){$this->assertEqual('media_file_disabled',$error->getMessage());}\n  }\n  public function testPrivateResponsesDisableCachingAndConstrainActiveContent(){\n    $file=(new PhabricatorFile())->setName('synthetic.html')->setMimeType('text/html');\n    $response=(new AphrontFileResponse())->setMimeType('text/html')->setContent('synthetic');\n    $this->assertEqual($response,PhorgeGovernanceMediaFileGuard::secureResponse($response,$file));\n    $this->assertEqual('application/octet-stream',$response->getMimeType());\n    $this->assertEqual('synthetic.html',$response->getDownload());\n    $headers=array();foreach($response->getHeaders() as $header){$headers[strtolower($header[0])]=$header[1];}\n    $this->assertEqual('no-store, private',$headers['cache-control']);\n    $this->assertEqual('no-cache',$headers['pragma']);\n    $this->assertEqual('nosniff',$headers['x-content-type-options']);\n    $this->assertEqual('no-referrer',$headers['referrer-policy']);\n    $this->assertEqual(\"sandbox; default-src 'none'; base-uri 'none'; frame-ancestors 'none'\",$headers['content-security-policy']);\n    $this->assertEqual('synthetic',$response->buildResponseString());\n  }\n",
+          "parent": ""
+        }
+      ]
+    },
+    "src/infrastructure/governance/media/__tests__/PhorgeGovernanceMediaHTTPProtocolTestCase.php": {
+      "current_bytes": 10512,
+      "current_sha256": "7e0e57e12d6b9b2b6dba83ea8a58f883b015964af72b6b2534e91e9337f97689",
+      "target_bytes": 6717,
+      "target_sha256": "967c810b6c4b674f9edd202a4140d41db4d6f0b5bb42a3bcf5683bbb5fc52e21",
+      "edits": [
+        {
+          "offset": 86,
+          "current": "  /** Install no database source, and restore both cold and existing test state. */\n  public static function newDisabledConfigurationForTest(){\n    $stack_property=new ReflectionProperty(PhabricatorEnv::class,'sourceStack');\n    $cache_property=new ReflectionProperty(PhabricatorEnv::class,'cache');\n    $old_stack=$stack_property->getValue();$old_cache=$cache_property->getValue();$env=null;\n    try{\n      if($old_stack===null){\n        $stack=new PhabricatorConfigStackSource();\n        $stack->pushSource(new PhabricatorConfigDefaultSource());\n        $stack_property->setValue(null,$stack);$cache_property->setValue(null,array());\n      }\n      $env=PhabricatorEnv::beginScopedEnv();\n      $env->overrideEnvConfig('governance.media-exchange.enabled',false);\n      $env->overrideEnvConfig('governance.media-exchange.http-enabled',false);\n    }catch(Throwable $error){\n      $env=null;$stack_property->setValue(null,$old_stack);$cache_property->setValue(null,$old_cache);throw $error;\n    }\n    $restore=static function()use(&$env,$stack_property,$cache_property,$old_stack,$old_cache){\n      try{$env=null;}finally{$stack_property->setValue(null,$old_stack);$cache_property->setValue(null,$old_cache);}\n    };\n    return new class($restore){\n      private $restore;\n      public function __construct(Closure $restore){$this->restore=$restore;}\n      public function __destruct(){$restore=$this->restore;$restore();}\n    };\n  }\n  public function testDisabledHTTPPreservesNativeCredentialsAndOmitsBootstrap(){\n    $stack_property=new ReflectionProperty(PhabricatorEnv::class,'sourceStack');\n    $cache_property=new ReflectionProperty(PhabricatorEnv::class,'cache');\n    $old_stack=$stack_property->getValue();$old_cache=$cache_property->getValue();\n    $env=self::newDisabledConfigurationForTest();$server=$_SERVER;$cookies=$_COOKIE;\n    try{\n      $_SERVER['HTTP_COOKIE']='phsid=synthetic-session; phusr=synthetic-user';\n      $_SERVER['HTTP_AUTHORIZATION']='Bearer synthetic';\n      $_COOKIE=array('phsid'=>'synthetic-session','phusr'=>'synthetic-user');\n      $before_server=$_SERVER;$before_cookies=$_COOKIE;\n      $request=new AphrontRequest('files.example.invalid','/file/data/example');\n      PhorgeGovernanceMediaHTTPProtocol::restrictFileOriginCredentials($request);\n      $this->assertEqual($before_server,$_SERVER);\n      $this->assertEqual($before_cookies,$_COOKIE);\n      $this->assertEqual(null,PhorgeGovernanceMediaHTTPProtocol::pageBootstrapConfig($request));\n      // A nested scope exercises the already-initialized branch, including cache restoration.\n      $active_stack=$stack_property->getValue();$active_cache=$cache_property->getValue();\n      $nested=self::newDisabledConfigurationForTest();\n      PhabricatorEnv::getEnvConfig('governance.media-exchange.enabled');unset($nested);\n      $this->assertTrue($stack_property->getValue()===$active_stack);\n      $this->assertTrue($cache_property->getValue()===$active_cache);\n    }finally{$_SERVER=$server;$_COOKIE=$cookies;unset($env);}\n    $this->assertTrue($stack_property->getValue()===$old_stack);\n    $this->assertTrue($cache_property->getValue()===$old_cache);\n  }\n  public function testDisabledCandidateEndpointsDenyWithoutCreatingAuthority(){\n    $env=self::newDisabledConfigurationForTest();\n    foreach(array(new PhorgeGovernanceMediaResourceController(),new PhorgeGovernanceMediaAuthorizeController()) as $controller){\n      $response=$controller->handleRequest(new AphrontRequest('example.invalid','/'));\n      $this->assertEqual(403,$response->getHTTPResponseCode());\n      $this->assertEqual(array('error'=>'media_request_unavailable'),json_decode($response->buildResponseString(),true));\n      foreach($response->getHeaders() as $header){$this->assertFalse(strtolower($header[0])==='set-cookie');}\n    }\n  }\n",
+          "parent": ""
+        }
+      ]
+    },
+    "tests/governance/native_rr_ci/build_owner.py": {
+      "current_bytes": 8981,
+      "current_sha256": "6f4cac57b399e216cca2e5dd6802efe7f8e07108c2eacd629aa3c4878b1084d8",
+      "target_bytes": 6675,
+      "target_sha256": "8eebd8ef68100d8d33b5c6404345958d96ef193dfc0036bf89c0484c1853a518",
+      "edits": [
+        {
+          "offset": 104,
+          "current": "import argparse,datetime,os,re,stat,subprocess,tempfile,shutil,json\n",
+          "parent": "import argparse,os,re,stat,subprocess,tempfile,shutil,json\n"
+        },
+        {
+          "offset": 491,
+          "current": "def release_event(env):\n \"\"\"Read the actual runner event; an expression copied into env is insufficient.\"\"\"\n fd=None\n try:\n  path=Path(env.get('GITHUB_EVENT_PATH',''))\n  if not path.is_absolute()or path.resolve(strict=True)!=path:raise ValueError('actual release event required')\n  fd=os.open(path,os.O_RDONLY|os.O_NOFOLLOW|os.O_NONBLOCK);before=os.fstat(fd)\n  if not stat.S_ISREG(before.st_mode)or not 0<before.st_size<=1048576:raise ValueError('bounded release event required')\n  raw=bytearray()\n  while len(raw)<before.st_size:\n   block=os.read(fd,before.st_size-len(raw))\n   if not block:raise ValueError('complete release event required')\n   raw.extend(block)\n  fields=('st_dev','st_ino','st_mode','st_uid','st_gid','st_nlink','st_size','st_mtime_ns','st_ctime_ns')\n  if os.read(fd,1)or any(getattr(before,k)!=getattr(after,k)for after in (os.fstat(fd),path.lstat())for k in fields):raise ValueError('stable release event required')\n  value=decode(raw)\n  if type(value)is not dict or type(value.get('inputs'))is not dict or type(value.get('repository'))is not dict:raise ValueError('release event inputs and repository required')\n  return value\n except (OSError,TypeError)as error:raise ValueError('actual release event required')from error\n finally:\n  if fd is not None:os.close(fd)\n",
+          "parent": ""
+        },
+        {
+          "offset": 2256,
+          "current": " workflow=env.get('GITHUB_WORKFLOW_REF')\n direct=workflow=='soulteary/phorge/.github/workflows/native-rr-owner-build.yml@'+ref\n release=workflow=='soulteary/phorge/.github/workflows/container-image.yml@'+ref\n if env.get('GITHUB_JOB')!='owner-build'or not(direct or release):raise ValueError('fixed reviewed workflow/job required')\n if release:\n  tag=env.get('NATIVE_RR_RELEASE_TAG','')\n  if env.get('GITHUB_REPOSITORY')!='soulteary/phorge'or event!='workflow_dispatch'or not re.fullmatch(r'20[0-9]{2}\\.[0-9]{2}\\.[0-9]{2}-r[1-9][0-9]*',tag)or ref!='refs/tags/'+tag:raise ValueError('exact immutable release caller required')\n  datetime.datetime.strptime(tag.split('-')[0],'%Y.%m.%d')\n  if env.get('NATIVE_RR_WORKFLOW_SHA')!=head or env.get('NATIVE_RR_EXPECTED_HEAD')!=head:raise ValueError('same-source release workflow and input required')\n  payload=release_event(env)\n  if payload['inputs'].get('release_tag')!=tag or payload['repository'].get('full_name')!='soulteary/phorge':raise ValueError('actual release event does not match caller')\n  if command(['git','-C',str(ROOT),'rev-parse','--verify','refs/tags/'+tag+'^{commit}']).decode().strip()!=head:raise ValueError('actual release tag commit required')\n",
+          "parent": " if env.get('GITHUB_JOB')!='owner-build'or env.get('GITHUB_WORKFLOW_REF')!='soulteary/phorge/.github/workflows/native-rr-owner-build.yml@'+ref:raise ValueError('fixed reviewed workflow/job required')\n"
+        }
+      ]
+    },
+    "tests/governance/native_rr_ci/execution.py": {
+      "current_bytes": 9539,
+      "current_sha256": "944d73bb8ee9a4b778563d59fd9901cf9ff309f3f482dac32e6e9e3f4aa6b684",
+      "target_bytes": 8508,
+      "target_sha256": "f250bcd482a4799d5b41c1f0d3af76b13605cbbf4be97d874ec54827edd34895",
+      "edits": [
+        {
+          "offset": 303,
+          "current": "# Preserve all280 selected IDs at dd375d2d00, plus these five real current cases.\n# Encoding: SHA256(JSON(sorted IDs), separators=(',',':')). No PHP test is skipped.\nBASE_PURE_IDS_SHA256='6ba076f1a429860aab2b89c60d436a8bf5b1d4e42db1783d620eb84c243dc6fc'\nCURRENT_PURE_ADDITIONS=frozenset({\n 'PhorgeGovernanceMediaExchangeServiceTestCase::testIsolationRowsKeepExactNamesAndKnownNativeValues',\n 'PhorgeGovernanceMediaFileGuardTestCase::testDisabledFileGuardDeniesBeforeInterpretingRouteOrIdentity',\n 'PhorgeGovernanceMediaFileGuardTestCase::testPrivateResponsesDisableCachingAndConstrainActiveContent',\n 'PhorgeGovernanceMediaHTTPProtocolTestCase::testDisabledCandidateEndpointsDenyWithoutCreatingAuthority',\n 'PhorgeGovernanceMediaHTTPProtocolTestCase::testDisabledHTTPPreservesNativeCredentialsAndOmitsBootstrap'})\n",
+          "parent": ""
+        },
+        {
+          "offset": 6931,
+          "current": " if len(ids)!=285:raise ValueError('current pure IDs refused')\n if not CURRENT_PURE_ADDITIONS<=ids or digest(json.dumps(sorted(ids-CURRENT_PURE_ADDITIONS),separators=(',',':')).encode())!=BASE_PURE_IDS_SHA256:raise ValueError('original280 plus exact five current cases required')\n",
+          "parent": " if len(ids)!=280:raise ValueError('current pure IDs refused')\n"
+        },
+        {
+          "offset": 7252,
+          "current": " if data.get('passed')is not True or data.get('runtime')!='8.5.12'or type(data.get('expected_methods'))is not int or data['expected_methods']!=285:raise ValueError('actual pure outcome refused')\n",
+          "parent": " if data.get('passed')is not True or data.get('runtime')!='8.5.12'or type(data.get('expected_methods'))is not int or data['expected_methods']!=280:raise ValueError('actual pure outcome refused')\n"
+        },
+        {
+          "offset": 7476,
+          "current": " if type(results)is not list or len(results)!=285 or len({r['id']for r in results})!=285 or {r['id']for r in results}!=ids or any(r.get('result')!='pass'for r in results):raise ValueError('actual pure IDs refused')\n return {'passed':True,'methods':285,'classes':49,'new_executions':1}\n",
+          "parent": " if type(results)is not list or len(results)!=280 or len({r['id']for r in results})!=280 or {r['id']for r in results}!=ids or any(r.get('result')!='pass'for r in results):raise ValueError('actual pure IDs refused')\n return {'passed':True,'methods':280,'classes':49,'new_executions':1}\n"
+        }
+      ]
+    },
+    "tests/governance/native_rr_ci/runner.py": {
+      "current_bytes": 16531,
+      "current_sha256": "fca2208609955211f9626df5f3c94d26fe2ad894c5b0884b244c4aaa09b593f3",
+      "target_bytes": 16531,
+      "target_sha256": "9ac6a8477020fe4ee7db665707c020ded69415dfd5ad9bac90b03b6cf3491ea1",
+      "edits": [
+        {
+          "offset": 11096,
+          "current": "   public.write('native.json',pure_raw);result['pure_methods']=285;result['pure_classes']=49;result['new_pure_executions']=1\n",
+          "parent": "   public.write('native.json',pure_raw);result['pure_methods']=280;result['pure_classes']=49;result['new_pure_executions']=1\n"
+        }
+      ]
+    },
+    "tests/governance/test_native_rr_ci_execution.py": {
+      "current_bytes": 8942,
+      "current_sha256": "bad40adf075ce937152933ab4d78178eb026811d2fa099ec7cd1ff393012415a",
+      "target_bytes": 6348,
+      "target_sha256": "42c3bccffac825e267b28f8cf0f1c581280dbba142be2712654a3c8975b44ea5",
+      "edits": [
+        {
+          "offset": 3975,
+          "current": "  ids=e.pure_inventory(ROOT);self.assertEqual(285,len(ids));data={'passed':True,'runtime':'8.5.12','expected_methods':285,'results':[{'id':i,'result':'pass'}for i in ids]};self.assertTrue(e.validate_pure(data,ids)['passed'])\n  for change in ('bool','duplicate','failed','old-count','stale-280'):\n",
+          "parent": "  ids=e.pure_inventory(ROOT);self.assertEqual(280,len(ids));data={'passed':True,'runtime':'8.5.12','expected_methods':280,'results':[{'id':i,'result':'pass'}for i in ids]};self.assertTrue(e.validate_pure(data,ids)['passed'])\n  for change in ('bool','duplicate','failed','old-count'):\n"
+        },
+        {
+          "offset": 4468,
+          "current": "   elif change=='stale-280':bad['expected_methods']=280\n",
+          "parent": ""
+        },
+        {
+          "offset": 4658,
+          "current": " def test_five_current_media_methods_are_not_omitted_from_real_inventory(self):\n  ids=e.pure_inventory(ROOT)\n  additions={\n   'PhorgeGovernanceMediaExchangeServiceTestCase::testIsolationRowsKeepExactNamesAndKnownNativeValues',\n   'PhorgeGovernanceMediaFileGuardTestCase::testDisabledFileGuardDeniesBeforeInterpretingRouteOrIdentity',\n   'PhorgeGovernanceMediaFileGuardTestCase::testPrivateResponsesDisableCachingAndConstrainActiveContent',\n   'PhorgeGovernanceMediaHTTPProtocolTestCase::testDisabledCandidateEndpointsDenyWithoutCreatingAuthority',\n   'PhorgeGovernanceMediaHTTPProtocolTestCase::testDisabledHTTPPreservesNativeCredentialsAndOmitsBootstrap'}\n  self.assertTrue(additions<=ids)\n  self.assertEqual(additions,e.CURRENT_PURE_ADDITIONS)\n  for removed in additions:\n   data={'passed':True,'runtime':'8.5.12','expected_methods':285,\n         'results':[{'id':i,'result':'pass'}for i in ids if i!=removed]}\n   with self.subTest(removed=removed),self.assertRaises(ValueError):e.validate_pure(data,ids)\n  # The historical280 prefix/success bit cannot replace all current285 IDs.\n  old=ids-additions\n  with self.assertRaises(ValueError):e.validate_pure({'passed':True,'runtime':'8.5.12',\n   'expected_methods':280,'results':[{'id':i,'result':'pass'}for i in old]},ids)\n def test_unchanged_count_cannot_replace_original_or_new_method(self):\n  import re\n  text=(ROOT/'tests/governance/run.php').read_text()\n  classes=re.findall(r\"'(Phorge[A-Za-z0-9_]+TestCase)'\",text.split('$classes = array(',1)[1].split(');',1)[0])\n  with tempfile.TemporaryDirectory()as tmp:\n   root=Path(tmp);runner=root/'tests/governance/run.php';runner.parent.mkdir(parents=True);runner.write_text(text)\n   files={}\n   for cls in classes:\n    original=next((ROOT/'src').rglob(cls+'.php'));target=root/'src'/original.name\n    target.parent.mkdir(exist_ok=True);target.write_text(original.read_text());files[cls]=target\n   self.assertEqual(285,len(e.pure_inventory(root)))\n   for identity in ('PhorgeGovernanceDirectoryReaderTestCase',\n                    'PhorgeGovernanceMediaExchangeServiceTestCase'):\n    target=files[identity];original=target.read_text()\n    method=('testIsolationRowsKeepExactNamesAndKnownNativeValues'if 'MediaExchange'in identity\n            else re.search(r'public\\s+function\\s+(test[A-Za-z0-9_]+)\\s*\\(',original).group(1))\n    target.write_text(original.replace(method,'testUnreviewedReplacement',1))\n    with self.subTest(identity=identity),self.assertRaises(ValueError):e.pure_inventory(root)\n    target.write_text(original)\n",
+          "parent": ""
+        }
+      ]
+    },
+    "tests/governance/test_native_rr_ci_provenance.py": {
+      "current_bytes": 14803,
+      "current_sha256": "a07c399413fe8dd19f949c552e647cae18d61fefb1a700fbce9be8593345913f",
+      "target_bytes": 9649,
+      "target_sha256": "08e073c5af1b50f8f5e699d9d7d4bfa05da7730259dc0d46201ac838f67551cb",
+      "edits": [
+        {
+          "offset": 79,
+          "current": "import copy,importlib.util,hashlib,json,os,sys,tempfile,types,unittest\n",
+          "parent": "import copy,importlib.util,hashlib,json,os,sys,tempfile,unittest\n"
+        },
+        {
+          "offset": 2346,
+          "current": " def release_env(self):\n  tag='2026.11.19-r1';ref='refs/tags/'+tag\n  temporary=tempfile.TemporaryDirectory();self.addCleanup(temporary.cleanup)\n  event=Path(temporary.name).resolve()/'event.json'\n  event.write_text(json.dumps({'inputs':{'release_tag':tag},'repository':{'full_name':'soulteary/phorge'}}))\n  return {'GITHUB_ACTIONS':'true','RUNNER_OS':'Linux','RUNNER_ARCH':'X64','GITHUB_SHA':REV,\n   'GITHUB_RUN_ID':'12','GITHUB_RUN_ATTEMPT':'1','GITHUB_EVENT_NAME':'workflow_dispatch',\n   'GITHUB_REF':ref,'GITHUB_JOB':'owner-build','GITHUB_REPOSITORY':'soulteary/phorge',\n   'GITHUB_WORKFLOW_REF':'soulteary/phorge/.github/workflows/container-image.yml@'+ref,\n   'NATIVE_RR_EXPECTED_HEAD':REV,'NATIVE_RR_WORKFLOW_SHA':REV,'NATIVE_RR_RELEASE_TAG':tag,\n   'GITHUB_EVENT_PATH':str(event)}\n def test_release_reusable_caller_binds_actual_tag_and_same_source(self):\n  with patch.object(b,'command',return_value=(REV+'\\n').encode())as git:\n   result=b.ci_identity(self.release_env(),REV)\n  git.assert_called_once_with(['git','-C',str(b.ROOT),'rev-parse','--verify','refs/tags/2026.11.19-r1^{commit}'])\n  self.assertEqual(result['source_kind'],'workflow-dispatch-checkout')\n  self.assertEqual(result['source_revision'],REV)\n  self.assertFalse(result['PR_head_measured'])\n def test_release_identity_tampering_and_tag_resolution_refused(self):\n  env=self.release_env()\n  with patch.object(b,'command',return_value=(REV+'\\n').encode()):\n   for key in env:\n    for value in ('unknown',''):\n     bad=env.copy();bad[key]=value\n     with self.subTest(key=key,value=value),self.assertRaises(ValueError):b.ci_identity(bad,REV)\n   for tag in ('2026.02.30-r1','2026.11.19-r0','latest','2026.11.19-r1/other'):\n    bad=env.copy();bad.update(NATIVE_RR_RELEASE_TAG=tag,GITHUB_REF='refs/tags/'+tag,\n     GITHUB_WORKFLOW_REF='soulteary/phorge/.github/workflows/container-image.yml@refs/tags/'+tag)\n    with self.subTest(tag=tag),self.assertRaises(ValueError):b.ci_identity(bad,REV)\n   for workflow in ('other.yml','release-full.yml','native-rr-owner-build.yml.extra'):\n    bad=env.copy();bad['GITHUB_WORKFLOW_REF']='soulteary/phorge/.github/workflows/'+workflow+'@'+env['GITHUB_REF']\n    with self.subTest(workflow=workflow),self.assertRaises(ValueError):b.ci_identity(bad,REV)\n  with patch.object(b,'command',return_value=('b'*40+'\\n').encode()),self.assertRaises(ValueError):b.ci_identity(env,REV)\n  with patch.object(b,'command',side_effect=RuntimeError('missing tag')),self.assertRaises(RuntimeError):b.ci_identity(env,REV)\n def test_release_actual_event_not_environment_claim(self):\n  env=self.release_env();event=Path(env['GITHUB_EVENT_PATH'])\n  for value in ({'inputs':{'release_tag':'2026.11.19-r2'},'repository':{'full_name':'soulteary/phorge'}},\n                {'inputs':{'release_tag':env['NATIVE_RR_RELEASE_TAG']},'repository':{'full_name':'foreign/phorge'}},\n                {'inputs':{},'repository':{'full_name':'soulteary/phorge'}},[],{'inputs':[]}):\n   event.write_text(json.dumps(value))\n   with patch.object(b,'command',side_effect=AssertionError('tag query before event admission')),self.assertRaises(ValueError):b.ci_identity(env,REV)\n  event.write_text('{\"inputs\":{\"release_tag\":\"2026.11.19-r1\",\"release_tag\":\"2026.11.19-r1\"},\"repository\":{\"full_name\":\"soulteary/phorge\"}}')\n  with self.assertRaises(ValueError):b.ci_identity(env,REV)\n def test_release_event_size_and_metadata_change_refused(self):\n  env=self.release_env();event=Path(env['GITHUB_EVENT_PATH'])\n  event.write_bytes(b' '*(1048576+1))\n  with self.assertRaises(ValueError):b.release_event(env)\n  event.write_text(json.dumps({'inputs':{'release_tag':env['NATIVE_RR_RELEASE_TAG']},'repository':{'full_name':'soulteary/phorge'}}))\n  before=event.stat();fields=('st_dev','st_ino','st_mode','st_uid','st_gid','st_nlink','st_size','st_mtime_ns','st_ctime_ns')\n  changed=types.SimpleNamespace(**{k:getattr(before,k)+(1 if k=='st_mtime_ns' else 0)for k in fields})\n  with patch.object(b.os,'fstat',side_effect=[before,changed]),self.assertRaises(ValueError):b.release_event(env)\n  target=event.with_name('target.json');event.replace(target);event.symlink_to(target)\n  with self.assertRaises(ValueError):b.ci_identity(env,REV)\n def test_direct_dispatch_backcompat_needs_no_release_inputs(self):\n  env=self.release_env();env['GITHUB_REF']='refs/heads/main'\n  env['GITHUB_WORKFLOW_REF']='soulteary/phorge/.github/workflows/native-rr-owner-build.yml@refs/heads/main'\n  for key in ('NATIVE_RR_RELEASE_TAG','NATIVE_RR_EXPECTED_HEAD','NATIVE_RR_WORKFLOW_SHA','GITHUB_REPOSITORY'):env.pop(key)\n  with patch.object(b,'command',side_effect=AssertionError('direct path must not resolve release tag')):\n   self.assertEqual(b.ci_identity(env,REV)['source_kind'],'workflow-dispatch-checkout')\n def test_rr_workflow_passes_explicit_same_source_release_context(self):\n  workflow=(ROOT/'.github/workflows/native-rr-owner-build.yml').read_text()\n  for line in ('NATIVE_RR_EXPECTED_HEAD: ${{ inputs.expected_head }}',\n               'NATIVE_RR_WORKFLOW_SHA: ${{ github.workflow_sha }}',\n               'NATIVE_RR_RELEASE_TAG: ${{ github.event.inputs.release_tag }}'):\n   self.assertEqual(workflow.count(line),1)\n",
+          "parent": ""
+        }
+      ]
+    },
+    "tests/governance/test_native_rr_ci_runner.py": {
+      "current_bytes": 12654,
+      "current_sha256": "7f02dbacc2efbded67c55533a4c85a4d0361125860638b274e4e4e4a1f5bfafd",
+      "target_bytes": 12654,
+      "target_sha256": "d93d7205de9f0c23cf71e820b390ae11e5b6da96a0065fd85c37ba63121217c5",
+      "edits": [
+        {
+          "offset": 3361,
+          "current": "   sources=p.source_bindings(checkout,lambda path:(checkout/path).read_bytes());ids={f'Synthetic::test{i}'for i in range(285)}\n",
+          "parent": "   sources=p.source_bindings(checkout,lambda path:(checkout/path).read_bytes());ids={f'Synthetic::test{i}'for i in range(280)}\n"
+        },
+        {
+          "offset": 5478,
+          "current": "     if args[1].endswith('/tests/governance/run.php'):return json.dumps({'passed':True,'runtime':'8.5.12','expected_methods':285,'results':[{'id':i,'result':'pass'}for i in ids]}).encode()\n",
+          "parent": "     if args[1].endswith('/tests/governance/run.php'):return json.dumps({'passed':True,'runtime':'8.5.12','expected_methods':280,'results':[{'id':i,'result':'pass'}for i in ids]}).encode()\n"
+        }
+      ]
+    },
+    "tests/governance/test_native_user_rr_mdl_source.py": {
+      "current_bytes": 5412,
+      "current_sha256": "ea92392fdefff7147fe8ddc63a18f6b154e5547877fca66ed335166bb1cb029e",
+      "target_bytes": 4045,
+      "target_sha256": "a43047fd8a130ff2405cb1dc0297194a2ef52a2274334e0023c81c172abf708d",
+      "edits": [
+        {
+          "offset": 720,
+          "current": "  classes,ids=inventory();self.assertEqual(49,len(classes));self.assertEqual(285,len(ids));self.assertEqual(len(ids),len(set(ids)))\n",
+          "parent": "  classes,ids=inventory();self.assertEqual(49,len(classes));self.assertEqual(280,len(ids));self.assertEqual(len(ids),len(set(ids)))\n"
+        },
+        {
+          "offset": 1499,
+          "current": "  original_delta={'PhorgeRecoveryFileSourceFactsTestCase::testNativeFileAuthorAutomaticIsNotAccountOrPolicyAdmission',\n",
+          "parent": "  self.assertEqual({'PhorgeRecoveryFileSourceFactsTestCase::testNativeFileAuthorAutomaticIsNotAccountOrPolicyAdmission',\n"
+        },
+        {
+          "offset": 2832,
+          "current": "   'PhorgeRecoveryProjectSourceFactsTestCase::testPrimitiveAndLengthBoundsCannotInvokeSerializationCallbacks'}\n  additions={'PhorgeGovernanceMediaExchangeServiceTestCase::testIsolationRowsKeepExactNamesAndKnownNativeValues',\n   'PhorgeGovernanceMediaFileGuardTestCase::testDisabledFileGuardDeniesBeforeInterpretingRouteOrIdentity',\n   'PhorgeGovernanceMediaFileGuardTestCase::testPrivateResponsesDisableCachingAndConstrainActiveContent',\n   'PhorgeGovernanceMediaHTTPProtocolTestCase::testDisabledCandidateEndpointsDenyWithoutCreatingAuthority',\n   'PhorgeGovernanceMediaHTTPProtocolTestCase::testDisabledHTTPPreservesNativeCredentialsAndOmitsBootstrap'}\n  self.assertEqual(14,len(original_delta));self.assertEqual(5,len(additions));self.assertFalse(original_delta&additions)\n  def require_current(actual):\n   self.assertEqual(285,len(actual));self.assertEqual(len(actual),len(set(actual)))\n   self.assertTrue(old_ids<=set(actual));self.assertEqual(19,len(set(actual)-old_ids))\n   self.assertEqual(original_delta|additions,set(actual)-old_ids)\n  require_current(ids)\n  # Count alone cannot admit a missing/replaced baseline, original14, or new5 ID.\n  for method in ids:\n   missing=[value for value in ids if value!=method]\n   with self.subTest(method=method,mutation='missing'),self.assertRaises(AssertionError):require_current(missing)\n   with self.subTest(method=method,mutation='same-count-replacement'),self.assertRaises(AssertionError):require_current(missing+['Unreviewed::testReplacement'])\n",
+          "parent": "   'PhorgeRecoveryProjectSourceFactsTestCase::testPrimitiveAndLengthBoundsCannotInvokeSerializationCallbacks'},set(ids)-old_ids)\n"
+        }
+      ]
+    }
+  }
+}
