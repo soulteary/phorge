@@ -30,8 +30,8 @@ keys. Without the proof, admission still fails closed. If main advances first,
 integrate the new base, create a new project-signed candidate, and rerun its gates
 and final review. Do not reuse the earlier head's green checks.
 
-After integration, read main again and require equality with the reviewed head
-and tree. Require all main push workflows to pass on that exact commit. Preserve
+After integration, read main again and require equality with the proven merge
+commit and reviewed tree (or with the reviewed head for a fast-forward). Require all main push workflows to pass on that exact commit. Preserve
 failed earlier run records; a later green run qualifies its own source, not the
 previous merge. Image publication is a later gate: verify paired source revisions,
 immutable image versions/digests and signatures independently. Source integration
@@ -177,6 +177,19 @@ class IndependentMergeProofTests(unittest.TestCase):
     return delegate(*args)
    with self.subTest(mode=mode),self.assertRaises((ValueError,subprocess.CalledProcessError)):
     head.verify_external_proof(git,'b'*40,'source-proof/'+'b'*40)
+
+class WorkflowProofContractTests(unittest.TestCase):
+ def test_full_workflow_admission_commands_require_exact_proof_reference(self):
+  import importlib
+  workflow=(ROOT/'.github/workflows/atomic-feature-regressions.yml').read_text()
+  for name in ('paired','three_paired','calendar','workbench'):
+   module=importlib.import_module('task_'+name+'_workflow_shell_test_api_v2')
+   for role in module.PROFILES:
+    with self.subTest(module=name,role=role):
+     module.validate(workflow,role)
+     for changed in ('', '--external-proof-tag "source-proof/$GITHUB_SHA"', '--external-proof-tag "source-proof/foreign"'):
+      bad=workflow.replace('--external-proof-tag "source-proof/$EXPECTED_SOURCE_CHECKPOINT"',changed)
+      with self.assertRaises(ValueError):module.validate(bad,role)
 
 class NativeBodyDelegationPure(unittest.TestCase):
  @classmethod
