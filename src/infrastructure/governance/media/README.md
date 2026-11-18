@@ -1,8 +1,9 @@
 # Session-bound private media exchange
 
 This is an internal backend, disabled unless the exact boolean
-`governance.media-exchange.enabled` is true. No public controller, cookie writer,
-file authorization bypass, or anonymous fallback is registered by this component.
+`governance.media-exchange.enabled` is true. The exchange backend alone does not activate the HTTP controllers, cookie
+writer, file guards, or an anonymous fallback. The separately locked
+`governance.media-exchange.http-enabled` option also defaults to false.
 Its native source must prove the actual complete Phorge web session, current
 account, and irreversible native generation binding on the same People database writer
 connection. An arbitrary caller boolean or attached viewer is insufficient.
@@ -46,11 +47,19 @@ Every authentication revalidates the native source. Source snapshot rollback or
 history truncation requires operational issuer-key/generation invalidation before
 restoring access; that recovery gate remains open until independently tested.
 
-Remaining package work includes the origin-bound HTTP handoff, host-only cookie
-attributes and clearing, concrete file/read/transform guards, cache and active
-content controls, native session lifecycle tests, browser tests, and all mail
-producer integration. This engine alone is not N09/N10/N11 completion, production
-enablement, or a migration of any native project permission axis.
+The source now includes the origin-bound HTTP handoff, host-only cookie
+attributes, native file/read/transform guards, and cache/active-content controls.
+Their presence and unit tests are not proof of complete N09/N10 qualification.
+Acceptance still requires the exact candidate revision to pass real TLS and
+browser exchange, cross-account and session lifecycle, all retained file routes,
+and cleanup/recovery tests together. Private-mail producer integration has its
+own N11 qualification. This engine alone is not N09/N10/N11 completion,
+production enablement, or a migration of any native project permission axis.
+
+With both options disabled, the existing native file capability-link semantics
+remain. In particular, rejecting another account at a file details page does not
+prove that account cannot read a secret raw-file URL. Ordinary application login
+or gateway admission must not be reported as session-bound media authorization.
 
 Authentication grants a narrow scoped CSRF write-guard exception only for native
 START/COMMIT/ROLLBACK bookkeeping. Credential and identity-source reads execute
