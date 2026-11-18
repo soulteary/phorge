@@ -53,6 +53,51 @@ class Anchor(unittest.TestCase):
     anchor=json.loads(bad['anchor']);anchor['binary_sha256']=p.digest(b'foreign');bad['anchor']=a.canonical(anchor).decode();bad['binary']='foreign' # independent control intentionally unchanged
    result=self.php(bad)
    with self.subTest(change=change):self.assertEqual(3,result.returncode,result.stderr);self.assertEqual({'refused':True},json.loads(result.stdout))
+  # Exercise the actual private caller predicate in PHP, without minting a
+  # profile or fabricating the fixed Linux binary/source paths on this host.
+  script='require $argv[1];$v=json_decode(stream_get_contents(STDIN),true,32,JSON_THROW_ON_ERROR);try{if($v["open"]){GovernanceNativeRRCIProfile::open($v["control"]);}else{(new ReflectionMethod(GovernanceNativeRRCIProfile::class,"requireCaller"))->invoke(null,$v["control"]);}echo json_encode(array("caller_accepted"=>true,"profile_opened"=>false));}catch(Throwable $e){echo json_encode(array("refused"=>true,"reason"=>$e->getMessage()));exit(3);}'
+  release_control=dict(control,source_kind='workflow-dispatch-checkout',directory='/not-a-profile')
+  ref='refs/tags/2026.11.19-r3'
+  release_env={'GITHUB_JOB':'owner-build','GITHUB_RUN_ID':'12','GITHUB_RUN_ATTEMPT':'1',
+   'GITHUB_REPOSITORY':'soulteary/phorge','GITHUB_EVENT_NAME':'workflow_dispatch','GITHUB_REF':ref,
+   'GITHUB_WORKFLOW_REF':'soulteary/phorge/.github/workflows/container-image.yml@'+ref,
+   'GITHUB_SHA':REV,'GITHUB_WORKFLOW_SHA':REV,'NATIVE_RR_WORKFLOW_SHA':REV,
+   'NATIVE_RR_EXPECTED_HEAD':REV,'NATIVE_RR_RELEASE_TAG':'2026.11.19-r3'}
+  base_env={k:v for k,v in os.environ.items()if not k.startswith(('GITHUB_','NATIVE_RR_','PHORGE_GOVERNANCE_'))}
+  def caller(env,ctl=release_control,opened=False):
+   actual=dict(base_env,**env)
+   if opened:actual.update(GITHUB_ACTIONS='true',PHORGE_GOVERNANCE_NATIVE_RR_EXECUTION_PROFILE=a.PROFILE,PHORGE_GOVERNANCE_ISOLATED_TEST='1',PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION=REV)
+   out=subprocess.run(['php','-r',script,str(ROOT/'support/governance/recovery/native-writer-rr-ci-profile.php')],input=json.dumps({'control':ctl,'open':opened}),env=actual,capture_output=True,text=True,timeout=5)
+   self.assertEqual('',out.stderr);return out,json.loads(out.stdout)
+  def accepted(env,ctl=release_control):
+   out,result=caller(env,ctl);self.assertEqual(out.returncode,0,result);self.assertEqual(result,{'caller_accepted':True,'profile_opened':False})
+  accepted(release_env)
+  out,result=caller(release_env,opened=True)
+  self.assertEqual(out.returncode,3);self.assertEqual(result,{'refused':True,'reason':'native_rr_CI_directory_refused'})
+  for event,kind,direct_ref in [('pull_request','pull-request-synthetic-merge','refs/pull/12/merge'),('workflow_dispatch','workflow-dispatch-checkout','refs/heads/main'),('workflow_dispatch','workflow-dispatch-checkout','refs/tags/2026.11.19-r3')]:
+   direct={'GITHUB_JOB':'owner-build','GITHUB_RUN_ID':'12','GITHUB_RUN_ATTEMPT':'1','GITHUB_EVENT_NAME':event,'GITHUB_REF':direct_ref,'GITHUB_WORKFLOW_REF':'soulteary/phorge/.github/workflows/native-rr-owner-build.yml@'+direct_ref}
+   accepted(direct,dict(release_control,source_kind=kind))  # No new release vars required.
+   bad=dict(direct,GITHUB_EVENT_NAME='push');out,result=caller(bad,dict(release_control,source_kind=kind))
+   self.assertEqual(out.returncode,3);self.assertEqual(result['reason'],'native_rr_CI_event_unknown')
+  for key in release_env:
+   for value in ('foreign',''):
+    env=dict(release_env);env[key]=value
+    with self.subTest(caller_key=key,value=value):
+     out,result=caller(env);self.assertEqual(out.returncode,3);self.assertTrue(result['refused'])
+   env=dict(release_env);env.pop(key)
+   with self.subTest(missing=key):out,result=caller(env);self.assertEqual(out.returncode,3)
+  for key,value in [('source_revision','b'*40),('source_kind','pull-request-synthetic-merge'),('source_kind','unknown'),('run_id','13'),('run_attempt','2')]:
+   with self.subTest(control=key):out,result=caller(release_env,dict(release_control,**{key:value}));self.assertEqual(out.returncode,3)
+  for tag in ('2026.02.29-r1','2026.04.31-r1','2026.13.01-r1','2026.11.19-r0','2026.11.19-r01','2026.11.19-r1/other','2026.11.19-r1\n','2026.11.19-R1','latest'):
+   bad=dict(release_env,NATIVE_RR_RELEASE_TAG=tag,GITHUB_REF='refs/tags/'+tag,GITHUB_WORKFLOW_REF='soulteary/phorge/.github/workflows/container-image.yml@refs/tags/'+tag)
+   with self.subTest(tag=tag):out,result=caller(bad);self.assertEqual(out.returncode,3)
+  for tag in ('2024.02.29-r1','2026.11.19-r1','2026.11.19-r123'):
+   accepted(dict(release_env,NATIVE_RR_RELEASE_TAG=tag,GITHUB_REF='refs/tags/'+tag,GITHUB_WORKFLOW_REF='soulteary/phorge/.github/workflows/container-image.yml@refs/tags/'+tag))
+  for workflow in ('other.yml','release-full.yml','container-image.yml.extra'):
+   out,result=caller(dict(release_env,GITHUB_WORKFLOW_REF='soulteary/phorge/.github/workflows/'+workflow+'@'+ref));self.assertEqual(out.returncode,3)
+  for field in ('run_id','run_attempt'):
+   env=dict(release_env);env['GITHUB_RUN_ID'if field=='run_id'else'GITHUB_RUN_ATTEMPT']='0'
+   out,result=caller(env,dict(release_control,**{field:'0'}));self.assertEqual(out.returncode,3)
  def test_unknown_owned_directory_retained_and_SQL_unpinned(self):
   with tempfile.TemporaryDirectory()as tmp:
    directory=Path(tmp)/'owned';directory.mkdir(mode=0o700);identity=directory.stat();(directory/'unknown').write_text('keep')

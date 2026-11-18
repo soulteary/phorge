@@ -129,7 +129,11 @@ class ReleaseHistoryLiteralData(unittest.TestCase):
   spec=importlib.util.spec_from_file_location('unchanged_Task_reducer_DATA',path)
   cls.delta=importlib.util.module_from_spec(spec);spec.loader.exec_module(cls.delta)
  def test_all_21_current_payloads_roundtrip_and_original_parent_pins_still_match(self):
-  self.assertEqual(len(self.doc['files']),21)
+  # Retain the original 21 targets and exactly two reviewed caller inputs.
+  self.assertEqual(len(self.doc['files']),23)
+  extra={'support/governance/recovery/native-writer-rr-ci-profile.php', 'tests/governance/test_native_rr_ci_anchor.py'}
+  self.assertTrue(extra <= set(self.doc['files']))
+  self.assertEqual(hashlib.sha256(json.dumps(sorted(set(self.doc['files'])-extra),separators=(',',':')).encode()).hexdigest(),'2fc0c75cbf1640a24ee30a9c241d2636d555f9b64fa891df2df9cc2bfd1be38c')
   parent=json.loads((ROOT/self.scope.BASELINE).read_bytes())['entries']
   for path in self.doc['files']:
    with self.subTest(path=path):
