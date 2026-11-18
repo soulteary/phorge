@@ -53,7 +53,36 @@ def prepare_public_trust(home,key_path):
  subprocess.run(command+['--import-options','import-minimal','--import'],input=raw,env=env,capture_output=True,check=True,timeout=10)
  (home/'public-source-trust.json').write_text(json.dumps({'schema':'task-CI-public-verifier-home-v1','public_key_sha256':PUBLIC_KEY_SHA256,'primary_fingerprint':SIGNER,'private_key_used':False},sort_keys=True)+'\n');(home/'public-source-trust.json').chmod(0o600)
  return {'public_trust_prepared':True,'HOME':str(home),'public_key_sha256':PUBLIC_KEY_SHA256,'private_key_used':False,'default_keyring_modified':False}
-def verify_checkout(root,expected_head,trust_home=None):
+def verify_signature(signature):
+ bad=rb'^\[GNUPG:\] (?:BADSIG|ERRSIG|EXPSIG|EXPKEYSIG|REVKEYSIG|KEYREVOKED|SIGEXPIRED|KEYEXPIRED)(?: |$)'
+ need(re.search(bad,signature.stderr,re.M)is None)
+ need(re.findall(rb'^\[GNUPG:\] VALIDSIG ([A-F0-9]{40}) ',signature.stderr,re.M)==[SIGNER.encode()])
+def verify_external_proof(git,expected_head,proof_tag):
+ # This is a separately signed proof of the exact merge, never an ancestor
+ # signature substituted for the event head. The fixed project signer remains.
+ need(proof_tag=='source-proof/'+expected_head)
+ git('-c','protocol.allow=never','-c','protocol.https.allow=always',
+     'fetch','--no-tags','https://github.com/'+REPOSITORY+'.git','refs/tags/'+proof_tag)
+ oid=git('rev-parse','FETCH_HEAD').stdout.decode().strip();need(hex40(oid))
+ verify_signature(git('verify-tag','--raw',oid))
+ raw=git('cat-file','tag',oid).stdout;need(len(raw)<=65536)
+ headers,message=raw.split(b'\n\n',1)
+ fields={}
+ for line in headers.decode('utf-8').splitlines():
+  name,_,value=line.partition(' ');need(name not in fields);fields[name]=value
+ need(fields.get('object')==expected_head and fields.get('type')=='commit'and fields.get('tag')==proof_tag)
+ payload=message.split(b'-----BEGIN PGP SIGNATURE-----',1)[0].strip()
+ proof=decode(payload)
+ actual=git('show','--no-show-signature','-s','--format=%T %P',expected_head).stdout.decode().strip().split()
+ need(len(actual)==3 and all(hex40(v)for v in actual))
+ tree,*parents=actual
+ need(type(proof)is dict and set(proof)=={'schema','commit','tree','parents','pr_head','ci_head','pr_number'})
+ need(proof['schema']=='phorge-merge-source-proof-v1'and proof['commit']==expected_head and proof['tree']==tree and proof['parents']==parents)
+ need(proof['pr_head']==proof['ci_head']==parents[1]and type(proof['pr_number'])is int and proof['pr_number']>0)
+ need(git('rev-parse',parents[1]+'^{tree}').stdout.decode().strip()==tree)
+ git('merge-base','--is-ancestor',parents[0],parents[1])
+ return {'independent_merge_proof_verified':True,'proof_tag_object':oid,'signed_proof_commit':expected_head,'reviewed_PR_head':parents[1]}
+def verify_checkout(root,expected_head,trust_home=None,external_proof_tag=None):
  need(hex40(expected_head));root=Path(root);need(root.is_absolute()and root.resolve()==root)
  # Do not inherit Git worktree/object/config selectors from an ambient caller.
  env={k:v for k,v in os.environ.items()if not k.startswith('GIT_')}
@@ -66,23 +95,24 @@ def verify_checkout(root,expected_head,trust_home=None):
  env.update({'GIT_CONFIG_NOSYSTEM':'1','GIT_CONFIG_SYSTEM':'/dev/null','GIT_CONFIG_GLOBAL':'/dev/null','GIT_NO_REPLACE_OBJECTS':'1','GIT_NO_LAZY_FETCH':'1','GIT_TERMINAL_PROMPT':'0'})
  def git(*args):return subprocess.run(['git','--no-replace-objects','-c','core.hooksPath=/dev/null','-c','core.fsmonitor=false','-c','gpg.format=openpgp','-c','gpg.program=/usr/bin/gpg','-c','gpg.openpgp.program=/usr/bin/gpg','-C',str(root),*args],env=env,stdin=subprocess.DEVNULL,capture_output=True,check=True,timeout=10)
  need(git('rev-parse','HEAD').stdout.decode().strip()==expected_head)
- signature=git('verify-commit','--raw',expected_head)
- bad=rb'^\[GNUPG:\] (?:BADSIG|ERRSIG|EXPSIG|EXPKEYSIG|REVKEYSIG|KEYREVOKED|SIGEXPIRED|KEYEXPIRED)(?: |$)'
- need(re.search(bad,signature.stderr,re.M)is None)
- need(re.findall(rb'^\[GNUPG:\] VALIDSIG ([A-F0-9]{40}) ',signature.stderr,re.M)==[SIGNER.encode()])
+ proof={}
+ try:verify_signature(git('verify-commit','--raw',expected_head))
+ except (ValueError,subprocess.CalledProcessError):
+  if external_proof_tag is None:raise
+  proof=verify_external_proof(git,expected_head,external_proof_tag)
  git('diff','--quiet',expected_head,'--');git('diff','--cached','--quiet',expected_head,'--')
- return {'exact_checkout_matches_external_event_head':True,'Root_signer_fingerprint_matched':True,'private_key_used':False,'keys_imported_or_generated':False,'public_verification_key_must_already_exist':True}
-def verify(root,event_file,event_name,expected_head,github_sha,trust_home=None):
+ return {'exact_checkout_matches_external_event_head':True,'Root_signer_fingerprint_matched':True,'private_key_used':False,'keys_imported_or_generated':False,'public_verification_key_must_already_exist':True,**proof}
+def verify(root,event_file,event_name,expected_head,github_sha,trust_home=None,external_proof_tag=None):
  # A CI caller must report the actual GitHub context, even when PR head differs.
  if 'GITHUB_SHA'in os.environ:need(hex40(os.environ['GITHUB_SHA'])and github_sha==os.environ['GITHUB_SHA'])
- raw=read_event(event_file);result=bind_event(event_name,decode(raw),expected_head,github_sha);result.update(verify_checkout(root,expected_head,trust_home));result.update(event_file_sha256=hashlib.sha256(raw).hexdigest(),source_inventory_or_SQL_qualified=False);return result
+ raw=read_event(event_file);result=bind_event(event_name,decode(raw),expected_head,github_sha);result.update(verify_checkout(root,expected_head,trust_home,external_proof_tag));result.update(event_file_sha256=hashlib.sha256(raw).hexdigest(),source_inventory_or_SQL_qualified=False);return result
 if __name__=='__main__':
- p=argparse.ArgumentParser();p.add_argument('--prepare-public-trust',action='store_true');p.add_argument('--public-key');p.add_argument('--trust-home')
+ p=argparse.ArgumentParser();p.add_argument('--prepare-public-trust',action='store_true');p.add_argument('--public-key');p.add_argument('--trust-home');p.add_argument('--external-proof-tag')
  for name in('root','event-file','event-name','expected-head','github-sha'):p.add_argument('--'+name)
  a=p.parse_args()
  try:
   if a.prepare_public_trust:
    need(a.public_key is not None and a.trust_home is not None);print(json.dumps(prepare_public_trust(a.trust_home,a.public_key),sort_keys=True))
   else:
-   need(all(getattr(a,n)is not None for n in('root','event_file','event_name','expected_head','github_sha')));print(json.dumps(verify(a.root,a.event_file,a.event_name,a.expected_head,a.github_sha,a.trust_home),sort_keys=True))
+   need(all(getattr(a,n)is not None for n in('root','event_file','event_name','expected_head','github_sha')));print(json.dumps(verify(a.root,a.event_file,a.event_name,a.expected_head,a.github_sha,a.trust_home,a.external_proof_tag),sort_keys=True))
  except Exception:print('{"CI_head_admitted":false,"source_inventory_or_SQL_qualified":false}');raise SystemExit(1)
