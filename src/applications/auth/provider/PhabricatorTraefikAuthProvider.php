@@ -41,6 +41,49 @@ final class PhabricatorTraefikAuthProvider extends PhabricatorAuthProvider {
     return '200-'.$this->getProviderName();
   }
 
+  public function isSessionIdentityCompatible(
+    PhabricatorUser $user,
+    $identity) {
+
+    if (!phutil_nonempty_string($identity) || !$user->getPHID()) {
+      return false;
+    }
+
+    // Only a persisted link under this provider can authorize reuse of a
+    // native session. Display names and email addresses are not identities.
+    $account = id(new PhabricatorExternalAccountQuery())
+      ->setViewer($user)
+      ->requireCapabilities(array(PhabricatorPolicyCapability::CAN_EDIT))
+      ->withProviderConfigPHIDs(array($this->getProviderConfig()->getPHID()))
+      ->withUserPHIDs(array($user->getPHID()))
+      ->withRawAccountIdentifiers(array($identity))
+      ->executeOne();
+
+    return (bool)$account;
+  }
+
+  public static function canReuseSessionForProxyIdentity(
+    PhabricatorUser $user) {
+
+    $identity = AphrontRequest::getHTTPHeader('X-Auth-User');
+    if (!phutil_nonempty_string($identity)) {
+      return true;
+    }
+
+    $has_proxy_provider = false;
+    foreach (PhabricatorAuthProvider::getAllEnabledProviders() as $provider) {
+      if (!($provider instanceof self)) {
+        continue;
+      }
+      $has_proxy_provider = true;
+      if ($provider->isSessionIdentityCompatible($user, $identity)) {
+        return true;
+      }
+    }
+
+    return !$has_proxy_provider;
+  }
+
   public function isLoginFormAButton() {
     return true;
   }
