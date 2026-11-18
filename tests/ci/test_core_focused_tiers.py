@@ -1,8 +1,10 @@
 """Full-only focused routing and metadata binding; never SQL/signature proof."""
-import ast,base64,copy,hashlib,importlib.util,json,pathlib,subprocess,unittest,zlib
+import ast,base64,copy,hashlib,importlib.util,json,pathlib,subprocess,sys,unittest,zlib
+from pathlib import Path
 from unittest.mock import patch
 import yaml
 ROOT=pathlib.Path(__file__).resolve().parents[2]
+sys.path.insert(0,str(ROOT/'tests/governance'))
 spec=importlib.util.spec_from_file_location('focused_workflows',ROOT/'scripts/ci/focused_workflows.py');m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
 BASE='7b23c47e329f32e4fe083d0efa23fd82d6eefe6f'
 def parse(raw):return yaml.load(raw,Loader=yaml.BaseLoader)
@@ -208,4 +210,31 @@ class CallerBinding(unittest.TestCase):
   for key,value in [('repository',{'full_name':'foreign/repo'}),('deleted',True),('after','b'*40)]:
    e=self.event();e[key]=value
    with self.assertRaises(ValueError):m.bind_head('a'*40,'push','a'*40,e,'a'*40)
+class KnownDirtyClassificationPure(unittest.TestCase):
+ def test_exact_legacy_and_hardened_diff1_only_is_a_dirty_refusal(self):
+  from task_description_consumer_test_api_v2 import known_dirty_rejection
+  root=Path('/reviewed/source');checkpoint='a'*40
+  prefixes=(['git','-C',str(root),'diff'],
+   ['git','--no-replace-objects','-c','core.hooksPath=/dev/null','-c','core.fsmonitor=false',
+    '-c','gpg.format=openpgp','-c','gpg.program=/usr/bin/gpg','-c','gpg.openpgp.program=/usr/bin/gpg',
+    '-C',str(root),'diff'])
+  for prefix in prefixes:
+   for tail in (['--quiet',checkpoint,'--'],['--cached','--quiet',checkpoint,'--']):
+    command=prefix+tail
+    error=subprocess.CalledProcessError(1,command,output=b'',stderr=b'')
+    self.assertTrue(known_dirty_rejection(error,root,checkpoint))
+    for rc in (0,2,128,-9,True):
+     with self.subTest(command=command,rc=rc):
+      self.assertFalse(known_dirty_rejection(subprocess.CalledProcessError(rc,command,output=b'',stderr=b''),root,checkpoint))
+    for stdout,stderr in ((b'diff',b''),(b'',b'fatal'),('',b''),(b'',''),(None,b''),(b'',None)):
+     with self.subTest(stdout=stdout,stderr=stderr):
+      self.assertFalse(known_dirty_rejection(subprocess.CalledProcessError(1,command,output=stdout,stderr=stderr),root,checkpoint))
+    for wrongroot,wrongcp in ((root/'other',checkpoint),(Path('relative'),checkpoint),(str(root),checkpoint),
+                              (root,'b'*40),(root,'HEAD'),(root,'0'*40)):
+     self.assertFalse(known_dirty_rejection(error,wrongroot,wrongcp))
+    for argv in (tuple(command),command+['src'],command[:-1],['/usr/bin/git']+command[1:],
+                 [word.replace('/usr/bin/gpg','/tmp/foreign-gpg') for word in command]if len(prefix)>4 else command+['--exit-code']):
+     self.assertFalse(known_dirty_rejection(subprocess.CalledProcessError(1,argv,output=b'',stderr=b''),root,checkpoint))
+  self.assertFalse(known_dirty_rejection(ValueError('not a Git terminal'),root,checkpoint))
+
 if __name__=='__main__':unittest.main()
