@@ -24,7 +24,7 @@ final class PhorgeGovernanceMediaHTTPProtocolTestCase extends PhutilTestCase {
     return new class($restore){
       private $restore;
       public function __construct(Closure $restore){$this->restore=$restore;}
-      public function __destruct(){($this->restore)();}
+      public function __destruct(){$restore=$this->restore;$restore();}
     };
   }
   public function testDisabledHTTPPreservesNativeCredentialsAndOmitsBootstrap(){
