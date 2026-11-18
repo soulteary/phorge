@@ -118,9 +118,41 @@ def cleanup_proved(receipt,revision):
  except (KeyError,ValueError,TypeError):return False
  return True
 
+def restore_comparison_DATA(receipt,patches):
+ # Fixed old-gate comparison only, never an acceptance or root-cause verdict.
+ if type(patches)not in(tuple,list)or len(patches)!=38 or any(type(p)is not str for p in patches):raise ValueError('fixed diagnostic migration profile required')
+ restore=receipt.get('source_restore')if type(receipt)is dict else None
+ audit=restore.get('patch_audit')if type(restore)is dict else None
+ hashes=audit.get('migration_source_hashes')if type(audit)is dict else None
+ def keys_equal(actual,wanted):
+  return type(actual)is dict and all(type(k)is str for k in actual)and set(actual)==wanted
+ fields={}
+ for prefix,actual,expected in (
+  ('',restore,{'app_schema_count':54,'owned_schema_count':55,'quickstart_source_table_count':500,'current_table_count':549,'restore_phase_workers_started':0,'restore_phase_network_endpoints_configured':0}),
+  ('patch_audit.',audit,{'source_patch_count':1575,'applied_patch_count':1575,'migrations_executed':38,'current_patch_ledger_complete':True})):
+  for name,wanted in expected.items():
+   observed=actual.get(name)if type(actual)is dict else None
+   valid=type(observed)is type(wanted)and(type(observed)is bool or -(2**63)<=observed<2**63)
+   fields[prefix+name]={'expected':wanted,'observed':observed if valid else None,'type_valid':valid,'equal':valid and observed==wanted}
+ return {'schema':'native-RR-source-restore-comparison-DATA-v1','comparison_DATA_only':True,
+  'qualification':False,'root_cause_proved':False,'fields':fields,
+  'keyset_equal':{
+   'source_restore':keys_equal(restore,{'quickstart_sha256','app_schema_count','owned_schema_count','quickstart_source_table_count','current_table_count','restore_phase_workers_started','restore_phase_network_endpoints_configured','patch_audit'}),
+   'patch_audit':keys_equal(audit,{'source_patch_count','applied_patch_count','pending_patch_keys','current_patch_ledger_complete','migration_source_hashes','migrations_executed'}),
+   'migration_source_hashes':keys_equal(hashes,{'phabricator:'+p for p in patches})}}
+
 def strict_accept(root,receipt,revision,receipt_path):
  scripts=root/'scripts/governance';sys.path.insert(0,str(scripts));spec=importlib.util.spec_from_file_location('actual_portable_rr21_gate',scripts/'check_native_user_rr_mdl.py');gate=importlib.util.module_from_spec(spec);spec.loader.exec_module(gate)
- expected=gate.validate(receipt,root=root,source_revision=revision)
- cli=subprocess.run([sys.executable,'-B',str(scripts/'check_native_user_rr_mdl.py'),'--receipt',str(receipt_path),'--source-revision',revision],capture_output=True)
- if cli.returncode!=0 or cli.stderr!=b''or decode(cli.stdout)!=expected:raise ValueError('actual CLI/inprocess strict acceptance mismatch')
- return expected,cli.stdout
+ try:
+  expected=gate.validate(receipt,root=root,source_revision=revision)
+  cli=subprocess.run([sys.executable,'-B',str(scripts/'check_native_user_rr_mdl.py'),'--receipt',str(receipt_path),'--source-revision',revision],capture_output=True)
+  if cli.returncode!=0 or cli.stderr!=b''or decode(cli.stdout)!=expected:raise ValueError('actual CLI/inprocess strict acceptance mismatch')
+  return expected,cli.stdout
+ except Exception:
+  try:
+   comparison=restore_comparison_DATA(receipt,gate.completion.PATCHES)
+   safe=json.dumps(comparison,sort_keys=True,separators=(',',':'),allow_nan=False)+'\n'
+   if len(safe.encode())>4096:raise ValueError('bounded comparison required')
+   sys.stderr.write(safe);sys.stderr.flush()
+  except Exception:pass  # Diagnostic failure cannot replace the original strict failure.
+  raise

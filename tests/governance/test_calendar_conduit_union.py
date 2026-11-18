@@ -29,16 +29,60 @@ def _workflow_owner(operation=None):
         source.require_task_operation(operation, ROOT)
         yield operation
 
+# Exact full-tier continuation DATA; never execute YAML or grant source authority.
+PRIVATE_TIER_HEADER=b'on:\n  workflow_call:\n    inputs:\n      expected_head:\n        required: true\n        type: string\n  workflow_dispatch:\n    inputs:\n      expected_head:\n        description: Exact signed source commit for this manual full qualification\n        required: true\n        type: string\n\n'
+PRIVATE_PRIOR_HEADER=b"on:\n  pull_request:\n    types: [opened, synchronize, reopened, ready_for_review]\n    paths:\n      - '.github/workflows/private-mail-wire.yml'\n      - 'src/**'\n      - 'resources/**'\n      - 'bin/**'\n      - 'support/**'\n      - 'tests/governance/**'\n      - 'scripts/runtime/**'\n  workflow_dispatch:\n"
+PRIVATE_TIER_BINDING=b'      - name: Require exact full-tier caller checkpoint\n        env:\n          FOCUSED_EXPECTED_HEAD: ${{ inputs.expected_head }}\n        run: |\n          python3 -B scripts/ci/focused_workflows.py bind-head --expected-head "$FOCUSED_EXPECTED_HEAD"\n'
+PRIVATE_BINDING_ANCHOR=b'      - name: Require public immutable reviewed dependency pins\n'
+FULL_TIER_WORKFLOW_PINS={'.github/workflows/container-image.yml': (8824, 'f0031d78b65f9bd697c94c1a74bdb81d70b459fbf4ab84b02bb72dc549c78c83', 7025, 'aa476d68759dd7bbf38193f585b1480b168a8218dc7d1927d1ea575a5ca1b5a2'), '.github/workflows/gorge-runtime-contracts.yml': (17530, 'd9851b8d7bb8b0a37d76e346adeb30ed1bd89b692fd3a0e2561e9a913a8068e2', 14318, '1fac4ce6d96459d41d5f86f618c987b0e9678a180afe19111888a369d623ef77'), '.github/workflows/native-rr-owner-build.yml': (2978, 'c1477f17447ec20ce70f0688e89a03ea44578087eb1c10f77b65372f105e073a', 3380, '025e5f5d8d9eb73952539c7bf8efb7c66b62c06de5c19aab9b3d9df69d04a432'), '.github/workflows/release-full.yml': (4461, '821c22b1cc8f39b4a99223a774c82eba08bfa1fdbf4c91f35afb4c2b205d009f', None, None)}
+RELEASE_FULL_LITERAL=b"name: Full release qualification\n\non:\n  workflow_call:\n    inputs:\n      expected_head:\n        required: true\n        type: string\n    outputs:\n      qualified_head:\n        description: Exact source which passed every full release job\n        value: ${{ jobs.qualified.outputs.head }}\n\npermissions:\n  contents: read\n\njobs:\n  atomic_feature_regressions:\n    uses: ./.github/workflows/atomic-feature-regressions.yml\n    with:\n      expected_head: ${{ inputs.expected_head }}\n  assessment_credential_focused:\n    uses: ./.github/workflows/assessment-credential-focused.yml\n    with:\n      expected_head: ${{ inputs.expected_head }}\n  conduit_producer_focused:\n    uses: ./.github/workflows/conduit-producer-focused.yml\n    with:\n      expected_head: ${{ inputs.expected_head }}\n  oauth_access_producer_focused:\n    uses: ./.github/workflows/oauth-access-producer-focused.yml\n    with:\n      expected_head: ${{ inputs.expected_head }}\n  oauth_authorization_producer_focused:\n    uses: ./.github/workflows/oauth-authorization-producer-focused.yml\n    with:\n      expected_head: ${{ inputs.expected_head }}\n  oauth_code_producer_focused:\n    uses: ./.github/workflows/oauth-code-producer-focused.yml\n    with:\n      expected_head: ${{ inputs.expected_head }}\n  oauth_client_lifecycle_focused:\n    uses: ./.github/workflows/oauth-client-lifecycle-focused.yml\n    with:\n      expected_head: ${{ inputs.expected_head }}\n  native_directory_transports_v1:\n    uses: ./.github/workflows/native-directory-transports-v1.yml\n    with:\n      expected_head: ${{ inputs.expected_head }}\n  native_media_session_positive_sql:\n    uses: ./.github/workflows/native-media-session-positive-sql.yml\n    with:\n      expected_head: ${{ inputs.expected_head }}\n  native_rr_owner_build:\n    uses: ./.github/workflows/native-rr-owner-build.yml\n    with:\n      expected_head: ${{ inputs.expected_head }}\n  private_mail_wire:\n    uses: ./.github/workflows/private-mail-wire.yml\n    with:\n      expected_head: ${{ inputs.expected_head }}\n  project_content_grants_focused:\n    uses: ./.github/workflows/project-content-grants-focused.yml\n    with:\n      expected_head: ${{ inputs.expected_head }}\n  project_description_focused:\n    uses: ./.github/workflows/project-description-focused.yml\n    with:\n      expected_head: ${{ inputs.expected_head }}\n  qualified:\n    name: Full release qualification gate\n    if: always()\n    needs: [atomic_feature_regressions, assessment_credential_focused, conduit_producer_focused, oauth_access_producer_focused, oauth_authorization_producer_focused, oauth_code_producer_focused, oauth_client_lifecycle_focused, native_directory_transports_v1, native_media_session_positive_sql, native_rr_owner_build, private_mail_wire, project_content_grants_focused, project_description_focused]\n    runs-on: ubuntu-latest\n    outputs:\n      head: ${{ steps.source.outputs.head }}\n    steps:\n      - name: Refuse skipped, cancelled, failed or mismatched full qualification\n        id: source\n        env:\n          EXPECTED_HEAD: ${{ inputs.expected_head }}\n          SOURCE_HEAD: ${{ github.sha }}\n          RESULTS: ${{ toJSON(needs) }}\n        run: |\n          python3 - <<'PY'\n          import json, os, re\n          expected = os.environ['EXPECTED_HEAD']\n          results = json.loads(os.environ['RESULTS'])\n          if not re.fullmatch('[a-f0-9]{40}', expected) or expected != os.environ['SOURCE_HEAD']:\n              raise SystemExit('Full qualification source mismatch.')\n          required = ['atomic_feature_regressions', 'assessment_credential_focused', 'conduit_producer_focused', 'oauth_access_producer_focused', 'oauth_authorization_producer_focused', 'oauth_code_producer_focused', 'oauth_client_lifecycle_focused', 'native_directory_transports_v1', 'native_media_session_positive_sql', 'native_rr_owner_build', 'private_mail_wire', 'project_content_grants_focused', 'project_description_focused']\n          if set(results) != set(required) or any(row['result'] != 'success' for row in results.values()):\n              raise SystemExit('Every full release job must succeed; skips are not acceptance.')\n          if results['atomic_feature_regressions'].get('outputs', {}).get('qualified_head') != expected:\n              raise SystemExit('Atomic full qualification must identify this exact source; core is insufficient.')\n          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:\n              output.write('head=' + expected + '\\n')\n          PY\n"
+
 def reviewed_private_mail_parent(path,raw):
     # Test-only exact pair/toolchain continuation; no source issuer or runtime grant.
-    if path!='.github/workflows/private-mail-wire.yml'or type(raw)is not bytes or len(raw)!=4914 or hashlib.sha256(raw).hexdigest()!='daa78d081d7e3820d85b8e8dc7e66f9db85fd87e53de7e46ef1c69ca1f4a0dbb':
+    if path!='.github/workflows/private-mail-wire.yml'or type(raw)is not bytes or len(raw)!=5143 or hashlib.sha256(raw).hexdigest()!='44e4b0d12459cfebe51c24b60febb7204324c5cadbb3d3cefb7ae85ce0328cdf':
         raise ValueError('unreviewed_private_mail_workflow')
+    physical=raw
+    for current,prior in ((PRIVATE_TIER_HEADER,PRIVATE_PRIOR_HEADER),(PRIVATE_TIER_BINDING,b'')):
+        if raw.count(current)!=1:raise ValueError('unreviewed_private_mail_full_tier_binding')
+        raw=raw.replace(current,prior,1)
+    if len(raw)!=4914 or hashlib.sha256(raw).hexdigest()!='daa78d081d7e3820d85b8e8dc7e66f9db85fd87e53de7e46ef1c69ca1f4a0dbb':
+        raise ValueError('unreviewed_private_mail_pre_tier_DATA')
+    if raw.count(PRIVATE_PRIOR_HEADER)!=1 or raw.count(PRIVATE_BINDING_ANCHOR)!=1:
+        raise ValueError('unreviewed_private_mail_roundtrip_anchor')
+    forward=raw.replace(PRIVATE_PRIOR_HEADER,PRIVATE_TIER_HEADER,1).replace(PRIVATE_BINDING_ANCHOR,PRIVATE_TIER_BINDING+PRIVATE_BINDING_ANCHOR,1)
+    if forward!=physical:raise ValueError('unreviewed_private_mail_full_tier_roundtrip')
     edits=((b'GORGE_MAIL_WIRE_REF: 16318f87a017f82c28f3011b362364cf24b73ef8',b'GORGE_MAIL_WIRE_REF: 83351b0e7eba38e50ff076ba6763ca68ebc57e1b'),(b"go-version: '1.27.4'",b"go-version: '1.27.3'"))
     for current,prior in edits:
         if raw.count(current)!=1:raise ValueError('unreviewed_private_mail_workflow')
         raw=raw.replace(current,prior,1)
     if len(raw)!=4914 or hashlib.sha256(raw).hexdigest()!='d1c90f5e6d047bf6227504b7595600a3a4c813c98b5f6314b601d4b820aae6a1':raise ValueError('unreviewed_private_mail_workflow')
     return raw
+
+def reviewed_full_tier_parent(path,raw,parent,history_raw):
+    if type(path)is not str or path not in FULL_TIER_WORKFLOW_PINS or type(raw)is not bytes:
+        raise ValueError('unreviewed_full_tier_workflow')
+    size,digest,parent_size,parent_digest=FULL_TIER_WORKFLOW_PINS[path]
+    if len(raw)!=size or hashlib.sha256(raw).hexdigest()!=digest:
+        raise ValueError('unreviewed_full_tier_current_bytes')
+    if path=='.github/workflows/release-full.yml':
+        # A complete fixed literal addition inverses to an absent parent. It is
+        # inert DATA; this never dispatches the workflow or executes its YAML.
+        if parent is not None or raw!=RELEASE_FULL_LITERAL or raw.count(RELEASE_FULL_LITERAL)!=1:
+            raise ValueError('unreviewed_full_tier_addition')
+        target=raw.replace(RELEASE_FULL_LITERAL,b'',1)
+        if target!=b'' or target+RELEASE_FULL_LITERAL!=raw:
+            raise ValueError('unreviewed_full_tier_addition_roundtrip')
+        return None
+    if type(parent)is not bytes or len(parent)!=parent_size or hashlib.sha256(parent).hexdigest()!=parent_digest:
+        raise ValueError('unreviewed_full_tier_parent_DATA')
+    import task_source_operation_context as history
+    doc=history.load_release_history(history_raw);row=doc['files'][path]
+    if (row['current_bytes'],row['current_sha256'],row['target_bytes'],row['target_sha256'])!=(size,digest,parent_size,parent_digest):
+        raise ValueError('unreviewed_full_tier_history_role')
+    target=history.release_history_inverse(path,raw,doc)
+    if target!=parent or history.release_history_roundtrip(path,target,doc)!=raw:
+        raise ValueError('unreviewed_full_tier_parent_roundtrip')
+    return target
 
 def validate_workflow_union(changed, historical, read, *, _operation=None):
     with _workflow_owner(_operation) as operation:
@@ -78,6 +122,20 @@ def validate_workflow_union(changed, historical, read, *, _operation=None):
             if physical == parent or parent != git('show', WORKFLOW_BASELINE + ':' + conduit):
                 raise ValueError('unknown_Conduit_parent_union_baseline')
             changed.remove(conduit)
+        full=set(FULL_TIER_WORKFLOW_PINS)
+        if not full.issubset(changed):raise ValueError('missing_reviewed_full_tier_workflow')
+        context=operation._task_contexts[ROOT]
+        history_raw=context.current('support/governance/source-operation/task-release-source-history-v1.json')
+        for path in sorted(full):
+            physical=current_read(path)
+            if type(physical)is not bytes or physical!=context.current(path):
+                raise ValueError('unknown_full_tier_current_bytes')
+            parent=context.parent(path);restored=reviewed_full_tier_parent(path,physical,parent,history_raw)
+            if restored is None:
+                if git('ls-tree',WORKFLOW_BASELINE,'--',path)!=b'':raise ValueError('unreviewed_full_tier_parent_absence')
+            elif restored!=git('show',WORKFLOW_BASELINE+':'+path):
+                raise ValueError('unreviewed_full_tier_baseline_DATA')
+            changed.remove(path)
         if set(changed) != set(historical) | {'.github/workflows/native-directory-transports-v1.yml', MEDIA_WORKFLOW, code_ci.WORKFLOW, authorization_ci.WORKFLOW, lifecycle_ci.WORKFLOW, n05_ci.WORKFLOW, DESCRIPTION_WORKFLOW}:
             raise ValueError('unreviewed workflow union')
         if hashlib.sha256(read(MEDIA_WORKFLOW)).hexdigest() != MEDIA_WORKFLOW_SHA256:
@@ -317,6 +375,18 @@ class CalendarConduitUnion(unittest.TestCase):
             for name,body in [(MEDIA_WORKFLOW,raw),('tests/atomic/build_gorge.py',raw),(path,raw+b'\n'),(path,context.parent(path)),(path,raw.replace(b"go-version: '1.27.4'",b"go-version: '1.27.3'")),(path,raw.replace(b'16318f87a017f82c28f3011b362364cf24b73ef8',b'a'*40))]:
                 with self.subTest(name=name),self.assertRaises(ValueError):reviewed_private_mail_parent(name,body)
             with self.assertRaises(ValueError):validate_workflow_union(changed,historical,lambda name:raw+b'\n'if name==path else(ROOT/name).read_bytes(),_operation=operation)
+            for body in (raw.replace(b'workflow_call:',b'pull_request:',1),
+                         raw.replace(b'FOCUSED_EXPECTED_HEAD: ${{ inputs.expected_head }}',b'FOCUSED_EXPECTED_HEAD: ${{ github.sha }}',1),
+                         raw.replace(PRIVATE_TIER_BINDING,b'',1)):
+                with self.assertRaises(ValueError):reviewed_private_mail_parent(path,body)
+            history_raw=context.current('support/governance/source-operation/task-release-source-history-v1.json')
+            for name in FULL_TIER_WORKFLOW_PINS:
+                current=context.current(name);parent=context.parent(name)
+                self.assertEqual(reviewed_full_tier_parent(name,current,parent,history_raw),parent)
+                for body,prior in ((current+b'unknown',parent),(b'!'+current[1:],parent),(current,b'wrong-parent')):
+                    with self.assertRaises(ValueError):reviewed_full_tier_parent(name,body,prior,history_raw)
+            with self.assertRaises(ValueError):reviewed_full_tier_parent('.github/workflows/unknown.yml',raw,None,history_raw)
+
 
     def test_reviewed_media_workflow_union_rejects_unknown_addition_or_mutation(self):
         with _workflow_owner() as operation:
@@ -324,9 +394,10 @@ class CalendarConduitUnion(unittest.TestCase):
             import recovery_oauth_code_ci_delta as code_ci
             import project_content_grant_ci_source_delta as n05_ci
             expected = historical | {'.github/workflows/native-directory-transports-v1.yml', MEDIA_WORKFLOW, code_ci.WORKFLOW, '.github/workflows/oauth-authorization-producer-focused.yml', '.github/workflows/oauth-client-lifecycle-focused.yml', n05_ci.WORKFLOW, DESCRIPTION_WORKFLOW}
+            expected |= set(FULL_TIER_WORKFLOW_PINS)
             raw = (ROOT / MEDIA_WORKFLOW).read_bytes()
             validate_workflow_union(expected, historical, lambda path: (ROOT / path).read_bytes(), _operation=operation)
-            for changed in (expected | {'.github/workflows/unreviewed.yml'}, expected - {MEDIA_WORKFLOW}, expected - {DESCRIPTION_WORKFLOW}):
+            for changed in (expected | {'.github/workflows/unreviewed.yml'}, expected - {MEDIA_WORKFLOW}, expected - {DESCRIPTION_WORKFLOW}, *(expected-{p}for p in FULL_TIER_WORKFLOW_PINS)):
                 with self.assertRaises(ValueError):
                     validate_workflow_union(changed, historical, lambda path: (ROOT / path).read_bytes(), _operation=operation)
             with self.assertRaises(ValueError):

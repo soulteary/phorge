@@ -116,9 +116,54 @@ class Controls(unittest.TestCase):
    with self.subTest(change=change):self.assertFalse(e.cleanup_proved(bad,REV))
  def test_real_strict_CLI_matches_and_stderr_or_mismatch_refused(self):
   data=template()
+  patches=[key.split(':',1)[1]for key in data['source_restore']['patch_audit']['migration_source_hashes']]
   with tempfile.TemporaryDirectory()as tmp:
-   path=Path(tmp)/'receipt.json';path.write_text(json.dumps(data));accepted,raw=e.strict_accept(ROOT,data,REV,path);self.assertEqual(21,accepted['checks']);self.assertEqual(accepted,json.loads(raw))
+   path=Path(tmp)/'receipt.json';path.write_text(json.dumps(data));safe=io.StringIO()
+   with patch.object(e.sys,'stderr',safe):accepted,raw=e.strict_accept(ROOT,data,REV,path)
+   self.assertEqual(safe.getvalue(),'');self.assertEqual(21,accepted['checks']);self.assertEqual(accepted,json.loads(raw))
    for stderr,stdout,code in ((b'warning',raw,0),(b'',b'{}',0),(b'',raw,1)):
     result=type('Result',(),dict(returncode=code,stderr=stderr,stdout=stdout))()
-    with patch.object(e.subprocess,'run',return_value=result),self.assertRaises(ValueError):e.strict_accept(ROOT,data,REV,path)
+    safe=io.StringIO()
+    with patch.object(e.subprocess,'run',return_value=result),patch.object(e.sys,'stderr',safe),self.assertRaises(ValueError):e.strict_accept(ROOT,data,REV,path)
+    comparison=json.loads(safe.getvalue());self.assertTrue(comparison['comparison_DATA_only'])
+    self.assertFalse(comparison['qualification']);self.assertFalse(comparison['root_cause_proved'])
+    self.assertTrue(all(row['equal']for row in comparison['fields'].values()))
+   changed=copy.deepcopy(data);changed['source_restore']['current_table_count']=552
+   changed['source_restore']['patch_audit'].update(source_patch_count=1576,applied_patch_count=1576,migrations_executed=39)
+   safe=io.StringIO()
+   with patch.object(e.sys,'stderr',safe),self.assertRaises(ValueError):e.strict_accept(ROOT,changed,REV,path)
+   comparison=json.loads(safe.getvalue());self.assertEqual(comparison['fields']['current_table_count']['observed'],552)
+   self.assertEqual(comparison['fields']['patch_audit.migrations_executed']['observed'],39)
+   self.assertFalse(comparison['root_cause_proved'])  # Synthetic numbers, no actual SQL qualification.
+   secret='DO_NOT_EMIT_DSN_PROFILE_SQL_SECRET'
+   for value in (secret,True,1<<100,[secret],{secret:secret},b'secret'):
+    changed=copy.deepcopy(data);restore=changed['source_restore'];restore['current_table_count']=value;restore[secret]=secret
+    restore['quickstart_sha256']=secret;restore['patch_audit']['migration_source_hashes']={secret:secret}
+    comparison=e.restore_comparison_DATA(changed,patches);encoded=json.dumps(comparison)
+    self.assertNotIn(secret,encoded);self.assertLessEqual(len(encoded.encode()),4096)
+    self.assertIsNone(comparison['fields']['current_table_count']['observed'])
+    self.assertFalse(comparison['fields']['current_table_count']['type_valid'])
+    self.assertFalse(comparison['keyset_equal']['source_restore']);self.assertFalse(comparison['keyset_equal']['migration_source_hashes'])
+   for value in (None,[],secret):
+    changed=copy.deepcopy(data);changed['source_restore']=value
+    comparison=e.restore_comparison_DATA(changed,patches)
+    self.assertFalse(any(comparison['keyset_equal'].values()));self.assertNotIn(secret,json.dumps(comparison))
+   changed=copy.deepcopy(data);del changed['source_restore']['current_table_count']
+   comparison=e.restore_comparison_DATA(changed,patches)
+   self.assertFalse(comparison['keyset_equal']['source_restore']);self.assertIsNone(comparison['fields']['current_table_count']['observed'])
+   changed=copy.deepcopy(data);changed['passed']=False;safe=io.StringIO()
+   with patch.object(e.sys,'stderr',safe),self.assertRaises(ValueError):e.strict_accept(ROOT,changed,REV,path)
+   comparison=json.loads(safe.getvalue());self.assertTrue(all(row['equal']for row in comparison['fields'].values()))
+   self.assertFalse(comparison['root_cause_proved'])  # Earlier non-restore failure is not misdiagnosed.
+   changed=copy.deepcopy(data);changed['source_restore']['patch_audit']['current_patch_ledger_complete']=1
+   self.assertFalse(e.restore_comparison_DATA(changed,patches)['fields']['patch_audit.current_patch_ledger_complete']['type_valid'])
+   original=ValueError('original strict refusal')
+   def refuse(*args,**kwargs):raise original
+   gate=type('Gate',(),{'validate':staticmethod(refuse),'completion':type('Completion',(),{'PATCHES':patches})})()
+   spec=type('Spec',(),{'loader':type('Loader',(),{'exec_module':staticmethod(lambda module:None)})()})()
+   for failure in ('projector','stderr'):
+    with patch.object(e.importlib.util,'spec_from_file_location',return_value=spec),patch.object(e.importlib.util,'module_from_spec',return_value=gate):
+     with patch.object(e,'restore_comparison_DATA',side_effect=RuntimeError('diagnostic refused'))if failure=='projector'else patch.object(e.sys,'stderr',type('Sink',(),{'write':staticmethod(lambda raw:(_ for _ in ()).throw(OSError('sink refused')))})()):
+      with self.assertRaises(ValueError)as caught:e.strict_accept(ROOT,data,REV,path)
+      self.assertIs(caught.exception,original)
 if __name__=='__main__':unittest.main()
