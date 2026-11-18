@@ -15,6 +15,21 @@ final class PhorgeGovernanceMediaExchangeServiceTestCase extends PhutilTestCase 
     $this->assertTrue(array_key_exists($key,$defaults) && $defaults[$key]===false);
   }
 
+  public function testIsolationRowsKeepExactNamesAndKnownNativeValues() {
+    $method=new ReflectionMethod(PhorgeGovernanceMediaExchangeService::class,'normalizeIsolationLevelRow');
+    foreach (array('transaction_isolation','tx_isolation') as $name) {
+      foreach(array('READ-UNCOMMITTED','READ-COMMITTED','REPEATABLE-READ','SERIALIZABLE') as $level){
+        $this->assertEqual($level,$method->invoke(null,array('Variable_name'=>$name,'Value'=>$level),$name));
+      }
+      foreach(array(null,array(),array('Variable_name'=>'other','Value'=>'READ-COMMITTED'),
+        array('Variable_name'=>$name,'Value'=>'read-committed'),array('Variable_name'=>$name,'Value'=>null),
+        array('Variable_name'=>$name,'Value'=>0),array('Variable_name'=>$name,'Value'=>'UNKNOWN')) as $row){
+        $refused=false;try{$method->invoke(null,$row,$name);}catch(RuntimeException $error){$refused=true;}
+        $this->assertTrue($refused);
+      }
+    }
+  }
+
   public function testOpaqueSecretCanonicalShape() {
     $secret = str_repeat('a', 64);
     $this->assertEqual($secret, PhorgeGovernanceMediaExchangeService::validateSecret($secret));

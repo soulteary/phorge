@@ -14,6 +14,43 @@ on:
         required: false
         default: ''
 jobs:
+  media-isolation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - family: mysql
+            image: mysql:8.4.13@sha256:a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7
+          - family: mariadb
+            image: mariadb@sha256:d769e37960821dfdcf096954f6e7ac89f747e116c1bba98e48edd265dfc7deae
+    services:
+      database:
+        image: ${{ matrix.image }}
+        env:
+          MYSQL_ROOT_PASSWORD: media-isolation-test-only
+          MYSQL_ROOT_HOST: '%'
+        ports: ['3306:3306']
+        options: --health-cmd "mysqladmin --protocol=tcp --host=127.0.0.1 ping --silent" --health-interval 5s --health-timeout 3s --health-retries 30
+    steps:
+      - uses: actions/checkout@v6
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5.12'
+          ini-values: opcache.jit=disable, opcache.jit_buffer_size=0
+          extensions: mysqli, mbstring, curl
+          coverage: none
+      - name: Verify isolation row validation without database access
+        run: |
+          php -r 'require "tests/contract/bootstrap.php"; $test = new PhorgeGovernanceMediaExchangeServiceTestCase(); $test->testIsolationRowsKeepExactNamesAndKnownNativeValues(); $assertions = new ReflectionProperty(PhutilTestCase::class, "assertions"); if ($assertions->getValue($test) !== 22) { throw new RuntimeException("Unexpected assertion count."); }'
+      - name: Verify isolated media transactions and cleanup
+        env:
+          PHORGE_MEDIA_ISOLATION_TEST: '1'
+          PHORGE_MEDIA_DATABASE_FAMILY: ${{ matrix.family }}
+          PHORGE_MEDIA_MYSQL_HOST: 127.0.0.1
+          PHORGE_MEDIA_MYSQL_PASSWORD: media-isolation-test-only
+        run: php tests/contract/runtime/media-isolation.php
   proxy-session-identity:
     runs-on: ubuntu-latest
     services:
