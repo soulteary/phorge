@@ -2,19 +2,17 @@ name: Focused native OAuth client lifecycle SQL
 
 # Additional debugging signal; never a replacement for required Atomic CI.
 on:
-  pull_request:
-    paths:
-      - '.github/workflows/oauth-client-lifecycle-focused.yml'
-      - 'src/applications/system/**'
-      - 'src/applications/transactions/**'
-      - 'tests/governance/test_recovery_oauth_client_lifecycle*.py'
-      - 'docs/governance/n08-oauth-client*'
-      # Access-token controls also exercise the shared producer fence/owner protocol.
-      - 'tests/governance/test_recovery_oauth_access_*.py'
-      - 'tests/atomic/build_directory_file.py'
-      - 'scripts/governance/check_oauth_task_schema_receipt_v2.py'
-      - 'scripts/governance/project_oauth_client_lifecycle_failure.py'
+  workflow_call:
+    inputs:
+      expected_head:
+        required: true
+        type: string
   workflow_dispatch:
+    inputs:
+      expected_head:
+        description: Exact signed source commit for this manual full qualification
+        required: true
+        type: string
 
 concurrency:
   group: oauth-client-lifecycle-focused-${{ github.event_name }}-${{ github.event.pull_request.number || github.run_id }}
@@ -50,6 +48,11 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
           persist-credentials: false
+      - name: Require exact full-tier caller checkpoint
+        env:
+          FOCUSED_EXPECTED_HEAD: ${{ inputs.expected_head }}
+        run: |
+          python3 -B scripts/ci/focused_workflows.py bind-head --expected-head "$FOCUSED_EXPECTED_HEAD"
       - name: Bind external event head and isolated PUBLIC verification home
         run: |
           umask 077

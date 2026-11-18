@@ -16,8 +16,10 @@ using `check_task_ci_head_v1.py` and a new public-only trust home prepared from
 `support/governance/source-operation/ci-source-verifier.asc`. Use the actual PR
 or push event and its external expected checkpoint; never derive the expected
 checkpoint from the checkout being verified. Admission is only source identity:
-all unit shards, native integration, security, contracts and artifact reviews
-remain separate required gates on that same checkpoint.
+all applicable core security, native-boundary, contract and artifact checks
+remain separate required gates on that same checkpoint. Closed optional suites
+run in the full release tier, where every unit partition and native integration
+must succeed before publication; a core-only pass is never full qualification.
 
 Integrate only through a normal protected, non-force fast-forward that preserves
 the reviewed signed commit, if repository protections permit it. Never disable

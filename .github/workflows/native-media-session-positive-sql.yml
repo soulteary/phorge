@@ -1,18 +1,17 @@
 name: Native media session selected SQL
 on:
-  pull_request:
-    paths:
-      - 'src/**'
-      - 'resources/**'
-      - 'conf/**'
-      - 'externals/**'
-      - 'webroot/**'
-      - 'support/runtime/**'
-      - 'support/governance/**'
-      - 'scripts/governance/**'
-      - 'tests/governance/**'
-      - '.github/workflows/native-media-session-positive-sql.yml'
+  workflow_call:
+    inputs:
+      expected_head:
+        required: true
+        type: string
   workflow_dispatch:
+    inputs:
+      expected_head:
+        description: Exact signed source commit for this manual full qualification
+        required: true
+        type: string
+
 concurrency:
   group: native-media-session-positive-sql-${{ github.event_name }}-${{ github.event.pull_request.number || github.run_id }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
@@ -35,6 +34,11 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
           persist-credentials: false
+      - name: Require exact full-tier caller checkpoint
+        env:
+          FOCUSED_EXPECTED_HEAD: ${{ inputs.expected_head }}
+        run: |
+          python3 -B scripts/ci/focused_workflows.py bind-head --expected-head "$FOCUSED_EXPECTED_HEAD"
       - name: Bind external event head and isolated PUBLIC verifier
         run: |
           set -euo pipefail

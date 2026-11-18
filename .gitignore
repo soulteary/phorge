@@ -4,6 +4,10 @@
 # Diviner (retain maintained release notes)
 /docs/*
 !/docs/README.md
+!/docs/ci/
+/docs/ci/*
+!/docs/ci/*.md
+!/docs/ci/*.json
 !/docs/upstream/
 /docs/upstream/*
 !/docs/upstream/*.md

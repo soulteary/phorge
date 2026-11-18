@@ -1,7 +1,17 @@
 name: Native directory transport matrix v1
 on:
-  pull_request:
+  workflow_call:
+    inputs:
+      expected_head:
+        required: true
+        type: string
   workflow_dispatch:
+    inputs:
+      expected_head:
+        description: Exact signed source commit for this manual full qualification
+        required: true
+        type: string
+
 concurrency:
   group: native-directory-transports-v1-${{ github.event_name }}-${{ github.event.pull_request.number || github.run_id }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
@@ -33,6 +43,11 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
           persist-credentials: false
+      - name: Require exact full-tier caller checkpoint
+        env:
+          FOCUSED_EXPECTED_HEAD: ${{ inputs.expected_head }}
+        run: |
+          python3 -B scripts/ci/focused_workflows.py bind-head --expected-head "$FOCUSED_EXPECTED_HEAD"
       - name: Bind external event head and isolated PUBLIC verification home
         run: |
           umask 077

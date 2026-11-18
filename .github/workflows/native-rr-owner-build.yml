@@ -1,25 +1,17 @@
 name: Native RR21 portable candidate
 on:
-  pull_request:
-    paths:
-      - 'support/governance/recovery/owned-process/**' # Trigger on any new module entry so inventory refusal is exercised.
-      - 'support/governance/recovery/owned-process/go.mod'
-      - 'support/governance/recovery/owned-process/go.sum'
-      - 'support/governance/recovery/owned-process/main_linux.go'
-      - 'support/governance/recovery/owned-process/request.go'
-      - 'support/governance/recovery/owned-process/request_test.go'
-      - 'tests/governance/native_rr_ci/build_owner.py'
-      - 'tests/governance/native_rr_ci/provenance.py'
-      - 'tests/governance/test_native_rr_ci_provenance.py'
-      - 'tests/governance/test_native_rr_ci_anchor.py'
-      - 'tests/governance/native_rr_ci/anchor.py'
-      - 'tests/governance/native_rr_ci/execution.py'
-      - 'tests/governance/test_native_rr_ci_execution.py'
-      - 'tests/governance/native_rr_ci/runner.py'
-      - 'support/governance/recovery/native-writer-rr-ci-profile.php'
-      - 'support/governance/recovery/native-writer-rr-parent.php'
-      - '.github/workflows/native-rr-owner-build.yml'
+  workflow_call:
+    inputs:
+      expected_head:
+        required: true
+        type: string
   workflow_dispatch:
+    inputs:
+      expected_head:
+        description: Exact signed source commit for this manual full qualification
+        required: true
+        type: string
+
 permissions:
   contents: read
 jobs:
@@ -41,6 +33,11 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+      - name: Require exact full-tier caller checkpoint
+        env:
+          FOCUSED_EXPECTED_HEAD: ${{ inputs.expected_head }}
+        run: |
+          python3 -B scripts/ci/focused_workflows.py bind-head --expected-head "$FOCUSED_EXPECTED_HEAD"
       - uses: actions/setup-go@v6
         with:
           go-version: '1.27.3'

@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "developmentTier": "core",
+  "releaseTier": "full",
+  "releaseFullWorkflows": [
+    "atomic-feature-regressions.yml",
+    "assessment-credential-focused.yml",
+    "conduit-producer-focused.yml",
+    "oauth-access-producer-focused.yml",
+    "oauth-authorization-producer-focused.yml",
+    "oauth-code-producer-focused.yml",
+    "oauth-client-lifecycle-focused.yml",
+    "native-directory-transports-v1.yml",
+    "native-media-session-positive-sql.yml",
+    "native-rr-owner-build.yml",
+    "private-mail-wire.yml",
+    "project-content-grants-focused.yml",
+    "project-description-focused.yml"
+  ],
+  "productionPHP": "8.5.12",
+  "productionMySQL": "8.4.13",
+  "archivedPHP": [
+    "8.3",
+    "8.4"
+  ],
+  "nativeTrialRequiresN09": false,
+  "runtimeFixtureIsFormalPairQualification": false,
+  "retirementRequires": [
+    "documented supported replacement or explicit end of support",
+    "successful supported upgrade and repeated-upgrade evidence",
+    "consumer inventory and tests showing no remaining supported caller",
+    "reviewed source and documentation change preserving historical evidence"
+  ],
+  "historicalSchemaFixture": "mysql:8.0",
+  "historicalSchemaWorkflow": "gorge-runtime-contracts.yml",
+  "historicalSchemaFixtureScope": "Test-only application-schema migration carrier; not MySQL engine upgrade evidence or a production-version support promise",
+  "engineUpgradeQualifiedByHistoricalFixture": false,
+  "arbitraryStartingReleaseUpgradeSupport": false
+}

@@ -1,0 +1,98 @@
+name: Full release qualification
+
+on:
+  workflow_call:
+    inputs:
+      expected_head:
+        required: true
+        type: string
+    outputs:
+      qualified_head:
+        description: Exact source which passed every full release job
+        value: ${{ jobs.qualified.outputs.head }}
+
+permissions:
+  contents: read
+
+jobs:
+  atomic_feature_regressions:
+    uses: ./.github/workflows/atomic-feature-regressions.yml
+    with:
+      expected_head: ${{ inputs.expected_head }}
+  assessment_credential_focused:
+    uses: ./.github/workflows/assessment-credential-focused.yml
+    with:
+      expected_head: ${{ inputs.expected_head }}
+  conduit_producer_focused:
+    uses: ./.github/workflows/conduit-producer-focused.yml
+    with:
+      expected_head: ${{ inputs.expected_head }}
+  oauth_access_producer_focused:
+    uses: ./.github/workflows/oauth-access-producer-focused.yml
+    with:
+      expected_head: ${{ inputs.expected_head }}
+  oauth_authorization_producer_focused:
+    uses: ./.github/workflows/oauth-authorization-producer-focused.yml
+    with:
+      expected_head: ${{ inputs.expected_head }}
+  oauth_code_producer_focused:
+    uses: ./.github/workflows/oauth-code-producer-focused.yml
+    with:
+      expected_head: ${{ inputs.expected_head }}
+  oauth_client_lifecycle_focused:
+    uses: ./.github/workflows/oauth-client-lifecycle-focused.yml
+    with:
+      expected_head: ${{ inputs.expected_head }}
+  native_directory_transports_v1:
+    uses: ./.github/workflows/native-directory-transports-v1.yml
+    with:
+      expected_head: ${{ inputs.expected_head }}
+  native_media_session_positive_sql:
+    uses: ./.github/workflows/native-media-session-positive-sql.yml
+    with:
+      expected_head: ${{ inputs.expected_head }}
+  native_rr_owner_build:
+    uses: ./.github/workflows/native-rr-owner-build.yml
+    with:
+      expected_head: ${{ inputs.expected_head }}
+  private_mail_wire:
+    uses: ./.github/workflows/private-mail-wire.yml
+    with:
+      expected_head: ${{ inputs.expected_head }}
+  project_content_grants_focused:
+    uses: ./.github/workflows/project-content-grants-focused.yml
+    with:
+      expected_head: ${{ inputs.expected_head }}
+  project_description_focused:
+    uses: ./.github/workflows/project-description-focused.yml
+    with:
+      expected_head: ${{ inputs.expected_head }}
+  qualified:
+    name: Full release qualification gate
+    if: always()
+    needs: [atomic_feature_regressions, assessment_credential_focused, conduit_producer_focused, oauth_access_producer_focused, oauth_authorization_producer_focused, oauth_code_producer_focused, oauth_client_lifecycle_focused, native_directory_transports_v1, native_media_session_positive_sql, native_rr_owner_build, private_mail_wire, project_content_grants_focused, project_description_focused]
+    runs-on: ubuntu-latest
+    outputs:
+      head: ${{ steps.source.outputs.head }}
+    steps:
+      - name: Refuse skipped, cancelled, failed or mismatched full qualification
+        id: source
+        env:
+          EXPECTED_HEAD: ${{ inputs.expected_head }}
+          SOURCE_HEAD: ${{ github.sha }}
+          RESULTS: ${{ toJSON(needs) }}
+        run: |
+          python3 - <<'PY'
+          import json, os, re
+          expected = os.environ['EXPECTED_HEAD']
+          results = json.loads(os.environ['RESULTS'])
+          if not re.fullmatch('[a-f0-9]{40}', expected) or expected != os.environ['SOURCE_HEAD']:
+              raise SystemExit('Full qualification source mismatch.')
+          required = ['atomic_feature_regressions', 'assessment_credential_focused', 'conduit_producer_focused', 'oauth_access_producer_focused', 'oauth_authorization_producer_focused', 'oauth_code_producer_focused', 'oauth_client_lifecycle_focused', 'native_directory_transports_v1', 'native_media_session_positive_sql', 'native_rr_owner_build', 'private_mail_wire', 'project_content_grants_focused', 'project_description_focused']
+          if set(results) != set(required) or any(row['result'] != 'success' for row in results.values()):
+              raise SystemExit('Every full release job must succeed; skips are not acceptance.')
+          if results['atomic_feature_regressions'].get('outputs', {}).get('qualified_head') != expected:
+              raise SystemExit('Atomic full qualification must identify this exact source; core is insufficient.')
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+              output.write('head=' + expected + '\n')
+          PY

@@ -20,7 +20,33 @@ env:
   PYTHONDONTWRITEBYTECODE: '1'
 
 jobs:
+  release-identity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Require publication workflow and source from the exact release tag
+        env:
+          WORKFLOW_REF: ${{ github.workflow_ref }}
+          WORKFLOW_SHA: ${{ github.workflow_sha }}
+        run: |
+          python3 deploy/release/ci_policy.py --repository "$GITHUB_REPOSITORY" \
+            --tag "$RELEASE_TAG" --sha "$GITHUB_SHA" --ref "$GITHUB_REF" \
+            --workflow-ref "$WORKFLOW_REF" --workflow-sha "$WORKFLOW_SHA" \
+            --output "$RUNNER_TEMP/phorge-release-ci-identity.json"
+      - name: Verify release rejection paths
+        run: python3 -m unittest discover -s tests/release -p 'test_*.py' -v
+  full-regressions:
+    needs: release-identity
+    uses: ./.github/workflows/release-full.yml
+    with:
+      expected_head: ${{ github.sha }}
   publish:
+    needs: [release-identity, full-regressions]
     runs-on: ubuntu-latest
     timeout-minutes: 60
     permissions:
@@ -31,7 +57,21 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
-          ref: refs/tags/${{ inputs.release_tag }}
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Require successful full qualification of this exact release source
+        env:
+          WORKFLOW_REF: ${{ github.workflow_ref }}
+          WORKFLOW_SHA: ${{ github.workflow_sha }}
+          FULL_HEAD: ${{ needs.full-regressions.outputs.qualified_head }}
+          FULL_RESULT: ${{ needs.full-regressions.result }}
+        run: |
+          python3 deploy/release/ci_policy.py --repository "$GITHUB_REPOSITORY" \
+            --tag "$RELEASE_TAG" --sha "$GITHUB_SHA" --ref "$GITHUB_REF" \
+            --workflow-ref "$WORKFLOW_REF" --workflow-sha "$WORKFLOW_SHA" \
+            --full-head "$FULL_HEAD" --full-result "$FULL_RESULT" \
+            --output "$RUNNER_TEMP/phorge-release-ci.json"
       - name: Verify release gate rejection paths
         run: python3 -m unittest discover -s tests/release -p 'test_*.py' -v
       - name: Require exact tag identity and refuse immutable tag overwrite

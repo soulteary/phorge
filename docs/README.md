@@ -20,6 +20,11 @@
 记录当前候选范围和发布步骤；[2026.10.07-r2 发布准备](releases/2026.10.07-r2.md)
 保留版本历史。两仓协议与 Go 服务的完整说明见 [Gorge 模块索引](../../gorge/docs/README.md)。
 
+## 开发与交付验收范围
+
+- [CI 分层与发布门禁](ci/README.md)：核心开发检查、发布完整回归和必需检查汇总。
+- [原生核心试用范围](upstream/native-trial-acceptance-scope.md)：关闭功能、Owlmail 分工、恢复与版本回退、单一 Linux 媒体验收环境及当前状态记录。
+
 ## 选择验证入口
 
 - 修改保留运行库或 PHP 响应协议：运行 [运行库维护检查](../DOCKER.md#内置-php-兼容运行库)

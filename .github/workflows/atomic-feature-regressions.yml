@@ -5,6 +5,16 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  workflow_call:
+    inputs:
+      expected_head:
+        description: Exact source commit required by the release caller
+        required: true
+        type: string
+    outputs:
+      qualified_head:
+        description: Exact commit whose complete full regression and union passed
+        value: ${{ jobs.native-packages-gate.outputs.qualified_head }}
 
 concurrency:
   group: atomic-feature-regressions-${{ github.event_name }}-${{ github.event.pull_request.number || github.run_id }}
@@ -14,7 +24,75 @@ permissions:
   contents: read
 
 jobs:
+  ci-plan:
+    name: Select exact-source CI tier
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      mode: ${{ steps.plan.outputs.mode }}
+      head: ${{ steps.plan.outputs.head }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - id: plan
+        env:
+          CI_EVENT: ${{ github.event_name }}
+          CI_SHA: ${{ github.sha }}
+          CI_PR_HEAD: ${{ github.event.pull_request.head.sha || '' }}
+          CI_CALLED_HEAD: ${{ inputs.expected_head || '' }}
+        run: |
+          python3 -B scripts/ci/core_guard.py plan --event "$CI_EVENT" --sha "$CI_SHA" --pr-head "$CI_PR_HEAD" --called-head "$CI_CALLED_HEAD" >> "$GITHUB_OUTPUT"
+  core-boundaries:
+    name: Defaults-OFF and native core boundaries (PHP 8.5.12)
+    needs: ci-plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.ci-plan.outputs.head }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Admit the exact externally bound Root-signed source
+        env:
+          CORE_EXPECTED_HEAD: ${{ needs.ci-plan.outputs.head }}
+        run: |
+          umask 077
+          trust_home="$RUNNER_TEMP/core-source-public-trust"
+          python3 -B scripts/governance/check_task_ci_head_v1.py --prepare-public-trust \
+            --public-key "$GITHUB_WORKSPACE/support/governance/source-operation/ci-source-verifier.asc" --trust-home "$trust_home"
+          python3 -B scripts/governance/check_task_ci_head_v1.py --root "$GITHUB_WORKSPACE" \
+            --event-file "$GITHUB_EVENT_PATH" --event-name "$GITHUB_EVENT_NAME" \
+            --expected-head "$CORE_EXPECTED_HEAD" --github-sha "$GITHUB_SHA" --trust-home "$trust_home"
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5.12'
+          ini-values: opcache.jit=disable, opcache.jit_buffer_size=0
+          extensions: mysqli, mbstring, curl, gd, zip, dom, xmlreader, xmlwriter
+          coverage: none
+      - name: Prepare the small pinned workflow-policy dependency
+        run: |
+          python3 -m venv "$RUNNER_TEMP/core-ci-venv"
+          "$RUNNER_TEMP/core-ci-venv/bin/python" -m pip install --disable-pip-version-check PyYAML==6.0.3
+          echo "$RUNNER_TEMP/core-ci-venv/bin" >> "$GITHUB_PATH"
+      - name: Run actual fast OFF and native core checks
+        env:
+          CORE_EXPECTED_HEAD: ${{ needs.ci-plan.outputs.head }}
+        run: python3 -B scripts/ci/core_guard.py run --expected-head "$CORE_EXPECTED_HEAD" --output "$RUNNER_TEMP/core-boundaries.json"
+      - name: Upload successful core-only scope and lineage
+        uses: actions/upload-artifact@v4
+        with:
+          name: atomic-core-boundaries-attempt-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/core-boundaries.json
+          if-no-files-found: error
+          retention-days: 7
   native-packages:
+    needs: ci-plan
+    if: ${{ needs.ci-plan.outputs.mode == 'full' }}
     name: Native integration (PHP ${{ matrix.php }})
     runs-on: ubuntu-latest
     timeout-minutes: 40
@@ -211,7 +289,7 @@ jobs:
           root = Path(os.environ['RUNNER_TEMP']) / 'atomic-footprint'
           root.mkdir(mode=0o700)
           (root / 'records').mkdir(mode=0o700)
-          script = "import json, os, stat, subprocess, sys\nfrom pathlib import Path\nSTAGES = {'before_build','after_build','after_maps','after_verify','before_governance','after_governance'}\ndef need(ok):\n    if not ok: raise ValueError('footprint_contract_refused')\ndef safe_name(name):\n    need(type(name) is str and 0 < len(name) <= 1024 and not name.startswith('/') and all(x not in ('', '.', '..') for x in name.split('/')) and all(ord(c) >= 32 and ord(c) != 127 for c in name))\n    return name\ndef collect(root):\n    rows=[]\n    flags=os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW|os.O_CLOEXEC\n    fd=os.open(root,flags)\n    def walk(parent,prefix):\n        for name in sorted(os.listdir(parent)):\n            if not prefix and name=='.git': continue\n            rel=safe_name(prefix+name)\n            st=os.stat(name,dir_fd=parent,follow_symlinks=False)\n            kind='directory' if stat.S_ISDIR(st.st_mode) else 'regular' if stat.S_ISREG(st.st_mode) else 'symlink' if stat.S_ISLNK(st.st_mode) else 'other'\n            rows.append({'path':rel,'type':kind,'mode':format(stat.S_IMODE(st.st_mode),'04o'),'size':st.st_size})\n            need(len(rows)<=20000 and type(st.st_size) is int and st.st_size>=0)\n            if kind=='directory':\n                child=os.open(name,flags,dir_fd=parent)\n                try:\n                    current=os.fstat(child)\n                    need((current.st_dev,current.st_ino)==(st.st_dev,st.st_ino))\n                    walk(child,rel+'/')\n                finally: os.close(child)\n    try: walk(fd,'')\n    finally: os.close(fd)\n    return rows\ndef expected(root):\n    env={'PATH':os.defpath,'GIT_CONFIG_NOSYSTEM':'1','GIT_CONFIG_GLOBAL':os.devnull,'GIT_NO_REPLACE_OBJECTS':'1'}\n    raw=subprocess.run(['git','--no-replace-objects','-C',str(root),'-c','core.hooksPath=/dev/null','ls-tree','-rz','--name-only','HEAD'],env=env,check=True,stdout=subprocess.PIPE,stderr=subprocess.DEVNULL,timeout=30).stdout\n    need(len(raw)<=8*1024*1024 and raw.endswith(b'\\0'))\n    names=[safe_name(n.decode('utf-8','strict')) for n in raw[:-1].split(b'\\0')]\n    need(len(names)<=20000 and len(names)==len(set(names)))\n    return set(names)\ndef write_output(directory,stage,data):\n    flags=os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW|os.O_CLOEXEC\n    parent=os.open(directory,flags)\n    try:\n        st=os.fstat(parent);need(st.st_uid==os.getuid() and stat.S_IMODE(st.st_mode)==0o700)\n        raw=(json.dumps(data,sort_keys=True,separators=(',',':'))+'\\n').encode()\n        need(len(raw)<=16*1024*1024)\n        fd=os.open(stage+'.json',os.O_WRONLY|os.O_CREAT|os.O_EXCL|os.O_NOFOLLOW|os.O_CLOEXEC,0o600,dir_fd=parent)\n        try:\n            os.fchmod(fd,0o600)\n            view=memoryview(raw)\n            while view:\n                written=os.write(fd,view);need(written>0);view=view[written:]\n            os.fsync(fd)\n            done=os.fstat(fd);need(stat.S_ISREG(done.st_mode) and done.st_nlink==1 and stat.S_IMODE(done.st_mode)==0o600)\n        finally: os.close(fd)\n        final=os.stat(directory,follow_symlinks=False)\n        need((st.st_dev,st.st_ino)==(final.st_dev,final.st_ino))\n    finally:os.close(parent)\ndef main():\n    need(len(sys.argv)==2 and sys.argv[1] in STAGES)\n    stage=sys.argv[1];root=Path.cwd();rows=collect(root);names=expected(root)\n    leaves={x['path'] for x in rows if x['type']!='directory'}\n    extra=sorted(leaves-names);missing=sorted(names-leaves)\n    need(len(extra)<=4000 and len(missing)<=4000)\n    write_output(Path(os.environ['RUNNER_TEMP'])/'atomic-footprint'/'records',stage,{'schema':1,'stage':stage,'truncated':False,'rows':rows,'extra_names':extra,'missing_names':missing})\nif __name__=='__main__':\n    try:main()\n    except Exception:\n        print('atomic_footprint_diagnostic_refused',file=sys.stderr)\n        raise SystemExit(1)\n"
+          script = Path('scripts/ci/source_footprint.py').read_text()
           fd = os.open(root / 'collector.py', os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
           try:
               with os.fdopen(fd, 'w') as stream:
@@ -1116,6 +1194,8 @@ jobs:
           docker network rm atomic-fixtures || true
 
   governance-unit-tests-0:
+    needs: ci-plan
+    if: ${{ needs.ci-plan.outputs.mode == 'full' }}
     name: Governance unit tests (PHP ${{ matrix.php }}, shard 0/2)
     runs-on: ubuntu-latest
     timeout-minutes: 40
@@ -1270,7 +1350,7 @@ jobs:
         root = Path(os.environ['RUNNER_TEMP']) / 'atomic-footprint'
         root.mkdir(mode=0o700)
         (root / 'records').mkdir(mode=0o700)
-        script = "import json, os, stat, subprocess, sys\nfrom pathlib import Path\nSTAGES = {'before_build','after_build','after_maps','after_verify','before_governance','after_governance'}\ndef need(ok):\n    if not ok: raise ValueError('footprint_contract_refused')\ndef safe_name(name):\n    need(type(name) is str and 0 < len(name) <= 1024 and not name.startswith('/') and all(x not in ('', '.', '..') for x in name.split('/')) and all(ord(c) >= 32 and ord(c) != 127 for c in name))\n    return name\ndef collect(root):\n    rows=[]\n    flags=os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW|os.O_CLOEXEC\n    fd=os.open(root,flags)\n    def walk(parent,prefix):\n        for name in sorted(os.listdir(parent)):\n            if not prefix and name=='.git': continue\n            rel=safe_name(prefix+name)\n            st=os.stat(name,dir_fd=parent,follow_symlinks=False)\n            kind='directory' if stat.S_ISDIR(st.st_mode) else 'regular' if stat.S_ISREG(st.st_mode) else 'symlink' if stat.S_ISLNK(st.st_mode) else 'other'\n            rows.append({'path':rel,'type':kind,'mode':format(stat.S_IMODE(st.st_mode),'04o'),'size':st.st_size})\n            need(len(rows)<=20000 and type(st.st_size) is int and st.st_size>=0)\n            if kind=='directory':\n                child=os.open(name,flags,dir_fd=parent)\n                try:\n                    current=os.fstat(child)\n                    need((current.st_dev,current.st_ino)==(st.st_dev,st.st_ino))\n                    walk(child,rel+'/')\n                finally: os.close(child)\n    try: walk(fd,'')\n    finally: os.close(fd)\n    return rows\ndef expected(root):\n    env={'PATH':os.defpath,'GIT_CONFIG_NOSYSTEM':'1','GIT_CONFIG_GLOBAL':os.devnull,'GIT_NO_REPLACE_OBJECTS':'1'}\n    raw=subprocess.run(['git','--no-replace-objects','-C',str(root),'-c','core.hooksPath=/dev/null','ls-tree','-rz','--name-only','HEAD'],env=env,check=True,stdout=subprocess.PIPE,stderr=subprocess.DEVNULL,timeout=30).stdout\n    need(len(raw)<=8*1024*1024 and raw.endswith(b'\\0'))\n    names=[safe_name(n.decode('utf-8','strict')) for n in raw[:-1].split(b'\\0')]\n    need(len(names)<=20000 and len(names)==len(set(names)))\n    return set(names)\ndef write_output(directory,stage,data):\n    flags=os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW|os.O_CLOEXEC\n    parent=os.open(directory,flags)\n    try:\n        st=os.fstat(parent);need(st.st_uid==os.getuid() and stat.S_IMODE(st.st_mode)==0o700)\n        raw=(json.dumps(data,sort_keys=True,separators=(',',':'))+'\\n').encode()\n        need(len(raw)<=16*1024*1024)\n        fd=os.open(stage+'.json',os.O_WRONLY|os.O_CREAT|os.O_EXCL|os.O_NOFOLLOW|os.O_CLOEXEC,0o600,dir_fd=parent)\n        try:\n            os.fchmod(fd,0o600)\n            view=memoryview(raw)\n            while view:\n                written=os.write(fd,view);need(written>0);view=view[written:]\n            os.fsync(fd)\n            done=os.fstat(fd);need(stat.S_ISREG(done.st_mode) and done.st_nlink==1 and stat.S_IMODE(done.st_mode)==0o600)\n        finally: os.close(fd)\n        final=os.stat(directory,follow_symlinks=False)\n        need((st.st_dev,st.st_ino)==(final.st_dev,final.st_ino))\n    finally:os.close(parent)\ndef main():\n    need(len(sys.argv)==2 and sys.argv[1] in STAGES)\n    stage=sys.argv[1];root=Path.cwd();rows=collect(root);names=expected(root)\n    leaves={x['path'] for x in rows if x['type']!='directory'}\n    extra=sorted(leaves-names);missing=sorted(names-leaves)\n    need(len(extra)<=4000 and len(missing)<=4000)\n    write_output(Path(os.environ['RUNNER_TEMP'])/'atomic-footprint'/'records',stage,{'schema':1,'stage':stage,'truncated':False,'rows':rows,'extra_names':extra,'missing_names':missing})\nif __name__=='__main__':\n    try:main()\n    except Exception:\n        print('atomic_footprint_diagnostic_refused',file=sys.stderr)\n        raise SystemExit(1)\n"
+        script = Path('scripts/ci/source_footprint.py').read_text()
         fd = os.open(root / 'collector.py', os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
         try:
             with os.fdopen(fd, 'w') as stream:
@@ -1422,6 +1502,8 @@ jobs:
         if-no-files-found: error
         retention-days: 7
   governance-unit-tests-1:
+    needs: ci-plan
+    if: ${{ needs.ci-plan.outputs.mode == 'full' }}
     name: Governance unit tests (PHP ${{ matrix.php }}, shard 1/2)
     runs-on: ubuntu-latest
     timeout-minutes: 40
@@ -1576,7 +1658,7 @@ jobs:
         root = Path(os.environ['RUNNER_TEMP']) / 'atomic-footprint'
         root.mkdir(mode=0o700)
         (root / 'records').mkdir(mode=0o700)
-        script = "import json, os, stat, subprocess, sys\nfrom pathlib import Path\nSTAGES = {'before_build','after_build','after_maps','after_verify','before_governance','after_governance'}\ndef need(ok):\n    if not ok: raise ValueError('footprint_contract_refused')\ndef safe_name(name):\n    need(type(name) is str and 0 < len(name) <= 1024 and not name.startswith('/') and all(x not in ('', '.', '..') for x in name.split('/')) and all(ord(c) >= 32 and ord(c) != 127 for c in name))\n    return name\ndef collect(root):\n    rows=[]\n    flags=os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW|os.O_CLOEXEC\n    fd=os.open(root,flags)\n    def walk(parent,prefix):\n        for name in sorted(os.listdir(parent)):\n            if not prefix and name=='.git': continue\n            rel=safe_name(prefix+name)\n            st=os.stat(name,dir_fd=parent,follow_symlinks=False)\n            kind='directory' if stat.S_ISDIR(st.st_mode) else 'regular' if stat.S_ISREG(st.st_mode) else 'symlink' if stat.S_ISLNK(st.st_mode) else 'other'\n            rows.append({'path':rel,'type':kind,'mode':format(stat.S_IMODE(st.st_mode),'04o'),'size':st.st_size})\n            need(len(rows)<=20000 and type(st.st_size) is int and st.st_size>=0)\n            if kind=='directory':\n                child=os.open(name,flags,dir_fd=parent)\n                try:\n                    current=os.fstat(child)\n                    need((current.st_dev,current.st_ino)==(st.st_dev,st.st_ino))\n                    walk(child,rel+'/')\n                finally: os.close(child)\n    try: walk(fd,'')\n    finally: os.close(fd)\n    return rows\ndef expected(root):\n    env={'PATH':os.defpath,'GIT_CONFIG_NOSYSTEM':'1','GIT_CONFIG_GLOBAL':os.devnull,'GIT_NO_REPLACE_OBJECTS':'1'}\n    raw=subprocess.run(['git','--no-replace-objects','-C',str(root),'-c','core.hooksPath=/dev/null','ls-tree','-rz','--name-only','HEAD'],env=env,check=True,stdout=subprocess.PIPE,stderr=subprocess.DEVNULL,timeout=30).stdout\n    need(len(raw)<=8*1024*1024 and raw.endswith(b'\\0'))\n    names=[safe_name(n.decode('utf-8','strict')) for n in raw[:-1].split(b'\\0')]\n    need(len(names)<=20000 and len(names)==len(set(names)))\n    return set(names)\ndef write_output(directory,stage,data):\n    flags=os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW|os.O_CLOEXEC\n    parent=os.open(directory,flags)\n    try:\n        st=os.fstat(parent);need(st.st_uid==os.getuid() and stat.S_IMODE(st.st_mode)==0o700)\n        raw=(json.dumps(data,sort_keys=True,separators=(',',':'))+'\\n').encode()\n        need(len(raw)<=16*1024*1024)\n        fd=os.open(stage+'.json',os.O_WRONLY|os.O_CREAT|os.O_EXCL|os.O_NOFOLLOW|os.O_CLOEXEC,0o600,dir_fd=parent)\n        try:\n            os.fchmod(fd,0o600)\n            view=memoryview(raw)\n            while view:\n                written=os.write(fd,view);need(written>0);view=view[written:]\n            os.fsync(fd)\n            done=os.fstat(fd);need(stat.S_ISREG(done.st_mode) and done.st_nlink==1 and stat.S_IMODE(done.st_mode)==0o600)\n        finally: os.close(fd)\n        final=os.stat(directory,follow_symlinks=False)\n        need((st.st_dev,st.st_ino)==(final.st_dev,final.st_ino))\n    finally:os.close(parent)\ndef main():\n    need(len(sys.argv)==2 and sys.argv[1] in STAGES)\n    stage=sys.argv[1];root=Path.cwd();rows=collect(root);names=expected(root)\n    leaves={x['path'] for x in rows if x['type']!='directory'}\n    extra=sorted(leaves-names);missing=sorted(names-leaves)\n    need(len(extra)<=4000 and len(missing)<=4000)\n    write_output(Path(os.environ['RUNNER_TEMP'])/'atomic-footprint'/'records',stage,{'schema':1,'stage':stage,'truncated':False,'rows':rows,'extra_names':extra,'missing_names':missing})\nif __name__=='__main__':\n    try:main()\n    except Exception:\n        print('atomic_footprint_diagnostic_refused',file=sys.stderr)\n        raise SystemExit(1)\n"
+        script = Path('scripts/ci/source_footprint.py').read_text()
         fd = os.open(root / 'collector.py', os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
         try:
             with os.fdopen(fd, 'w') as stream:
@@ -1728,6 +1810,8 @@ jobs:
         if-no-files-found: error
         retention-days: 7
   governance-tooling-tests:
+    needs: ci-plan
+    if: ${{ needs.ci-plan.outputs.mode == 'full' }}
     name: Governance unit tests (PHP ${{ matrix.php }}, acceptance tooling)
     runs-on: ubuntu-latest
     timeout-minutes: 40
@@ -1882,7 +1966,7 @@ jobs:
         root = Path(os.environ['RUNNER_TEMP']) / 'atomic-footprint'
         root.mkdir(mode=0o700)
         (root / 'records').mkdir(mode=0o700)
-        script = "import json, os, stat, subprocess, sys\nfrom pathlib import Path\nSTAGES = {'before_build','after_build','after_maps','after_verify','before_governance','after_governance'}\ndef need(ok):\n    if not ok: raise ValueError('footprint_contract_refused')\ndef safe_name(name):\n    need(type(name) is str and 0 < len(name) <= 1024 and not name.startswith('/') and all(x not in ('', '.', '..') for x in name.split('/')) and all(ord(c) >= 32 and ord(c) != 127 for c in name))\n    return name\ndef collect(root):\n    rows=[]\n    flags=os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW|os.O_CLOEXEC\n    fd=os.open(root,flags)\n    def walk(parent,prefix):\n        for name in sorted(os.listdir(parent)):\n            if not prefix and name=='.git': continue\n            rel=safe_name(prefix+name)\n            st=os.stat(name,dir_fd=parent,follow_symlinks=False)\n            kind='directory' if stat.S_ISDIR(st.st_mode) else 'regular' if stat.S_ISREG(st.st_mode) else 'symlink' if stat.S_ISLNK(st.st_mode) else 'other'\n            rows.append({'path':rel,'type':kind,'mode':format(stat.S_IMODE(st.st_mode),'04o'),'size':st.st_size})\n            need(len(rows)<=20000 and type(st.st_size) is int and st.st_size>=0)\n            if kind=='directory':\n                child=os.open(name,flags,dir_fd=parent)\n                try:\n                    current=os.fstat(child)\n                    need((current.st_dev,current.st_ino)==(st.st_dev,st.st_ino))\n                    walk(child,rel+'/')\n                finally: os.close(child)\n    try: walk(fd,'')\n    finally: os.close(fd)\n    return rows\ndef expected(root):\n    env={'PATH':os.defpath,'GIT_CONFIG_NOSYSTEM':'1','GIT_CONFIG_GLOBAL':os.devnull,'GIT_NO_REPLACE_OBJECTS':'1'}\n    raw=subprocess.run(['git','--no-replace-objects','-C',str(root),'-c','core.hooksPath=/dev/null','ls-tree','-rz','--name-only','HEAD'],env=env,check=True,stdout=subprocess.PIPE,stderr=subprocess.DEVNULL,timeout=30).stdout\n    need(len(raw)<=8*1024*1024 and raw.endswith(b'\\0'))\n    names=[safe_name(n.decode('utf-8','strict')) for n in raw[:-1].split(b'\\0')]\n    need(len(names)<=20000 and len(names)==len(set(names)))\n    return set(names)\ndef write_output(directory,stage,data):\n    flags=os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW|os.O_CLOEXEC\n    parent=os.open(directory,flags)\n    try:\n        st=os.fstat(parent);need(st.st_uid==os.getuid() and stat.S_IMODE(st.st_mode)==0o700)\n        raw=(json.dumps(data,sort_keys=True,separators=(',',':'))+'\\n').encode()\n        need(len(raw)<=16*1024*1024)\n        fd=os.open(stage+'.json',os.O_WRONLY|os.O_CREAT|os.O_EXCL|os.O_NOFOLLOW|os.O_CLOEXEC,0o600,dir_fd=parent)\n        try:\n            os.fchmod(fd,0o600)\n            view=memoryview(raw)\n            while view:\n                written=os.write(fd,view);need(written>0);view=view[written:]\n            os.fsync(fd)\n            done=os.fstat(fd);need(stat.S_ISREG(done.st_mode) and done.st_nlink==1 and stat.S_IMODE(done.st_mode)==0o600)\n        finally: os.close(fd)\n        final=os.stat(directory,follow_symlinks=False)\n        need((st.st_dev,st.st_ino)==(final.st_dev,final.st_ino))\n    finally:os.close(parent)\ndef main():\n    need(len(sys.argv)==2 and sys.argv[1] in STAGES)\n    stage=sys.argv[1];root=Path.cwd();rows=collect(root);names=expected(root)\n    leaves={x['path'] for x in rows if x['type']!='directory'}\n    extra=sorted(leaves-names);missing=sorted(names-leaves)\n    need(len(extra)<=4000 and len(missing)<=4000)\n    write_output(Path(os.environ['RUNNER_TEMP'])/'atomic-footprint'/'records',stage,{'schema':1,'stage':stage,'truncated':False,'rows':rows,'extra_names':extra,'missing_names':missing})\nif __name__=='__main__':\n    try:main()\n    except Exception:\n        print('atomic_footprint_diagnostic_refused',file=sys.stderr)\n        raise SystemExit(1)\n"
+        script = Path('scripts/ci/source_footprint.py').read_text()
         fd = os.open(root / 'collector.py', os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
         try:
             with os.fdopen(fd, 'w') as stream:
@@ -2035,7 +2119,11 @@ jobs:
         retention-days: 7
   native-packages-gate:
     name: Native packages (PHP 8.5.12)
+    outputs:
+      qualified_head: ${{ steps.full-qualified.outputs.head }}
     needs:
+    - ci-plan
+    - core-boundaries
     - native-packages
     - governance-unit-tests-0
     - governance-unit-tests-1
@@ -2044,42 +2132,49 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-    - name: Require native integration and both unit shards to succeed
+    - name: Gate / Check out exact source for tier policy
+      uses: actions/checkout@v6
+      with:
+        ref: ${{ needs.ci-plan.outputs.head }}
+        fetch-depth: 0
+        persist-credentials: false
+    - name: Require actual core and the complete selected tier
       env:
-        NATIVE_RESULT: ${{ needs.native-packages.result }}
-        GOVERNANCE_UNIT_0_RESULT: ${{ needs.governance-unit-tests-0.result }}
-        GOVERNANCE_UNIT_1_RESULT: ${{ needs.governance-unit-tests-1.result }}
-        GOVERNANCE_TOOLING_RESULT: ${{ needs.governance-tooling-tests.result }}
-      run: |
-        python3 - <<'PYGATE'
-        import os
-        names=('NATIVE_RESULT','GOVERNANCE_UNIT_0_RESULT','GOVERNANCE_UNIT_1_RESULT','GOVERNANCE_TOOLING_RESULT')
-        if any(os.environ.get(name,'')!='success' for name in names):
-            raise SystemExit('Every Atomic validation job must finish successfully')
-        print('Native integration and both independent unit shards succeeded')
-        PYGATE
+        CORE_MODE: ${{ needs.ci-plan.outputs.mode }}
+        CORE_RESULT_PLAN: ${{ needs.ci-plan.result }}
+        CORE_RESULT_CORE: ${{ needs.core-boundaries.result }}
+        CORE_RESULT_NATIVE: ${{ needs.native-packages.result }}
+        CORE_RESULT_UNIT0: ${{ needs.governance-unit-tests-0.result }}
+        CORE_RESULT_UNIT1: ${{ needs.governance-unit-tests-1.result }}
+        CORE_RESULT_TOOLING: ${{ needs.governance-tooling-tests.result }}
+      run: python3 -B scripts/ci/core_guard.py aggregate --mode "$CORE_MODE"
     - name: Gate / Check out the exact source for summary lineage
+      if: ${{ needs.ci-plan.outputs.mode == 'full' }}
       uses: actions/checkout@v6
       with:
         ref: ${{ github.event.pull_request.head.sha || github.sha }}
         fetch-depth: 0
         persist-credentials: false
     - name: Gate / Download same-run shard 0 safe summary
+      if: ${{ needs.ci-plan.outputs.mode == 'full' }}
       uses: actions/download-artifact@v4
       with:
         name: atomic-governance-unit-shard-0-results-php-8.5.12-attempt-${{ github.run_attempt }}
         path: ${{ runner.temp }}/atomic-unit-gate/shard-0
     - name: Gate / Download same-run shard 1 safe summary
+      if: ${{ needs.ci-plan.outputs.mode == 'full' }}
       uses: actions/download-artifact@v4
       with:
         name: atomic-governance-unit-shard-1-results-php-8.5.12-attempt-${{ github.run_attempt }}
         path: ${{ runner.temp }}/atomic-unit-gate/shard-1
     - name: Gate / Download same-run tooling safe summary
+      if: ${{ needs.ci-plan.outputs.mode == 'full' }}
       uses: actions/download-artifact@v4
       with:
         name: atomic-governance-unit-shard-2-results-php-8.5.12-attempt-${{ github.run_attempt }}
         path: ${{ runner.temp }}/atomic-unit-gate/shard-2
     - name: Gate / Verify full discovery and exact disjoint successful union
+      if: ${{ needs.ci-plan.outputs.mode == 'full' }}
       env:
         ATOMIC_EXPECTED_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         ATOMIC_RESULT_ROOT: ${{ runner.temp }}/atomic-unit-gate
@@ -2139,9 +2234,16 @@ jobs:
         if __name__=='__main__':main()
         PYUNION
     - name: Gate / Upload the safe exact-union result
+      if: ${{ needs.ci-plan.outputs.mode == 'full' }}
       uses: actions/upload-artifact@v4
       with:
         name: atomic-governance-unit-union-php-8.5.12-attempt-${{ github.run_attempt }}
         path: ${{ runner.temp }}/atomic-unit-gate/union-results.json
         if-no-files-found: error
         retention-days: 7
+    - name: Gate / Export full qualification only after successful union
+      if: ${{ needs.ci-plan.outputs.mode == 'full' }}
+      id: full-qualified
+      env:
+        QUALIFIED_HEAD: ${{ needs.ci-plan.outputs.head }}
+      run: echo "head=$QUALIFIED_HEAD" >> "$GITHUB_OUTPUT"

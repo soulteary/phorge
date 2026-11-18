@@ -72,6 +72,23 @@ CI_V2_NEW_PATHS.add('tests/governance/test_n11_task_runtime_entry_current_v2.py'
 CI_V2_NEW_PATHS.update({'scripts/governance/run_n11_task_current_v2.py', 'scripts/governance/n11_task_source_current_v2.py', 'tests/governance/test_n11_task_source_current_v2.py', 'tests/governance/test_n11_task_current_source_operation_v2.py'})
 
 CI_V2_NEW_PATHS.update({'scripts/governance/current_native_pair_metadata_v1.py','tests/governance/test_current_native_pair_metadata_v1.py'})
+# Explicit reviewed CI-tier additions. Unknown source paths still refuse.
+CI_V2_NEW_PATHS.update({
+ '.github/workflows/release-full.yml',
+ 'deploy/release/ci_policy.py',
+ 'docs/ci/README.md',
+ 'docs/ci/support-baseline.json',
+ 'docs/upstream/native-trial-acceptance-scope.md',
+ 'scripts/ci/core_guard.php',
+ 'scripts/ci/core_guard.py',
+ 'scripts/ci/focused_workflows.py',
+ 'scripts/ci/source_footprint.py',
+ 'tests/ci/test_core_focused_tiers.py',
+ 'tests/ci/test_core_footprint.py',
+ 'tests/ci/test_core_guard.py',
+ 'tests/ci/test_core_workflow.py',
+ 'tests/release/test_ci_policy.py',
+})
 def need(v):
  if v is not True:raise ValueError('task_SourceOperation_admission_refused')
 def sha(raw):return hashlib.sha256(raw).hexdigest()
