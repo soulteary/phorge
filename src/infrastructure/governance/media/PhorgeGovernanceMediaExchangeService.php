@@ -56,17 +56,36 @@ final class PhorgeGovernanceMediaExchangeService extends Phobject {
     return id(new PhabricatorUser())->establishConnection('w');
   }
 
+  private static function normalizeIsolationLevelRow($row,$name) {
+    $levels=array('READ-UNCOMMITTED','READ-COMMITTED','REPEATABLE-READ','SERIALIZABLE');
+    if (!is_array($row) || ($row['Variable_name']??null)!==$name ||
+        !is_string($row['Value']??null) || !in_array($row['Value'],$levels,true)) {
+      throw new RuntimeException('media_transaction_isolation_refused');
+    }
+    return $row['Value'];
+  }
+
+  private static function readSessionIsolationLevel(AphrontDatabaseConnection $connection) {
+    // MariaDB 10.11 uses tx_isolation; MySQL 8 uses transaction_isolation.
+    // Only absence selects the alias. Query errors and malformed values fail closed.
+    foreach (array('transaction_isolation','tx_isolation') as $name) {
+      $row=queryfx_one($connection,'SHOW SESSION VARIABLES WHERE Variable_name = %s',$name);
+      if ($row!==null) { return self::normalizeIsolationLevelRow($row,$name); }
+    }
+    throw new RuntimeException('media_transaction_isolation_refused');
+  }
+
   private static function begin(AphrontDatabaseConnection $connection) {
     if (get_class($connection) !== AphrontMySQLiDatabaseConnection::class ||
         $connection->isInsideTransaction()) {
       throw new RuntimeException('media_exchange_transaction_context_refused');
     }
-    $default=queryfx_one($connection,'SELECT @@SESSION.transaction_isolation AS isolationLevel');
+    $default=self::readSessionIsolationLevel($connection);
     $restore=array('READ-UNCOMMITTED'=>'SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED',
       'READ-COMMITTED'=>'SET TRANSACTION ISOLATION LEVEL READ COMMITTED',
       'REPEATABLE-READ'=>'SET TRANSACTION ISOLATION LEVEL REPEATABLE READ',
       'SERIALIZABLE'=>'SET TRANSACTION ISOLATION LEVEL SERIALIZABLE');
-    if(!$default||!isset($restore[$default['isolationLevel']])){throw new RuntimeException('media_transaction_isolation_refused');}
+    if(!isset($restore[$default])){throw new RuntimeException('media_transaction_isolation_refused');}
     $queued=false;
     try {
       queryfx($connection,'SET TRANSACTION ISOLATION LEVEL READ COMMITTED');$queued=true;
@@ -85,7 +104,7 @@ final class PhorgeGovernanceMediaExchangeService extends Phobject {
       }
     } catch (Throwable $error) {
       if($connection->isInsideTransaction()){$connection->killTransaction();}
-      if($queued){queryfx($connection,$restore[$default['isolationLevel']]);}
+      if($queued){queryfx($connection,$restore[$default]);}
       if($error instanceof AphrontMalformedRequestException){throw $error;}
       throw new RuntimeException('media_exchange_transactional_schema_required');
     }
