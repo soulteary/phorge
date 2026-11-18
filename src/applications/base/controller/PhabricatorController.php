@@ -86,6 +86,21 @@ abstract class PhabricatorController extends AphrontController {
         $session_user = $session_engine->loadUserForSession(
           PhabricatorAuthSession::TYPE_WEB,
           $phsid);
+        if ($session_user &&
+            !PhabricatorTraefikAuthProvider::canReuseSessionForProxyIdentity(
+              $session_user, $this)) {
+          // The gateway account changed. Do not reuse the previous account's
+          // native session, including on read-only or file requests.
+          $session_user = null;
+          $phsid = $session_engine->establishSession(
+            PhabricatorAuthSession::TYPE_WEB,
+            null,
+            false);
+          if ($request->canSetCookies()) {
+            $request->clearCookie(PhabricatorCookies::COOKIE_USERNAME);
+            $request->setCookie(PhabricatorCookies::COOKIE_SESSION, $phsid);
+          }
+        }
         if ($session_user) {
           $user = $session_user;
         }

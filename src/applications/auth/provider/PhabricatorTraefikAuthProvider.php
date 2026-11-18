@@ -41,6 +41,117 @@ final class PhabricatorTraefikAuthProvider extends PhabricatorAuthProvider {
     return '200-'.$this->getProviderName();
   }
 
+  public function isSessionIdentityCompatible(
+    PhabricatorUser $user,
+    $identity) {
+
+    if (!phutil_nonempty_string($identity) || !$user->getPHID()) {
+      return false;
+    }
+
+    // Only a persisted link under this provider can authorize reuse of a
+    // native session. Display names and email addresses are not identities.
+    $account = id(new PhabricatorExternalAccountQuery())
+      ->setViewer($user)
+      ->requireCapabilities(array(PhabricatorPolicyCapability::CAN_EDIT))
+      ->withProviderConfigPHIDs(array($this->getProviderConfig()->getPHID()))
+      ->withUserPHIDs(array($user->getPHID()))
+      ->withRawAccountIdentifiers(array($identity))
+      ->executeOne();
+
+    return (bool)$account;
+  }
+
+  public static function canReuseSessionForProxyIdentity(
+    PhabricatorUser $user,
+    PhabricatorController $controller) {
+
+    $identity = AphrontRequest::getHTTPHeader('X-Auth-User');
+    if (!phutil_nonempty_string($identity)) {
+      return true;
+    }
+
+    $has_proxy_provider = false;
+    foreach (PhabricatorAuthProvider::getAllEnabledProviders() as $provider) {
+      if (!($provider instanceof self)) {
+        continue;
+      }
+      $has_proxy_provider = true;
+      if ($provider->isSessionIdentityCompatible($user, $identity)) {
+        return true;
+      }
+      if ($provider->canUseSessionForAccountLink(
+          $user, $identity, $controller)) {
+        return true;
+      }
+    }
+
+    return !$has_proxy_provider;
+  }
+
+  public function canUseSessionForAccountLink(
+    PhabricatorUser $user,
+    $identity,
+    PhabricatorController $controller) {
+
+    if (!$this->shouldAllowAccountLink() ||
+        !phutil_nonempty_string($identity)) {
+      return false;
+    }
+
+    $request = $controller->getRequest();
+    $config = $this->getProviderConfig();
+    $link_uri = '/auth/link/'.$config->getID().'/';
+    if ($controller instanceof PhabricatorAuthLinkController) {
+      $is_link_flow = ($request->getURIData('action') === 'link' &&
+        (string)$request->getURIData('id') === (string)$config->getID());
+    } else if ($controller instanceof PhabricatorAuthLoginController) {
+      $is_link_flow =
+        ($request->getURIData('pkey') === $this->getProviderKey());
+    } else if ($controller instanceof PhabricatorAuthConfirmLinkController) {
+      $is_link_flow = true;
+    } else if ($controller instanceof PhabricatorAuthValidateController ||
+               $controller instanceof PhabricatorAuthFinishController) {
+      $is_link_flow =
+        (PhabricatorCookies::getNextURICookie($request) === $link_uri);
+    } else {
+      $is_link_flow = false;
+    }
+    if (!$is_link_flow) {
+      return false;
+    }
+
+    // Never use the linking exception to swap an already-linked identity.
+    $existing = id(new PhabricatorExternalAccountQuery())
+      ->setViewer($user)
+      ->requireCapabilities(array(PhabricatorPolicyCapability::CAN_EDIT))
+      ->withProviderConfigPHIDs(array($config->getPHID()))
+      ->withUserPHIDs(array($user->getPHID()))
+      ->executeOne();
+    if ($existing) {
+      return false;
+    }
+
+    $account = id(new PhabricatorExternalAccountQuery())
+      ->setViewer(PhabricatorUser::getOmnipotentUser())
+      ->requireCapabilities(array(PhabricatorPolicyCapability::CAN_EDIT))
+      ->withProviderConfigPHIDs(array($config->getPHID()))
+      ->withRawAccountIdentifiers(array($identity))
+      ->executeOne();
+    if ($account && $account->getUserPHID()) {
+      return false;
+    }
+
+    if ($controller instanceof PhabricatorAuthConfirmLinkController) {
+      // The ordinary controller still verifies the registration cookie,
+      // CSRF, Allow Linking, and the native high-security confirmation.
+      return $account &&
+        ($request->getURIData('akey') === $account->getAccountSecret());
+    }
+
+    return true;
+  }
+
   public function isLoginFormAButton() {
     return true;
   }
