@@ -39,10 +39,25 @@ final class GovernanceNativeRRCIProfile {
   public static function fromEnvironment(){
     $raw=getenv('PHORGE_GOVERNANCE_NATIVE_RR_CI_CONTROL');if(!is_string($raw)||strlen($raw)>4096){throw new RuntimeException('native_rr_CI_external_control_missing');}return self::open(self::json($raw));
   }
+  private static function requireCaller(array$control){
+    if(getenv('GITHUB_JOB')!=='owner-build'||getenv('GITHUB_RUN_ID')!==($control['run_id']??null)||getenv('GITHUB_RUN_ATTEMPT')!==($control['run_attempt']??null)){throw new RuntimeException('native_rr_CI_untrusted_workflow_or_run');}
+    $ref=getenv('GITHUB_REF');$workflow=getenv('GITHUB_WORKFLOW_REF');
+    if($workflow!=='soulteary/phorge/.github/workflows/native-rr-owner-build.yml@'.$ref){
+      // The fixed Python parent has already verified actual event JSON and
+      // tag^{commit} in its real Git ROOT. The Gitfree PHP stage is no issuer.
+      $tag=getenv('NATIVE_RR_RELEASE_TAG');$revision=$control['source_revision']??null;
+      if(!is_string($tag)||!preg_match('/\A(20[0-9]{2})\.([0-9]{2})\.([0-9]{2})-r[1-9][0-9]*\z/D',$tag,$date)||!checkdate((int)$date[2],(int)$date[3],(int)$date[1])||
+          $ref!=='refs/tags/'.$tag||$workflow!=='soulteary/phorge/.github/workflows/container-image.yml@'.$ref||getenv('GITHUB_REPOSITORY')!=='soulteary/phorge'||
+          ($control['source_kind']??null)!=='workflow-dispatch-checkout'||getenv('GITHUB_EVENT_NAME')!=='workflow_dispatch'||
+          !is_string($revision)||!preg_match('/\A[a-f0-9]{40}\z/D',$revision)||
+          getenv('GITHUB_SHA')!==$revision||getenv('GITHUB_WORKFLOW_SHA')!==$revision||getenv('NATIVE_RR_WORKFLOW_SHA')!==$revision||getenv('NATIVE_RR_EXPECTED_HEAD')!==$revision||
+          !is_string($control['run_id'])||!preg_match('/\A[1-9][0-9]{0,19}\z/D',$control['run_id'])||!is_string($control['run_attempt'])||!preg_match('/\A[1-9][0-9]{0,19}\z/D',$control['run_attempt'])){throw new RuntimeException('native_rr_CI_release_caller_refused');}
+    }
+    $event=getenv('GITHUB_EVENT_NAME');$ref=getenv('GITHUB_REF');if((($control['source_kind']??null)==='pull-request-synthetic-merge'&&($event!=='pull_request'||!preg_match('/\Arefs\/pull\/[1-9][0-9]*\/merge\z/D',$ref)))||(($control['source_kind']??null)==='workflow-dispatch-checkout'&&($event!=='workflow_dispatch'||!preg_match('/\Arefs\/(?:heads|tags)\/[A-Za-z0-9_.\/\-]+\z/D',$ref)))){throw new RuntimeException('native_rr_CI_event_unknown');}
+  }
   public static function open(array$control){
     if(PHP_SAPI!=='cli'||getenv('PHORGE_GOVERNANCE_NATIVE_RR_EXECUTION_PROFILE')!=='isolated-native-RR21-linux-amd64-v1'||getenv('PHORGE_GOVERNANCE_ISOLATED_TEST')!=='1'||getenv('GITHUB_ACTIONS')!=='true'||getenv('GITHUB_SHA')!==($control['source_revision']??null)||getenv('PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION')!==($control['source_revision']??null)){throw new RuntimeException('native_rr_CI_fixed_runner_required');}
-    if(getenv('GITHUB_JOB')!=='owner-build'||getenv('GITHUB_WORKFLOW_REF')!=='soulteary/phorge/.github/workflows/native-rr-owner-build.yml@'.getenv('GITHUB_REF')||getenv('GITHUB_RUN_ID')!==($control['run_id']??null)||getenv('GITHUB_RUN_ATTEMPT')!==($control['run_attempt']??null)){throw new RuntimeException('native_rr_CI_untrusted_workflow_or_run');}
-    $event=getenv('GITHUB_EVENT_NAME');$ref=getenv('GITHUB_REF');if((($control['source_kind']??null)==='pull-request-synthetic-merge'&&($event!=='pull_request'||!preg_match('/\Arefs\/pull\/[1-9][0-9]*\/merge\z/D',$ref)))||(($control['source_kind']??null)==='workflow-dispatch-checkout'&&($event!=='workflow_dispatch'||!preg_match('/\Arefs\/(?:heads|tags)\/[A-Za-z0-9_.\/\-]+\z/D',$ref)))){throw new RuntimeException('native_rr_CI_event_unknown');}
+    self::requireCaller($control);
     $directory=$control['directory']??null;if(!is_string($directory)||!preg_match('/\A\/tmp\/governance-native-rr-ci-[a-f0-9]{32}\z/D',$directory)){throw new RuntimeException('native_rr_CI_directory_refused');}
     clearstatcache(true,$directory);$s=lstat($directory);if(!$s||is_link($directory)||!is_dir($directory)||($s['mode']&0777)!==0700||$s['uid']!==posix_geteuid()||$s['dev']!==($control['dev']??null)||$s['ino']!==($control['ino']??null)){throw new RuntimeException('native_rr_CI_directory_owner_unknown');}
     $anchor=self::file($directory.'/anchor.json',0400,65536);$seed=self::file($directory.'/seed.json',0400,65536);$decoded=self::json($seed);$sources=array();
