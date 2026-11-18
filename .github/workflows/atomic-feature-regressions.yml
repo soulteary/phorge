@@ -67,7 +67,7 @@ jobs:
             --public-key "$GITHUB_WORKSPACE/support/governance/source-operation/ci-source-verifier.asc" --trust-home "$trust_home"
           python3 -B scripts/governance/check_task_ci_head_v1.py --root "$GITHUB_WORKSPACE" \
             --event-file "$GITHUB_EVENT_PATH" --event-name "$GITHUB_EVENT_NAME" \
-            --expected-head "$CORE_EXPECTED_HEAD" --github-sha "$GITHUB_SHA" --trust-home "$trust_home"
+            --expected-head "$CORE_EXPECTED_HEAD" --github-sha "$GITHUB_SHA" --trust-home "$trust_home" --external-proof-tag "source-proof/$CORE_EXPECTED_HEAD"
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.5.12'
@@ -456,7 +456,7 @@ jobs:
           mkdir "$RUNNER_TEMP/governance-completion"
           trust_home="$RUNNER_TEMP/completion-v3-public-trust"
           python3 -B scripts/governance/check_task_ci_head_v1.py --prepare-public-trust --public-key "$GITHUB_WORKSPACE/support/governance/source-operation/ci-source-verifier.asc" --trust-home "$trust_home"
-          python3 -B scripts/governance/check_task_ci_head_v1.py --root "$GITHUB_WORKSPACE" --event-file "$GITHUB_EVENT_PATH" --event-name "$GITHUB_EVENT_NAME" --expected-head "$EXPECTED_SOURCE_CHECKPOINT" --github-sha "$GITHUB_SHA" --trust-home "$trust_home"
+          python3 -B scripts/governance/check_task_ci_head_v1.py --root "$GITHUB_WORKSPACE" --event-file "$GITHUB_EVENT_PATH" --event-name "$GITHUB_EVENT_NAME" --expected-head "$EXPECTED_SOURCE_CHECKPOINT" --github-sha "$GITHUB_SHA" --trust-home "$trust_home" --external-proof-tag "source-proof/$EXPECTED_SOURCE_CHECKPOINT"
           export HOME="$trust_home"
           test "$(git rev-parse HEAD)" = "$EXPECTED_SOURCE_CHECKPOINT"
           mysql_image=$(docker inspect "$MYSQL_CONTAINER" --format '{{.Config.Image}}')
@@ -515,7 +515,7 @@ jobs:
           mkdir -p "$RUNNER_TEMP/governance-native-organization"
           trust_home="$RUNNER_TEMP/full-native-public-trust"
           python3 -B scripts/governance/check_task_ci_head_v1.py --prepare-public-trust --public-key "$GITHUB_WORKSPACE/support/governance/source-operation/ci-source-verifier.asc" --trust-home "$trust_home"
-          python3 -B scripts/governance/check_task_ci_head_v1.py --root "$GITHUB_WORKSPACE" --event-file "$GITHUB_EVENT_PATH" --event-name "$GITHUB_EVENT_NAME" --expected-head "$EXPECTED_SOURCE_CHECKPOINT" --github-sha "$GITHUB_SHA" --trust-home "$trust_home"
+          python3 -B scripts/governance/check_task_ci_head_v1.py --root "$GITHUB_WORKSPACE" --event-file "$GITHUB_EVENT_PATH" --event-name "$GITHUB_EVENT_NAME" --expected-head "$EXPECTED_SOURCE_CHECKPOINT" --github-sha "$GITHUB_SHA" --trust-home "$trust_home" --external-proof-tag "source-proof/$EXPECTED_SOURCE_CHECKPOINT"
           export HOME="$trust_home"
           python3 -B scripts/governance/check_directory_transports_task_source_v2.py --expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT" > "$RUNNER_TEMP/governance-native-organization/source-admission.json"
           cp "$RUNNER_TEMP/governance-batch-1/native.json" "$RUNNER_TEMP/governance-native-organization/native.json"
@@ -562,7 +562,7 @@ jobs:
           sha256sum "$RUNNER_TEMP/gorge-file-storage" "$RUNNER_TEMP/gorge-taskqueue" "$RUNNER_TEMP/gorge-render" | sed "s|$RUNNER_TEMP/||g" > "$RUNNER_TEMP/governance-api-credential-concurrency/binary-sha256.txt"
           trust_home="$RUNNER_TEMP/api-credential-public-trust"
           python3 -B scripts/governance/check_task_ci_head_v1.py --prepare-public-trust --public-key "$GITHUB_WORKSPACE/support/governance/source-operation/ci-source-verifier.asc" --trust-home "$trust_home"
-          python3 -B scripts/governance/check_task_ci_head_v1.py --root "$GITHUB_WORKSPACE" --event-file "$GITHUB_EVENT_PATH" --event-name "$GITHUB_EVENT_NAME" --expected-head "$EXPECTED_SOURCE_CHECKPOINT" --github-sha "$GITHUB_SHA" --trust-home "$trust_home"
+          python3 -B scripts/governance/check_task_ci_head_v1.py --root "$GITHUB_WORKSPACE" --event-file "$GITHUB_EVENT_PATH" --event-name "$GITHUB_EVENT_NAME" --expected-head "$EXPECTED_SOURCE_CHECKPOINT" --github-sha "$GITHUB_SHA" --trust-home "$trust_home" --external-proof-tag "source-proof/$EXPECTED_SOURCE_CHECKPOINT"
           export HOME="$trust_home"
           mysql_image=$(docker inspect "$MYSQL_CONTAINER" --format '{{.Config.Image}}')
           test "$mysql_image" = 'mysql:8.4.13@sha256:a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7'
@@ -608,7 +608,7 @@ jobs:
           cp "$RUNNER_TEMP/governance-native-organization/accepted.json" "$RUNNER_TEMP/governance-application-config-facts/normal-regression-accepted.json"
           trust_home="$RUNNER_TEMP/application-config-facts-public-trust"
           python3 -B scripts/governance/check_task_ci_head_v1.py --prepare-public-trust --public-key "$GITHUB_WORKSPACE/support/governance/source-operation/ci-source-verifier.asc" --trust-home "$trust_home"
-          python3 -B scripts/governance/check_task_ci_head_v1.py --root "$GITHUB_WORKSPACE" --event-file "$GITHUB_EVENT_PATH" --event-name "$GITHUB_EVENT_NAME" --expected-head "$EXPECTED_SOURCE_CHECKPOINT" --github-sha "$GITHUB_SHA" --trust-home "$trust_home"
+          python3 -B scripts/governance/check_task_ci_head_v1.py --root "$GITHUB_WORKSPACE" --event-file "$GITHUB_EVENT_PATH" --event-name "$GITHUB_EVENT_NAME" --expected-head "$EXPECTED_SOURCE_CHECKPOINT" --github-sha "$GITHUB_SHA" --trust-home "$trust_home" --external-proof-tag "source-proof/$EXPECTED_SOURCE_CHECKPOINT"
           export HOME="$trust_home"
           mysql_image=$(docker inspect "$MYSQL_CONTAINER" --format '{{.Config.Image}}')
           test "$mysql_image" = 'mysql:8.4.13@sha256:a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7'
@@ -643,7 +643,7 @@ jobs:
           cp "$RUNNER_TEMP/governance-native-organization/accepted.json" "$RUNNER_TEMP/governance-project-source-facts/normal-regression-accepted.json"
           trust_home="$RUNNER_TEMP/project-source-facts-public-trust"
           python3 -B scripts/governance/check_task_ci_head_v1.py --prepare-public-trust --public-key "$GITHUB_WORKSPACE/support/governance/source-operation/ci-source-verifier.asc" --trust-home "$trust_home"
-          python3 -B scripts/governance/check_task_ci_head_v1.py --root "$GITHUB_WORKSPACE" --event-file "$GITHUB_EVENT_PATH" --event-name "$GITHUB_EVENT_NAME" --expected-head "$EXPECTED_SOURCE_CHECKPOINT" --github-sha "$GITHUB_SHA" --trust-home "$trust_home"
+          python3 -B scripts/governance/check_task_ci_head_v1.py --root "$GITHUB_WORKSPACE" --event-file "$GITHUB_EVENT_PATH" --event-name "$GITHUB_EVENT_NAME" --expected-head "$EXPECTED_SOURCE_CHECKPOINT" --github-sha "$GITHUB_SHA" --trust-home "$trust_home" --external-proof-tag "source-proof/$EXPECTED_SOURCE_CHECKPOINT"
           export HOME="$trust_home"
           mysql_image=$(docker inspect "$MYSQL_CONTAINER" --format '{{.Config.Image}}')
           test "$mysql_image" = 'mysql:8.4.13@sha256:a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7'
@@ -678,7 +678,7 @@ jobs:
           cp "$RUNNER_TEMP/governance-native-organization/accepted.json" "$RUNNER_TEMP/governance-spaces-source-facts/normal-regression-accepted.json"
           trust_home="$RUNNER_TEMP/spaces-source-facts-public-trust"
           python3 -B scripts/governance/check_task_ci_head_v1.py --prepare-public-trust --public-key "$GITHUB_WORKSPACE/support/governance/source-operation/ci-source-verifier.asc" --trust-home "$trust_home"
-          python3 -B scripts/governance/check_task_ci_head_v1.py --root "$GITHUB_WORKSPACE" --event-file "$GITHUB_EVENT_PATH" --event-name "$GITHUB_EVENT_NAME" --expected-head "$EXPECTED_SOURCE_CHECKPOINT" --github-sha "$GITHUB_SHA" --trust-home "$trust_home"
+          python3 -B scripts/governance/check_task_ci_head_v1.py --root "$GITHUB_WORKSPACE" --event-file "$GITHUB_EVENT_PATH" --event-name "$GITHUB_EVENT_NAME" --expected-head "$EXPECTED_SOURCE_CHECKPOINT" --github-sha "$GITHUB_SHA" --trust-home "$trust_home" --external-proof-tag "source-proof/$EXPECTED_SOURCE_CHECKPOINT"
           export HOME="$trust_home"
           mysql_image=$(docker inspect "$MYSQL_CONTAINER" --format '{{.Config.Image}}')
           test "$mysql_image" = 'mysql:8.4.13@sha256:a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7'
@@ -713,7 +713,7 @@ jobs:
           cp "$RUNNER_TEMP/governance-native-organization/accepted.json" "$RUNNER_TEMP/governance-recovery-partial-composition/normal-regression-accepted.json"
           trust_home="$RUNNER_TEMP/recovery-partial-composition-public-trust"
           python3 -B scripts/governance/check_task_ci_head_v1.py --prepare-public-trust --public-key "$GITHUB_WORKSPACE/support/governance/source-operation/ci-source-verifier.asc" --trust-home "$trust_home"
-          python3 -B scripts/governance/check_task_ci_head_v1.py --root "$GITHUB_WORKSPACE" --event-file "$GITHUB_EVENT_PATH" --event-name "$GITHUB_EVENT_NAME" --expected-head "$EXPECTED_SOURCE_CHECKPOINT" --github-sha "$GITHUB_SHA" --trust-home "$trust_home"
+          python3 -B scripts/governance/check_task_ci_head_v1.py --root "$GITHUB_WORKSPACE" --event-file "$GITHUB_EVENT_PATH" --event-name "$GITHUB_EVENT_NAME" --expected-head "$EXPECTED_SOURCE_CHECKPOINT" --github-sha "$GITHUB_SHA" --trust-home "$trust_home" --external-proof-tag "source-proof/$EXPECTED_SOURCE_CHECKPOINT"
           export HOME="$trust_home"
           mysql_image=$(docker inspect "$MYSQL_CONTAINER" --format '{{.Config.Image}}')
           test "$mysql_image" = 'mysql:8.4.13@sha256:a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7'
@@ -751,7 +751,7 @@ jobs:
           cp "$RUNNER_TEMP/governance-native-organization/accepted.json" "$RUNNER_TEMP/governance-task-owner-source-facts/normal-regression-accepted.json"
           trust_home="$RUNNER_TEMP/task-owner-source-facts-public-trust"
           python3 -B scripts/governance/check_task_ci_head_v1.py --prepare-public-trust --public-key "$GITHUB_WORKSPACE/support/governance/source-operation/ci-source-verifier.asc" --trust-home "$trust_home"
-          python3 -B scripts/governance/check_task_ci_head_v1.py --root "$GITHUB_WORKSPACE" --event-file "$GITHUB_EVENT_PATH" --event-name "$GITHUB_EVENT_NAME" --expected-head "$EXPECTED_SOURCE_CHECKPOINT" --github-sha "$GITHUB_SHA" --trust-home "$trust_home"
+          python3 -B scripts/governance/check_task_ci_head_v1.py --root "$GITHUB_WORKSPACE" --event-file "$GITHUB_EVENT_PATH" --event-name "$GITHUB_EVENT_NAME" --expected-head "$EXPECTED_SOURCE_CHECKPOINT" --github-sha "$GITHUB_SHA" --trust-home "$trust_home" --external-proof-tag "source-proof/$EXPECTED_SOURCE_CHECKPOINT"
           export HOME="$trust_home"
           mysql_image=$(docker inspect "$MYSQL_CONTAINER" --format '{{.Config.Image}}')
           test "$mysql_image" = 'mysql:8.4.13@sha256:a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7'
@@ -788,7 +788,7 @@ jobs:
           cp "$RUNNER_TEMP/governance-native-organization/accepted.json" "$RUNNER_TEMP/governance-file-source-facts/normal-regression-accepted.json"
           trust_home="$RUNNER_TEMP/file-source-facts-public-trust"
           python3 -B scripts/governance/check_task_ci_head_v1.py --prepare-public-trust --public-key "$GITHUB_WORKSPACE/support/governance/source-operation/ci-source-verifier.asc" --trust-home "$trust_home"
-          python3 -B scripts/governance/check_task_ci_head_v1.py --root "$GITHUB_WORKSPACE" --event-file "$GITHUB_EVENT_PATH" --event-name "$GITHUB_EVENT_NAME" --expected-head "$EXPECTED_SOURCE_CHECKPOINT" --github-sha "$GITHUB_SHA" --trust-home "$trust_home"
+          python3 -B scripts/governance/check_task_ci_head_v1.py --root "$GITHUB_WORKSPACE" --event-file "$GITHUB_EVENT_PATH" --event-name "$GITHUB_EVENT_NAME" --expected-head "$EXPECTED_SOURCE_CHECKPOINT" --github-sha "$GITHUB_SHA" --trust-home "$trust_home" --external-proof-tag "source-proof/$EXPECTED_SOURCE_CHECKPOINT"
           export HOME="$trust_home"
           mysql_image=$(docker inspect "$MYSQL_CONTAINER" --format '{{.Config.Image}}')
           test "$mysql_image" = 'mysql:8.4.13@sha256:a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7'
@@ -827,7 +827,7 @@ jobs:
           cp "$RUNNER_TEMP/governance-native-organization/accepted.json" "$RUNNER_TEMP/governance-file-parent-policy/normal-regression-accepted.json"
           trust_home="$RUNNER_TEMP/file-parent-policy-public-trust"
           python3 -B scripts/governance/check_task_ci_head_v1.py --prepare-public-trust --public-key "$GITHUB_WORKSPACE/support/governance/source-operation/ci-source-verifier.asc" --trust-home "$trust_home"
-          python3 -B scripts/governance/check_task_ci_head_v1.py --root "$GITHUB_WORKSPACE" --event-file "$GITHUB_EVENT_PATH" --event-name "$GITHUB_EVENT_NAME" --expected-head "$EXPECTED_SOURCE_CHECKPOINT" --github-sha "$GITHUB_SHA" --trust-home "$trust_home"
+          python3 -B scripts/governance/check_task_ci_head_v1.py --root "$GITHUB_WORKSPACE" --event-file "$GITHUB_EVENT_PATH" --event-name "$GITHUB_EVENT_NAME" --expected-head "$EXPECTED_SOURCE_CHECKPOINT" --github-sha "$GITHUB_SHA" --trust-home "$trust_home" --external-proof-tag "source-proof/$EXPECTED_SOURCE_CHECKPOINT"
           export HOME="$trust_home"
           mysql_image=$(docker inspect "$MYSQL_CONTAINER" --format '{{.Config.Image}}')
           test "$mysql_image" = 'mysql:8.4.13@sha256:a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7'
@@ -867,7 +867,7 @@ jobs:
           cp "$RUNNER_TEMP/governance-native-organization/accepted.json" "$RUNNER_TEMP/governance-session-producer-lease/normal-regression-accepted.json"
           trust_home="$RUNNER_TEMP/session-producer-lease-public-trust"
           python3 -B scripts/governance/check_task_ci_head_v1.py --prepare-public-trust --public-key "$GITHUB_WORKSPACE/support/governance/source-operation/ci-source-verifier.asc" --trust-home "$trust_home"
-          python3 -B scripts/governance/check_task_ci_head_v1.py --root "$GITHUB_WORKSPACE" --event-file "$GITHUB_EVENT_PATH" --event-name "$GITHUB_EVENT_NAME" --expected-head "$EXPECTED_SOURCE_CHECKPOINT" --github-sha "$GITHUB_SHA" --trust-home "$trust_home"
+          python3 -B scripts/governance/check_task_ci_head_v1.py --root "$GITHUB_WORKSPACE" --event-file "$GITHUB_EVENT_PATH" --event-name "$GITHUB_EVENT_NAME" --expected-head "$EXPECTED_SOURCE_CHECKPOINT" --github-sha "$GITHUB_SHA" --trust-home "$trust_home" --external-proof-tag "source-proof/$EXPECTED_SOURCE_CHECKPOINT"
           export HOME="$trust_home"
           mysql_image=$(docker inspect "$MYSQL_CONTAINER" --format '{{.Config.Image}}')
           test "$mysql_image" = 'mysql:8.4.13@sha256:a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7'
@@ -908,7 +908,7 @@ jobs:
           cp "$RUNNER_TEMP/governance-native-organization/accepted.json" "$RUNNER_TEMP/governance-borrowed-session-owner/normal-regression-accepted.json"
           trust_home="$RUNNER_TEMP/session-borrowed-owner-public-trust"
           python3 -B scripts/governance/check_task_ci_head_v1.py --prepare-public-trust --public-key "$GITHUB_WORKSPACE/support/governance/source-operation/ci-source-verifier.asc" --trust-home "$trust_home"
-          python3 -B scripts/governance/check_task_ci_head_v1.py --root "$GITHUB_WORKSPACE" --event-file "$GITHUB_EVENT_PATH" --event-name "$GITHUB_EVENT_NAME" --expected-head "$EXPECTED_SOURCE_CHECKPOINT" --github-sha "$GITHUB_SHA" --trust-home "$trust_home"
+          python3 -B scripts/governance/check_task_ci_head_v1.py --root "$GITHUB_WORKSPACE" --event-file "$GITHUB_EVENT_PATH" --event-name "$GITHUB_EVENT_NAME" --expected-head "$EXPECTED_SOURCE_CHECKPOINT" --github-sha "$GITHUB_SHA" --trust-home "$trust_home" --external-proof-tag "source-proof/$EXPECTED_SOURCE_CHECKPOINT"
           export HOME="$trust_home"
           mysql_image=$(docker inspect "$MYSQL_CONTAINER" --format '{{.Config.Image}}')
           test "$mysql_image" = 'mysql:8.4.13@sha256:a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7'
@@ -955,7 +955,7 @@ jobs:
           cp "$RUNNER_TEMP/governance-native-organization/accepted.json" "$RUNNER_TEMP/governance-conduit-producer-owner/normal-regression-accepted.json"
           trust_home="$RUNNER_TEMP/conduit-public-trust"
           python3 -B scripts/governance/check_task_ci_head_v1.py --prepare-public-trust --public-key "$GITHUB_WORKSPACE/support/governance/source-operation/ci-source-verifier.asc" --trust-home "$trust_home"
-          python3 -B scripts/governance/check_task_ci_head_v1.py --root "$GITHUB_WORKSPACE" --event-file "$GITHUB_EVENT_PATH" --event-name "$GITHUB_EVENT_NAME" --expected-head "$EXPECTED_SOURCE_CHECKPOINT" --github-sha "$GITHUB_SHA" --trust-home "$trust_home"
+          python3 -B scripts/governance/check_task_ci_head_v1.py --root "$GITHUB_WORKSPACE" --event-file "$GITHUB_EVENT_PATH" --event-name "$GITHUB_EVENT_NAME" --expected-head "$EXPECTED_SOURCE_CHECKPOINT" --github-sha "$GITHUB_SHA" --trust-home "$trust_home" --external-proof-tag "source-proof/$EXPECTED_SOURCE_CHECKPOINT"
           export HOME="$trust_home"
           mysql_image=$(docker inspect "$MYSQL_CONTAINER" --format '{{.Config.Image}}')
           test "$mysql_image" = 'mysql:8.4.13@sha256:a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7'
@@ -1016,7 +1016,7 @@ jobs:
           cp "$RUNNER_TEMP/governance-native-organization/accepted.json" "$RUNNER_TEMP/governance-oauth-access-producer-owner/normal-regression-accepted.json"
           trust_home="$RUNNER_TEMP/oauth-access-public-trust"
           python3 -B scripts/governance/check_task_ci_head_v1.py --prepare-public-trust --public-key "$GITHUB_WORKSPACE/support/governance/source-operation/ci-source-verifier.asc" --trust-home "$trust_home"
-          python3 -B scripts/governance/check_task_ci_head_v1.py --root "$GITHUB_WORKSPACE" --event-file "$GITHUB_EVENT_PATH" --event-name "$GITHUB_EVENT_NAME" --expected-head "$EXPECTED_SOURCE_CHECKPOINT" --github-sha "$GITHUB_SHA" --trust-home "$trust_home"
+          python3 -B scripts/governance/check_task_ci_head_v1.py --root "$GITHUB_WORKSPACE" --event-file "$GITHUB_EVENT_PATH" --event-name "$GITHUB_EVENT_NAME" --expected-head "$EXPECTED_SOURCE_CHECKPOINT" --github-sha "$GITHUB_SHA" --trust-home "$trust_home" --external-proof-tag "source-proof/$EXPECTED_SOURCE_CHECKPOINT"
           export HOME="$trust_home"
           mysql_image=$(docker inspect "$MYSQL_CONTAINER" --format '{{.Config.Image}}')
           test "$mysql_image" = 'mysql:8.4.13@sha256:a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7'
@@ -1074,7 +1074,7 @@ jobs:
           sha256sum "$RUNNER_TEMP/gorge-file-storage" "$RUNNER_TEMP/gorge-taskqueue" | sed "s|$RUNNER_TEMP/||g" > "$RUNNER_TEMP/governance-private-calendar-reminders/binary-sha256.txt"
           trust_home="$RUNNER_TEMP/calendar-reminders-public-trust"
           python3 -B scripts/governance/check_task_ci_head_v1.py --prepare-public-trust --public-key "$GITHUB_WORKSPACE/support/governance/source-operation/ci-source-verifier.asc" --trust-home "$trust_home"
-          python3 -B scripts/governance/check_task_ci_head_v1.py --root "$GITHUB_WORKSPACE" --event-file "$GITHUB_EVENT_PATH" --event-name "$GITHUB_EVENT_NAME" --expected-head "$EXPECTED_SOURCE_CHECKPOINT" --github-sha "$GITHUB_SHA" --trust-home "$trust_home"
+          python3 -B scripts/governance/check_task_ci_head_v1.py --root "$GITHUB_WORKSPACE" --event-file "$GITHUB_EVENT_PATH" --event-name "$GITHUB_EVENT_NAME" --expected-head "$EXPECTED_SOURCE_CHECKPOINT" --github-sha "$GITHUB_SHA" --trust-home "$trust_home" --external-proof-tag "source-proof/$EXPECTED_SOURCE_CHECKPOINT"
           export HOME="$trust_home"
           mysql_image=$(docker inspect "$MYSQL_CONTAINER" --format '{{.Config.Image}}')
           test "$mysql_image" = 'mysql:8.4.13@sha256:a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7'
@@ -1120,7 +1120,7 @@ jobs:
           cp "$RUNNER_TEMP/governance-native-organization/accepted.json" "$RUNNER_TEMP/governance-organization-approval-workbench/normal-regression-accepted.json"
           trust_home="$RUNNER_TEMP/organization-approval-workbench-public-trust"
           python3 -B scripts/governance/check_task_ci_head_v1.py --prepare-public-trust --public-key "$GITHUB_WORKSPACE/support/governance/source-operation/ci-source-verifier.asc" --trust-home "$trust_home"
-          python3 -B scripts/governance/check_task_ci_head_v1.py --root "$GITHUB_WORKSPACE" --event-file "$GITHUB_EVENT_PATH" --event-name "$GITHUB_EVENT_NAME" --expected-head "$EXPECTED_SOURCE_CHECKPOINT" --github-sha "$GITHUB_SHA" --trust-home "$trust_home"
+          python3 -B scripts/governance/check_task_ci_head_v1.py --root "$GITHUB_WORKSPACE" --event-file "$GITHUB_EVENT_PATH" --event-name "$GITHUB_EVENT_NAME" --expected-head "$EXPECTED_SOURCE_CHECKPOINT" --github-sha "$GITHUB_SHA" --trust-home "$trust_home" --external-proof-tag "source-proof/$EXPECTED_SOURCE_CHECKPOINT"
           export HOME="$trust_home"
           mysql_image=$(docker inspect "$MYSQL_CONTAINER" --format '{{.Config.Image}}')
           test "$mysql_image" = 'mysql:8.4.13@sha256:a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7'
@@ -1242,7 +1242,7 @@ jobs:
         umask 077
         trust_home="$RUNNER_TEMP/task-source-public-trust"
         python3 -B scripts/governance/check_task_ci_head_v1.py --prepare-public-trust --public-key "$GITHUB_WORKSPACE/support/governance/source-operation/ci-source-verifier.asc" --trust-home "$trust_home"
-        python3 -B scripts/governance/check_task_ci_head_v1.py --root "$GITHUB_WORKSPACE" --event-file "$GITHUB_EVENT_PATH" --event-name "$GITHUB_EVENT_NAME" --expected-head "$EXPECTED_SOURCE_CHECKPOINT" --github-sha "$GITHUB_SHA" --trust-home "$trust_home"
+        python3 -B scripts/governance/check_task_ci_head_v1.py --root "$GITHUB_WORKSPACE" --event-file "$GITHUB_EVENT_PATH" --event-name "$GITHUB_EVENT_NAME" --expected-head "$EXPECTED_SOURCE_CHECKPOINT" --github-sha "$GITHUB_SHA" --trust-home "$trust_home" --external-proof-tag "source-proof/$EXPECTED_SOURCE_CHECKPOINT"
         echo "HOME=$trust_home" >> "$GITHUB_ENV"
     - name: Governance unit / Set up the production PHP baseline
       uses: shivammathur/setup-php@v2
@@ -1550,7 +1550,7 @@ jobs:
         umask 077
         trust_home="$RUNNER_TEMP/task-source-public-trust"
         python3 -B scripts/governance/check_task_ci_head_v1.py --prepare-public-trust --public-key "$GITHUB_WORKSPACE/support/governance/source-operation/ci-source-verifier.asc" --trust-home "$trust_home"
-        python3 -B scripts/governance/check_task_ci_head_v1.py --root "$GITHUB_WORKSPACE" --event-file "$GITHUB_EVENT_PATH" --event-name "$GITHUB_EVENT_NAME" --expected-head "$EXPECTED_SOURCE_CHECKPOINT" --github-sha "$GITHUB_SHA" --trust-home "$trust_home"
+        python3 -B scripts/governance/check_task_ci_head_v1.py --root "$GITHUB_WORKSPACE" --event-file "$GITHUB_EVENT_PATH" --event-name "$GITHUB_EVENT_NAME" --expected-head "$EXPECTED_SOURCE_CHECKPOINT" --github-sha "$GITHUB_SHA" --trust-home "$trust_home" --external-proof-tag "source-proof/$EXPECTED_SOURCE_CHECKPOINT"
         echo "HOME=$trust_home" >> "$GITHUB_ENV"
     - name: Governance unit / Set up the production PHP baseline
       uses: shivammathur/setup-php@v2
@@ -1858,7 +1858,7 @@ jobs:
         umask 077
         trust_home="$RUNNER_TEMP/task-source-public-trust"
         python3 -B scripts/governance/check_task_ci_head_v1.py --prepare-public-trust --public-key "$GITHUB_WORKSPACE/support/governance/source-operation/ci-source-verifier.asc" --trust-home "$trust_home"
-        python3 -B scripts/governance/check_task_ci_head_v1.py --root "$GITHUB_WORKSPACE" --event-file "$GITHUB_EVENT_PATH" --event-name "$GITHUB_EVENT_NAME" --expected-head "$EXPECTED_SOURCE_CHECKPOINT" --github-sha "$GITHUB_SHA" --trust-home "$trust_home"
+        python3 -B scripts/governance/check_task_ci_head_v1.py --root "$GITHUB_WORKSPACE" --event-file "$GITHUB_EVENT_PATH" --event-name "$GITHUB_EVENT_NAME" --expected-head "$EXPECTED_SOURCE_CHECKPOINT" --github-sha "$GITHUB_SHA" --trust-home "$trust_home" --external-proof-tag "source-proof/$EXPECTED_SOURCE_CHECKPOINT"
         echo "HOME=$trust_home" >> "$GITHUB_ENV"
     - name: Governance unit / Set up the production PHP baseline
       uses: shivammathur/setup-php@v2

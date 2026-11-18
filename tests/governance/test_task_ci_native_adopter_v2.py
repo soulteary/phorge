@@ -23,9 +23,10 @@ must succeed before publication; a core-only pass is never full qualification.
 
 Integrate only through a normal protected, non-force fast-forward that preserves
 the reviewed signed commit, if repository protections permit it. Never disable
-branch protection or use an administrator bypass. If protection requires a
-server-created commit, stop: that integration method needs a separately reviewed
-signing design rather than an allowlist exception. If main advances first,
+branch protection or use an administrator bypass. For a server-created merge, the explicitly enabled external proof path requires
+a separately project-signed tag for that exact merge commit, tree, parents and
+reviewed CI head. It does not inherit a parent signature or trust GitHub signing
+keys. Without the proof, admission still fails closed. If main advances first,
 integrate the new base, create a new project-signed candidate, and rerun its gates
 and final review. Do not reuse the earlier head's green checks.
 
@@ -138,6 +139,45 @@ class CIHeadPure(unittest.TestCase):
    root=Path(t).resolve();key=root/'key';key.write_bytes(b'unreviewed');key.chmod(0o600)
    with self.assertRaises(ValueError):head.prepare_public_trust(root/'home',key)
    call.assert_not_called();self.assertFalse((root/'home').exists())
+class IndependentMergeProofTests(unittest.TestCase):
+ def proof_git(self,changes=None,wrong_signer=False):
+  commit='b'*40;parent='a'*40;first='c'*40;tree='d'*40;tag='e'*40
+  proof={'schema':'phorge-merge-source-proof-v1','commit':commit,'tree':tree,'parents':[first,parent],'pr_head':parent,'ci_head':parent,'pr_number':151}
+  proof.update(changes or {})
+  def git(*args):
+   out=b'';err=b''
+   if args==('rev-parse','FETCH_HEAD'):out=(tag+'\n').encode()
+   elif args[0]=='verify-tag':err=('[GNUPG:] VALIDSIG '+('F'*40 if wrong_signer else head.SIGNER)+' test\n').encode()
+   elif args[:2]==('cat-file','tag'):
+    out=('object '+commit+'\ntype commit\ntag source-proof/'+commit+'\ntagger test\n\n'+json.dumps(proof)+'\n-----BEGIN PGP SIGNATURE-----\nsynthetic').encode()
+   elif args[0]=='show':out=(tree+' '+first+' '+parent+'\n').encode()
+   elif args[0]=='rev-parse':out=(tree+'\n').encode()
+   return subprocess.CompletedProcess(args,0,out,err)
+  return git
+ def test_exact_independent_proof_accepts_without_selecting_an_ancestor(self):
+  calls=[];delegate=self.proof_git()
+  def git(*args):calls.append(args);return delegate(*args)
+  result=head.verify_external_proof(git,'b'*40,'source-proof/'+'b'*40)
+  self.assertTrue(result['independent_merge_proof_verified'])
+  self.assertEqual(result['signed_proof_commit'],'b'*40)
+  self.assertFalse(any(c[0]=='verify-commit' for c in calls))
+ def test_commit_tree_parents_and_CI_binding_are_not_transferable(self):
+  for changes in ({'commit':'f'*40},{'tree':'f'*40},{'parents':['f'*40,'a'*40]},{'pr_head':'f'*40},{'ci_head':'f'*40},{'pr_number':0},{'extra':True}):
+   with self.subTest(changes=changes),self.assertRaises(ValueError):
+    head.verify_external_proof(self.proof_git(changes),'b'*40,'source-proof/'+'b'*40)
+ def test_other_signer_and_other_reference_are_refused(self):
+  with self.assertRaises(ValueError):head.verify_external_proof(self.proof_git(wrong_signer=True),'b'*40,'source-proof/'+'b'*40)
+  with self.assertRaises(ValueError):head.verify_external_proof(self.proof_git(),'b'*40,'source-proof/'+'a'*40)
+ def test_different_reviewed_tree_and_nonancestor_base_are_refused(self):
+  for mode in ('tree','base'):
+   delegate=self.proof_git()
+   def git(*args):
+    if mode=='tree'and args==('rev-parse','a'*40+'^{tree}'):return subprocess.CompletedProcess(args,0,('f'*40).encode(),b'')
+    if mode=='base'and args[0]=='merge-base':raise subprocess.CalledProcessError(1,args)
+    return delegate(*args)
+   with self.subTest(mode=mode),self.assertRaises((ValueError,subprocess.CalledProcessError)):
+    head.verify_external_proof(git,'b'*40,'source-proof/'+'b'*40)
+
 class NativeBodyDelegationPure(unittest.TestCase):
  @classmethod
  def setUpClass(cls):
