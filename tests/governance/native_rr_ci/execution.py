@@ -1,9 +1,14 @@
 """Fixed disposable MySQL/RR21 execution and source/receipt checks; no arbitrary shell."""
-import hashlib,io,os,posixpath,re,subprocess,tarfile,importlib.util,json,sys
+import hashlib,io,os,posixpath,re,stat,subprocess,tarfile,importlib.util,json,sys,types
 from pathlib import Path
 from provenance import decode,digest
 MYSQL_IMAGE='mysql:8.4.13'
 MYSQL_PASSWORD='native-rr-ci-disposable-only'
+CURRENT_RESTORE_CLI='scripts/governance/check_native_user_rr_mdl_current_restore_v2.py'
+CURRENT_RESTORE_ASSETS={
+ 'resources/sql/autopatches/20261112.task.contentgrants.sql':'632b4412c18ea61787ca6b38afc9d3c16b62f76591e9a99d624401eeac117236',
+ 'src/infrastructure/governance/content/PhorgeTaskContentGrantSchemaSpec.php':'7cac65fe600e2681eed05618fd584a02f37e27b7f532d6ca2b59244bf5045ccb'}
+CURRENT_RESTORE_PATHS=frozenset({CURRENT_RESTORE_CLI,*CURRENT_RESTORE_ASSETS})
 # Preserve all280 selected IDs at dd375d2d00, plus these five real current cases.
 # Encoding: SHA256(JSON(sorted IDs), separators=(',',':')). No PHP test is skipped.
 BASE_PURE_IDS_SHA256='6ba076f1a429860aab2b89c60d436a8bf5b1d4e42db1783d620eb84c243dc6fc'
@@ -117,6 +122,66 @@ def cleanup_proved(receipt,revision):
   exact(native['final_owned_cleanup'],{'cleanup_proved':True,'local_children_registered':2,'failures':[],'revoker_closed':True,'principal_cleanup':{'observer_removed':True,'owned_observer_sessions_absent':True,'cleanup_proved':True}})
  except (KeyError,ValueError,TypeError):return False
  return True
+
+def current_restore_read(path):
+ if path.resolve(strict=True)!=path:raise ValueError('canonical restore input required')
+ fd=os.open(path,os.O_RDONLY|os.O_NOFOLLOW|os.O_NONBLOCK)
+ try:
+  before=os.fstat(fd)
+  if not stat.S_ISREG(before.st_mode)or before.st_nlink!=1 or before.st_uid!=os.getuid()or before.st_mode&0o022 or not 0<before.st_size<=1048576:raise ValueError('bounded regular restore input required')
+  raw=bytearray()
+  while len(raw)<before.st_size:
+   part=os.read(fd,before.st_size-len(raw))
+   if not part:raise ValueError('complete restore input required')
+   raw.extend(part)
+  fields=('st_dev','st_ino','st_mode','st_uid','st_gid','st_nlink','st_size','st_mtime_ns','st_ctime_ns')
+  if os.read(fd,1)or any(getattr(before,k)!=getattr(after,k)for after in (os.fstat(fd),path.lstat())for k in fields):raise ValueError('restore input changed')
+  return bytes(raw)
+ finally:os.close(fd)
+
+def current_restore_inputs(code_root,source_root,revision,read_committed):
+ # Separate signed-checkout DATA commitment; never alters the 15-source anchor.
+ if type(revision)is not str or not re.fullmatch('[a-f0-9]{40}',revision)or revision=='0'*40:raise ValueError('fixed restore revision required')
+ if code_root.resolve(strict=True)!=code_root or not source_root.is_absolute()or source_root.resolve()!=source_root or source_root==code_root or source_root.is_relative_to(code_root):raise ValueError('distinct fixed code and staged roots required')
+ files={}
+ for name in sorted(CURRENT_RESTORE_PATHS):
+  raw=current_restore_read(code_root/name)
+  if raw!=read_committed(name):raise ValueError('restore input differs from exact committed source')
+  pin=digest(raw)
+  if name in CURRENT_RESTORE_ASSETS and pin!=CURRENT_RESTORE_ASSETS[name]:raise ValueError('unreviewed restore asset')
+  files[name]={'bytes':len(raw),'sha256':pin}
+ return {'schema':'native-RR-current-restore-inputs-DATA-v2','source_revision':revision,
+  'code_root':str(code_root),'source_root':str(source_root),'files':files,'runtime_authority':False}
+
+def verify_current_restore_inputs(source_root,revision,commitment,*,code_root,read_committed):
+ if type(commitment)is not dict or set(commitment)!={'schema','source_revision','code_root','source_root','files','runtime_authority'}:raise ValueError('closed restore commitment required')
+ if commitment['schema']!='native-RR-current-restore-inputs-DATA-v2'or commitment['runtime_authority']is not False or commitment['source_revision']!=revision or type(revision)is not str or not re.fullmatch('[a-f0-9]{40}',revision)or revision=='0'*40:raise ValueError('same restore revision required')
+ if code_root.resolve(strict=True)!=code_root or str(code_root)!=commitment['code_root']or source_root.resolve(strict=True)!=source_root or str(source_root)!=commitment['source_root']or source_root==code_root or source_root.is_relative_to(code_root)or (source_root/'.git').exists()or (source_root/'.git').is_symlink():raise ValueError('fixed Git checkout and Gitfree staged source required')
+ if type(commitment['files'])is not dict or set(commitment['files'])!=CURRENT_RESTORE_PATHS:raise ValueError('closed restore input paths required')
+ for name,row in commitment['files'].items():
+  if type(row)is not dict or set(row)!={'bytes','sha256'}or type(row['bytes'])is not int or not 0<row['bytes']<=1048576 or type(row['sha256'])is not str or not re.fullmatch('[a-f0-9]{64}',row['sha256']):raise ValueError('typed restore input pin required')
+  raw=current_restore_read(source_root/name);code=current_restore_read(code_root/name)
+  if raw!=code or code!=read_committed(name)or (len(raw),digest(raw))!=(row['bytes'],row['sha256'])or name in CURRENT_RESTORE_ASSETS and row['sha256']!=CURRENT_RESTORE_ASSETS[name]:raise ValueError('committed/worktree/staged restore input changed')
+
+def strict_accept_current_restore_v2(root,receipt,revision,receipt_path,commitment,*,code_root,read_committed):
+ verify_current_restore_inputs(root,revision,commitment,code_root=code_root,read_committed=read_committed)  # Before importing new CLI code.
+ receipt_raw=current_restore_read(receipt_path);exact(decode(receipt_raw),receipt)
+ scripts=root/'scripts/governance';sys.path.insert(0,str(scripts))
+ sealed=current_restore_read(root/CURRENT_RESTORE_CLI)
+ exact({'bytes':len(sealed),'sha256':digest(sealed)},commitment['files'][CURRENT_RESTORE_CLI])
+ gate=types.ModuleType('actual_current_rr_restore_metadata_v2');gate.__file__=str(root/CURRENT_RESTORE_CLI)
+ exec(compile(sealed,gate.__file__,'exec'),gate.__dict__)  # Verified CURRENT bytes, never cached bytecode.
+ expected=gate.validate(receipt,root=root,source_revision=revision)
+ required={'schema':'native-user-RR-current-restore-metadata-v2','profile':'RR-current-restore-metadata-v2','scope':'same-native-User-writer-RR-MDL-current-restore-metadata-only','passed':True,'source_revision':revision,'checks':21,'SQL_obligations':12,'native_children':2,'current_restore_metadata_verified':True,'legacy_reference_validated':True,'legacy_reference_only':True,'raw_v1_accepted':False,'raw_v1_profile_qualified':False,'raw_receipt_modified':False,'Task_physical_schema_verified':False,'Task_empty_tables_verified':False,'Task_config_epoch_verified':False,'independent_Task_schema_before_after_verified':False,'SQL_executed_by_validator':False,'source_owner_issued':False,'production_authority':False}
+ if type(expected)is not dict or set(expected)!=set(required)|{'legacy_reference'}:raise ValueError('closed explicit restore metadata v2 scope required')
+ exact({k:expected[k]for k in required},required)
+ verify_current_restore_inputs(root,revision,commitment,code_root=code_root,read_committed=read_committed)  # Immediately before subprocess CLI.
+ if current_restore_read(receipt_path)!=receipt_raw:raise ValueError('raw RR receipt changed')
+ cli=subprocess.run([sys.executable,'-B',str(root/CURRENT_RESTORE_CLI),'--receipt',str(receipt_path),'--source-revision',revision,'--source-root',str(root)],capture_output=True)
+ verify_current_restore_inputs(root,revision,commitment,code_root=code_root,read_committed=read_committed)  # After CLI; no Python-file gap.
+ if current_restore_read(receipt_path)!=receipt_raw:raise ValueError('raw RR receipt changed')
+ if cli.returncode!=0 or cli.stderr!=b''or decode(cli.stdout)!=expected:raise ValueError('actual current restore CLI/inprocess mismatch')
+ return expected,cli.stdout
 
 def restore_comparison_DATA(receipt,patches):
  # Fixed old-gate comparison only, never an acceptance or root-cause verdict.

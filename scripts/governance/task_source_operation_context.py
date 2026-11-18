@@ -94,10 +94,13 @@ CI_V2_NEW_PATHS.update({'scripts/ci/create_merge_source_proof.py','docs/ci/merge
 # Exact reviewed main additions: identity regression and portable SQL isolation.
 CI_V2_NEW_PATHS.update({'src/applications/auth/__tests__/PhabricatorTraefikSessionIdentityTestCase.php','tests/contract/runtime/media-isolation.php'})
 
+# Explicit RR current-restore metadata consumer and pure negative tests.
+CI_V2_NEW_PATHS.update({'scripts/governance/check_native_user_rr_mdl_current_restore_v2.py','tests/ci/test_rr_current_restore_v2.py'})
+
 # Fixed release history is inert literal DATA, never executable historical code.
 RELEASE_HISTORY='support/governance/source-operation/task-release-source-history-v1.json'
-RELEASE_HISTORY_BYTES=58923
-RELEASE_HISTORY_SHA='cab98dfddb1078dc233609f7c52bc9500e37ea5b8dc4262822783fe866cf0eb7'
+RELEASE_HISTORY_BYTES=82093
+RELEASE_HISTORY_SHA='ad8b73ded8544ac8fc16de585fc734525fa2d5ab76ac70a9eef31f85c3d8d677'
 RELEASE_HISTORY_PATHS=frozenset(['.github/workflows/container-image.yml', '.github/workflows/gorge-runtime-contracts.yml', '.github/workflows/native-rr-owner-build.yml', '.gitignore', 'docs/README.md', 'docs/upstream/atomic-release-protocol.md', 'src/__phutil_library_map__.php', 'src/applications/auth/provider/PhabricatorTraefikAuthProvider.php', 'src/applications/base/controller/PhabricatorController.php', 'src/infrastructure/governance/media/PhorgeGovernanceMediaExchangeService.php', 'src/infrastructure/governance/media/README.md', 'src/infrastructure/governance/media/__tests__/PhorgeGovernanceMediaExchangeServiceTestCase.php', 'src/infrastructure/governance/media/__tests__/PhorgeGovernanceMediaFileGuardTestCase.php', 'src/infrastructure/governance/media/__tests__/PhorgeGovernanceMediaHTTPProtocolTestCase.php', 'tests/governance/native_rr_ci/build_owner.py', 'tests/governance/native_rr_ci/execution.py', 'tests/governance/native_rr_ci/runner.py', 'tests/governance/test_native_rr_ci_execution.py', 'tests/governance/test_native_rr_ci_provenance.py', 'tests/governance/test_native_rr_ci_runner.py', 'tests/governance/test_native_user_rr_mdl_source.py'])
 CI_V2_NEW_PATHS.add(RELEASE_HISTORY)
 

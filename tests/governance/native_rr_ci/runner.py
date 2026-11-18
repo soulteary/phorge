@@ -87,8 +87,13 @@ def main(argv=None):
  # This external lease is persisted before any source stage, seed or binary mutation.
  private_file(output/'owner-lease.json',canonical({'schema_version':1,'owner':owner,**identity,'source_sha256':sources,'stage':str(SOURCE),'binary':str(BINARY),'anchor_directory':str(seed_dir)}))
  public=None;lease=None;source_identity=None;binary_identity=None;bindir_identity=None;SQL_started=False;SQL_cleanup_proved=False;primary=None;seed_attempted=False;source_attempted=False;binary_attempted=False
- result={'scope':'isolated-hosted-RR21-build-anchor-and-native-fixture','source_revision':head,'source_kind':identity['source_kind'],'PR_head_measured':False,'passed':False,'SQL_executed':False,'helper_executed':False,'portable_RR21_accepted':False,'production_authority':False,'cleanup_failures':[]}
+ result={'scope':'isolated-hosted-RR21-current-restore-metadata-v2-build-anchor-and-native-fixture','source_revision':head,'source_kind':identity['source_kind'],'PR_head_measured':False,'passed':False,'SQL_executed':False,'helper_executed':False,'portable_RR21_accepted':False,'raw_v1_profile_qualified':False,'production_authority':False,'cleanup_failures':[]}
  try:
+  def restore_committed(path):
+   if path not in execution.CURRENT_RESTORE_PATHS or command(['git','-C',str(ROOT),'rev-parse','HEAD']).decode().strip()!=head:raise ValueError('same fixed restore checkout revision required')
+   return command(['git','-C',str(ROOT),'show',head+':'+path])
+  restore_inputs=execution.current_restore_inputs(ROOT,SOURCE,head,restore_committed)
+  private_file(output/'current-restore-input-commitment.private.json',canonical(restore_inputs))
   for path in (SOURCE,BINDIR,seed_dir):
    if path.exists()or path.is_symlink():raise ValueError('fixed isolated target preexists')
   seed_attempted=True
@@ -100,6 +105,7 @@ def main(argv=None):
   with tarfile.open(fileobj=io.BytesIO(archive))as tar:
    if any(n=='src/.phutil_module_cache'or n.startswith('src/.phutil_module_cache/')for n in tar.getnames()):raise ValueError('cold source contains symbol cache')
   execution.extract_current_archive(archive,SOURCE)
+  execution.verify_current_restore_inputs(SOURCE,head,restore_inputs,code_root=ROOT,read_committed=restore_committed)
   if any(digest((SOURCE/path).read_bytes())!=pin for path,pin in sources.items()):raise ValueError('staged critical source differs')
   php=Path('/usr/bin/php')
   if command([str(php),'-r','echo PHP_VERSION;'])!=b'8.5.12':raise ValueError('exact native PHP required')
@@ -152,12 +158,12 @@ def main(argv=None):
    whole=execution.whole_runtime(SOURCE,expected_runtime,aliases);public.write('whole-runtime.json',canonical(whole))
    SQL_cleanup_proved=execution.cleanup_proved(receipt,head)
    if native.returncode!=0:raise ValueError('actual native RR case failed')
-   accepted,cli_raw=execution.strict_accept(SOURCE,receipt,head,public.file('integration.json'))
+   accepted,cli_raw=execution.strict_accept_current_restore_v2(SOURCE,receipt,head,public.file('integration.json'),restore_inputs,code_root=ROOT,read_committed=restore_committed)
    public.verify()
    public.write('strict-accepted.json',canonical(accepted));public.write('strict-cli.json',cli_raw)
    if not SQL_cleanup_proved:raise ValueError('native SQL cleanup is unproved')
    # Only actual fixture/probe execution and strict acceptance reach this state.
-   result.update(portable_RR21_accepted=True,helper_executed=True,SQL_checks=21,component_SQL_obligations=12,runtime_files_exact=whole['actual_files'],new_mapper_executions=1,new_pure_executions=1,SQL_cleanup_proved=True,strict_CLI_equals_inprocess=True)
+   result.update(portable_RR21_accepted=True,helper_executed=True,SQL_checks=21,component_SQL_obligations=12,runtime_files_exact=whole['actual_files'],new_mapper_executions=1,new_pure_executions=1,SQL_cleanup_proved=True,strict_CLI_equals_inprocess=True,restore_metadata_profile='native-user-RR-current-restore-metadata-v2',legacy_physical_restore_profile_proved=False,Task_physical_schema_verified=False,source_owner_issued=False)
  except BaseException as error:primary=error;result['passed']=False;result['error_type']=type(error).__name__;raise
  finally:
   # Unknown SQL lifecycle retains the stage and owner artifacts for reconciliation.
