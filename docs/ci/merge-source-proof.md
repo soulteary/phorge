@@ -32,3 +32,9 @@ Missing, invalid, expired or mismatched proof fails closed. All CI tests still r
 No private key is exported or installed on runners. The helper creates the local tag
 but does not query GitHub review status or publish it. Those are explicit operator
 steps. No proof is required for a directly project-signed PR head.
+
+Full-mode external source operations independently repeat the same proof verification
+when `PHORGE_CI_MERGE_SOURCE_PROOF` names the exact commit. CI exports this value only
+after admission and passes the owned public-only HOME. A boolean prior result is
+never sufficient; absent opt-in retains direct-signature-only behavior. Original
+ancestry, tree inventory, file identity and exit checks remain mandatory.

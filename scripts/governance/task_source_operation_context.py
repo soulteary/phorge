@@ -89,6 +89,8 @@ CI_V2_NEW_PATHS.update({
  'tests/ci/test_core_workflow.py',
  'tests/release/test_ci_policy.py',
 })
+# Exact additions for the external CI proof tool and its runbook.
+CI_V2_NEW_PATHS.update({'scripts/ci/create_merge_source_proof.py','docs/ci/merge-source-proof.md'})
 def need(v):
  if v is not True:raise ValueError('task_SourceOperation_admission_refused')
 def sha(raw):return hashlib.sha256(raw).hexdigest()
@@ -131,9 +133,18 @@ def git_tree(root,expected_checkpoint):
  env={'PATH':'/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin','HOME':str(Path.home()),'LANG':'C','GIT_NO_REPLACE_OBJECTS':'1','GIT_OPTIONAL_LOCKS':'0'}
  def git(*args,**kw):return subprocess.run(['git','-C',str(root),*args],env=env,stdin=None if'input'in kw else subprocess.DEVNULL,capture_output=True,timeout=30,check=True,**kw)
  revision=git('rev-parse','HEAD').stdout.decode().strip();need(revision==expected_checkpoint)
- verified=git('verify-commit','--raw',revision)
- need(re.search(rb'^\[GNUPG:\] (?:BADSIG|ERRSIG|EXPSIG|EXPKEYSIG|REVKEYSIG|KEYREVOKED|SIGEXPIRED|KEYEXPIRED)(?: |$)',verified.stderr,re.M)is None)
- need(re.findall(rb'^\[GNUPG:\] VALIDSIG ([A-F0-9]{40}) ',verified.stderr,re.M)==[ROOT_SIGNER.encode()])
+ try:
+  verified=git('verify-commit','--raw',revision)
+  need(re.search(rb'^\[GNUPG:\] (?:BADSIG|ERRSIG|EXPSIG|EXPKEYSIG|REVKEYSIG|KEYREVOKED|SIGEXPIRED|KEYEXPIRED)(?: |$)',verified.stderr,re.M)is None)
+  need(re.findall(rb'^\[GNUPG:\] VALIDSIG ([A-F0-9]{40}) ',verified.stderr,re.M)==[ROOT_SIGNER.encode()])
+ except (ValueError,subprocess.CalledProcessError):
+  # External CI only: independently reverify the exact merge proof with the
+  # fixed public-only trust home. Never consume a boolean admission receipt.
+  tag=os.environ.get('PHORGE_CI_MERGE_SOURCE_PROOF')
+  need(tag=='source-proof/'+revision)
+  import check_task_ci_head_v1 as admission
+  need(admission.SIGNER==ROOT_SIGNER)
+  admission.verify_checkout(root,revision,trust_home=str(Path.home()),external_proof_tag=tag)
  git('merge-base','--is-ancestor',BASE,revision);git('diff','--quiet',revision,'--');git('diff','--cached','--quiet',revision,'--')
  rows=[];names=set()
  for item in git('ls-tree','-rz','--full-tree',revision).stdout.split(b'\0'):

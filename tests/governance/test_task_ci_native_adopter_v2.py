@@ -178,6 +178,35 @@ class IndependentMergeProofTests(unittest.TestCase):
    with self.subTest(mode=mode),self.assertRaises((ValueError,subprocess.CalledProcessError)):
     head.verify_external_proof(git,'b'*40,'source-proof/'+'b'*40)
 
+class DownstreamMergeProofTests(unittest.TestCase):
+ def test_external_proof_is_explicit_and_retains_ancestry_and_clean_tree(self):
+  import task_source_operation_context as source
+  def git(argv,**kwargs):
+   if 'rev-parse' in argv:return subprocess.CompletedProcess(argv,0,(B+'\n').encode(),b'')
+   if 'verify-commit' in argv:raise subprocess.CalledProcessError(1,argv)
+   return subprocess.CompletedProcess(argv,0,b'',b'')
+  with tempfile.TemporaryDirectory() as t,mock.patch.object(source.subprocess,'run',side_effect=git) as calls,mock.patch.object(head,'verify_checkout') as proof:
+   with mock.patch.dict(os.environ,{},clear=True),self.assertRaises(ValueError):source.git_tree(Path(t),B)
+   proof.assert_not_called()
+   with mock.patch.dict(os.environ,{'PHORGE_CI_MERGE_SOURCE_PROOF':'source-proof/'+A}),self.assertRaises(ValueError):source.git_tree(Path(t),B)
+   proof.assert_not_called()
+   with mock.patch.dict(os.environ,{'PHORGE_CI_MERGE_SOURCE_PROOF':'source-proof/'+B,'HOME':t}):
+    self.assertEqual(source.git_tree(Path(t),B),(B,{},{}))
+   proof.assert_called_once_with(Path(t),B,trust_home=t,external_proof_tag='source-proof/'+B)
+   commands=[c.args[0] for c in calls.call_args_list]
+   self.assertTrue(any('merge-base' in c for c in commands))
+   self.assertTrue(any('diff' in c and '--cached' in c for c in commands))
+ def test_external_proof_failure_and_changed_checkpoint_never_read_source(self):
+  import task_source_operation_context as source
+  for actual in (A,B):
+   def git(argv,**kwargs):
+    if 'rev-parse' in argv:return subprocess.CompletedProcess(argv,0,(actual+'\n').encode(),b'')
+    if 'verify-commit' in argv:raise subprocess.CalledProcessError(1,argv)
+    raise AssertionError('source read after failed admission')
+   with tempfile.TemporaryDirectory() as t,mock.patch.dict(os.environ,{'PHORGE_CI_MERGE_SOURCE_PROOF':'source-proof/'+B,'HOME':t}),mock.patch.object(source.subprocess,'run',side_effect=git),mock.patch.object(head,'verify_checkout',side_effect=ValueError('bad proof')) as proof:
+    with self.assertRaises(ValueError):source.git_tree(Path(t),B)
+    self.assertEqual(proof.call_count,0 if actual==A else 1)
+
 class WorkflowProofContractTests(unittest.TestCase):
  def test_full_workflow_admission_commands_require_exact_proof_reference(self):
   import importlib
