@@ -88,7 +88,7 @@ abstract class PhabricatorController extends AphrontController {
           $phsid);
         if ($session_user &&
             !PhabricatorTraefikAuthProvider::canReuseSessionForProxyIdentity(
-              $session_user)) {
+              $session_user, $this)) {
           // The gateway account changed. Do not reuse the previous account's
           // native session, including on read-only or file requests.
           $session_user = null;
