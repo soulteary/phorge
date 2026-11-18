@@ -1,5 +1,5 @@
 """Full-only focused routing and metadata binding; never SQL/signature proof."""
-import copy,importlib.util,json,pathlib,subprocess,unittest
+import ast,copy,importlib.util,json,pathlib,subprocess,unittest
 import yaml
 ROOT=pathlib.Path(__file__).resolve().parents[2]
 spec=importlib.util.spec_from_file_location('focused_workflows',ROOT/'scripts/ci/focused_workflows.py');m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
@@ -18,9 +18,40 @@ class FocusedInventory(unittest.TestCase):
     raw=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'show',BASE+':.github/workflows/'+name],timeout=10)
     original=parse(raw);current=self.workflow(name)
     self.assertEqual(set(original['jobs']),set(current['jobs']))
-    for job in current['jobs'].values():job['steps']=[s for s in job['steps']if s.get('name')!=m.BIND_STEP]
+    for job in current['jobs'].values():
+     job['steps']=[s for s in job['steps']if s.get('name')!=m.BIND_STEP]
+     if name=='native-rr-owner-build.yml':
+      for key,value in {'NATIVE_RR_EXPECTED_HEAD':'${{ inputs.expected_head }}','NATIVE_RR_WORKFLOW_SHA':'${{ github.workflow_sha }}','NATIVE_RR_RELEASE_TAG':'${{ github.event.inputs.release_tag }}'}.items():
+       self.assertEqual(job['env'].pop(key),value)
+     if name in m.PROOF_FOCUSED:
+      admission=next(s for s in job['steps']if 'check_task_ci_head_v1.py --root' in s.get('run',''))
+      flag=' --external-proof-tag "source-proof/$EXPECTED_SOURCE_CHECKPOINT"'
+      self.assertEqual(admission['run'].count(flag),1)
+      self.assertEqual(admission['run'].count(m.PROOF_ENV),1)
+      admission['run']=admission['run'].replace(flag,'').replace(m.PROOF_ENV+'\n','')
     self.assertEqual(current['jobs'],original['jobs'])
     for key in set(original)-{'on','jobs'}:self.assertEqual(current[key],original[key])
+ def test_all_ten_source_workflows_bind_exact_proof_and_owner_environment(self):
+  self.assertEqual(len(m.PROOF_FOCUSED),10)
+  for name in m.PROOF_FOCUSED:
+   original=self.workflow(name);m.focused_contract(original,name)
+   for mutation in ('missing_flag','github_sha','ancestor','missing_env','wrong_env','early_env','duplicate_flag','duplicate_env','wrong_checkpoint','late','skip','missing_step'):
+    d=copy.deepcopy(original);job=next(iter(d['jobs'].values()))
+    step=next(s for s in job['steps']if 'check_task_ci_head_v1.py --root' in s.get('run',''))
+    flag='--external-proof-tag "source-proof/$EXPECTED_SOURCE_CHECKPOINT"'
+    if mutation=='missing_flag':step['run']=step['run'].replace(flag,'')
+    elif mutation=='github_sha':step['run']=step['run'].replace(flag,'--external-proof-tag "source-proof/$GITHUB_SHA"')
+    elif mutation=='ancestor':step['run']=step['run'].replace(flag,'--external-proof-tag "source-proof/ancestor"')
+    elif mutation=='missing_env':step['run']=step['run'].replace(m.PROOF_ENV,'')
+    elif mutation=='wrong_env':step['run']=step['run'].replace(m.PROOF_ENV,m.PROOF_ENV.replace('$EXPECTED_SOURCE_CHECKPOINT','$GITHUB_SHA'))
+    elif mutation=='early_env':step['run']=m.PROOF_ENV+'\n'+step['run'].replace(m.PROOF_ENV+'\n','')
+    elif mutation=='duplicate_flag':step['run']=step['run'].replace(flag,flag+' '+flag)
+    elif mutation=='duplicate_env':step['run']+=m.PROOF_ENV+'\n'
+    elif mutation=='wrong_checkpoint':job['env']['EXPECTED_SOURCE_CHECKPOINT']='${{ inputs.expected_head }}'
+    elif mutation=='late':job['steps'].append(job['steps'].pop(job['steps'].index(step)))
+    elif mutation=='skip':step['if']='false'
+    else:job['steps'].remove(step)
+    with self.subTest(workflow=name,mutation=mutation),self.assertRaises(ValueError):m.focused_contract(d,name)
  def test_PR_push_trigger_or_missing_required_checkpoint_refused(self):
   original=self.workflow(m.FOCUSED[0])
   for mutation in ('PR','push','optional','wrongtype','extra'):
@@ -57,6 +88,32 @@ class FocusedInventory(unittest.TestCase):
  def test_documented_inventory_cannot_silently_drop_suite(self):
   b=self.baseline();b['releaseFullWorkflows'].pop()
   with self.assertRaises(ValueError):m.fanout_contract(self.workflow('release-full.yml'),b)
+class DeclaredSourceInventory(unittest.TestCase):
+ def test_actual_exact_union_accepts_current_and_refuses_unknown_or_missing_path(self):
+  # Evaluate the actual production predicate as DATA, never enter/fake an owner.
+  path=ROOT/'scripts/governance/task_source_operation_context.py'
+  spec=importlib.util.spec_from_file_location('task_inventory_DATA',path)
+  module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+  parent=json.loads((ROOT/module.BASELINE).read_bytes())['entries']
+  current={v.decode()for v in subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),
+   'ls-tree','-rz','--name-only','HEAD'],timeout=10).split(b'\0')if v}
+  tree=ast.parse(path.read_bytes());cls=next(n for n in tree.body if isinstance(n,ast.ClassDef)and n.name=='TaskContext')
+  init=next(n for n in cls.body if isinstance(n,ast.FunctionDef)and n.name=='__init__')
+  predicate=next(n.args[0]for n in ast.walk(init)if isinstance(n,ast.Call)and isinstance(n.func,ast.Name)
+   and n.func.id=='need'and n.args and isinstance(n.args[0],ast.Compare)
+   and isinstance(n.args[0].left,ast.Call)and isinstance(n.args[0].left.func,ast.Name)
+   and n.args[0].left.func.id=='set'and isinstance(n.args[0].left.args[0],ast.Name)
+   and n.args[0].left.args[0].id=='entries')
+  code=compile(ast.Expression(predicate),'<actual-inventory-predicate-DATA>','eval')
+  scope=dict(vars(module),self=type('DATA',(),{'parent_pins':parent})())
+  def check(entries):module.need(eval(code,dict(scope,entries=entries)))
+  check(current)
+  reviewed={'src/applications/auth/__tests__/PhabricatorTraefikSessionIdentityTestCase.php',
+            'tests/contract/runtime/media-isolation.php'}
+  self.assertTrue(reviewed<=module.CI_V2_NEW_PATHS)
+  for rows in [current|{'tests/contract/runtime/unreviewed.php'}]+[current-{p}for p in reviewed]:
+   with self.assertRaises(ValueError):check(rows)
+
 class CallerBinding(unittest.TestCase):
  def event(self):return {'repository':{'full_name':'soulteary/phorge'},'after':'a'*40,'deleted':False}
  def test_actual_dispatch_or_push_metadata_same_checkout(self):

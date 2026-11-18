@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Fixed hosted-CI owner build recipe. Does not run PHP, SQL, VM or a daemon."""
-import argparse,os,re,stat,subprocess,tempfile,shutil,json
+import argparse,datetime,os,re,stat,subprocess,tempfile,shutil,json
 from pathlib import Path
 from provenance import digest,decode,source_bindings,verify_build_info
 ROOT=Path(__file__).resolve().parents[3]
@@ -8,12 +8,44 @@ def command(args,*,env=None,cwd=None):
  r=subprocess.run(args,cwd=cwd,env=env,capture_output=True)
  if r.returncode:raise RuntimeError('fixed build command failed')
  return r.stdout
+def release_event(env):
+ """Read the actual runner event; an expression copied into env is insufficient."""
+ fd=None
+ try:
+  path=Path(env.get('GITHUB_EVENT_PATH',''))
+  if not path.is_absolute()or path.resolve(strict=True)!=path:raise ValueError('actual release event required')
+  fd=os.open(path,os.O_RDONLY|os.O_NOFOLLOW|os.O_NONBLOCK);before=os.fstat(fd)
+  if not stat.S_ISREG(before.st_mode)or not 0<before.st_size<=1048576:raise ValueError('bounded release event required')
+  raw=bytearray()
+  while len(raw)<before.st_size:
+   block=os.read(fd,before.st_size-len(raw))
+   if not block:raise ValueError('complete release event required')
+   raw.extend(block)
+  fields=('st_dev','st_ino','st_mode','st_uid','st_gid','st_nlink','st_size','st_mtime_ns','st_ctime_ns')
+  if os.read(fd,1)or any(getattr(before,k)!=getattr(after,k)for after in (os.fstat(fd),path.lstat())for k in fields):raise ValueError('stable release event required')
+  value=decode(raw)
+  if type(value)is not dict or type(value.get('inputs'))is not dict or type(value.get('repository'))is not dict:raise ValueError('release event inputs and repository required')
+  return value
+ except (OSError,TypeError)as error:raise ValueError('actual release event required')from error
+ finally:
+  if fd is not None:os.close(fd)
 def ci_identity(env,head):
  if env.get('GITHUB_ACTIONS')!='true'or env.get('RUNNER_OS')!='Linux'or env.get('RUNNER_ARCH')!='X64'or env.get('GITHUB_SHA')!=head or not re.fullmatch('[a-f0-9]{40}',head):raise ValueError('fixed hosted CI identity required')
  for key in ('GITHUB_RUN_ID','GITHUB_RUN_ATTEMPT'):
   if not re.fullmatch('[1-9][0-9]{0,19}',env.get(key,'')):raise ValueError('same-run identity required')
  event=env.get('GITHUB_EVENT_NAME');ref=env.get('GITHUB_REF','')
- if env.get('GITHUB_JOB')!='owner-build'or env.get('GITHUB_WORKFLOW_REF')!='soulteary/phorge/.github/workflows/native-rr-owner-build.yml@'+ref:raise ValueError('fixed reviewed workflow/job required')
+ workflow=env.get('GITHUB_WORKFLOW_REF')
+ direct=workflow=='soulteary/phorge/.github/workflows/native-rr-owner-build.yml@'+ref
+ release=workflow=='soulteary/phorge/.github/workflows/container-image.yml@'+ref
+ if env.get('GITHUB_JOB')!='owner-build'or not(direct or release):raise ValueError('fixed reviewed workflow/job required')
+ if release:
+  tag=env.get('NATIVE_RR_RELEASE_TAG','')
+  if env.get('GITHUB_REPOSITORY')!='soulteary/phorge'or event!='workflow_dispatch'or not re.fullmatch(r'20[0-9]{2}\.[0-9]{2}\.[0-9]{2}-r[1-9][0-9]*',tag)or ref!='refs/tags/'+tag:raise ValueError('exact immutable release caller required')
+  datetime.datetime.strptime(tag.split('-')[0],'%Y.%m.%d')
+  if env.get('NATIVE_RR_WORKFLOW_SHA')!=head or env.get('NATIVE_RR_EXPECTED_HEAD')!=head:raise ValueError('same-source release workflow and input required')
+  payload=release_event(env)
+  if payload['inputs'].get('release_tag')!=tag or payload['repository'].get('full_name')!='soulteary/phorge':raise ValueError('actual release event does not match caller')
+  if command(['git','-C',str(ROOT),'rev-parse','--verify','refs/tags/'+tag+'^{commit}']).decode().strip()!=head:raise ValueError('actual release tag commit required')
  if event=='pull_request':
   if not re.fullmatch(r'refs/pull/[1-9][0-9]*/merge',ref):raise ValueError('synthetic PR checkout identity required')
   kind='pull-request-synthetic-merge'

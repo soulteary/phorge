@@ -5,6 +5,22 @@ from pathlib import Path
 import copy,json,os,re,shlex,shutil,subprocess,sys,tempfile,textwrap,unittest
 from unittest.mock import patch
 ROOT=Path(__file__).resolve().parents[2]
+
+
+def _full_trigger_contract(raw,relative):
+ # CURRENT invocation remains full-only and exact-head bound. The old PR
+ # filter below is immutable historical metadata DATA, never source authority.
+ import importlib.util,yaml
+ spec=importlib.util.spec_from_file_location('focused_contract_DATA',ROOT/'scripts/ci/focused_workflows.py')
+ contract=importlib.util.module_from_spec(spec);spec.loader.exec_module(contract)
+ contract.focused_contract(yaml.load(raw,Loader=yaml.BaseLoader),Path(relative).name)
+ inventory=contract.inventory(ROOT)
+ assert inventory['focused_full_workflows']==12 and inventory['release_full_workflows']==13
+ old=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'show',
+  '7b23c47e329f32e4fe083d0efa23fd82d6eefe6f:'+relative],timeout=10)
+ historical=yaml.safe_load(old);events=historical.get('on',historical.get(True))
+ return events['pull_request']['paths']
+
 sys.path.insert(0,str(ROOT/'scripts/governance'))
 import project_oauth_access_failure as projector
 import test_recovery_oauth_access_sql as fixture
@@ -56,7 +72,8 @@ class OAuthCI(unittest.TestCase):
     self.assertEqual({k:v for k,v in current_header.items()if k not in ('jobs','on',True,'concurrency')},{k:v for k,v in parent_header.items()if k not in ('jobs','on',True,'concurrency')})
     events=current_header.get('on',current_header.get(True))
     self.assertIn('workflow_dispatch',events)
-    self.assertNotIn('src/applications/auth/**',events['pull_request']['paths'])
+    self.assertEqual(set(events),{'workflow_call','workflow_dispatch'})
+    self.assertNotIn('src/applications/auth/**',_full_trigger_contract(current,path))
     self.assertEqual(current_header['permissions'],{'contents':'read'})
     for required in ['run_task_directory_native_v2.py','--role conduit','check_conduit_task_schema_receipt_v2.py','probe_conduit_task_mysql84.php before','probe_conduit_task_mysql84.php after','--expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT"','mysql:8.4.13@sha256:a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7']:
      self.assertIn(required,current)

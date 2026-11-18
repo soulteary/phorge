@@ -4,6 +4,15 @@ from pathlib import Path
 from provenance import decode,digest
 MYSQL_IMAGE='mysql:8.4.13'
 MYSQL_PASSWORD='native-rr-ci-disposable-only'
+# Preserve all280 selected IDs at dd375d2d00, plus these five real current cases.
+# Encoding: SHA256(JSON(sorted IDs), separators=(',',':')). No PHP test is skipped.
+BASE_PURE_IDS_SHA256='6ba076f1a429860aab2b89c60d436a8bf5b1d4e42db1783d620eb84c243dc6fc'
+CURRENT_PURE_ADDITIONS=frozenset({
+ 'PhorgeGovernanceMediaExchangeServiceTestCase::testIsolationRowsKeepExactNamesAndKnownNativeValues',
+ 'PhorgeGovernanceMediaFileGuardTestCase::testDisabledFileGuardDeniesBeforeInterpretingRouteOrIdentity',
+ 'PhorgeGovernanceMediaFileGuardTestCase::testPrivateResponsesDisableCachingAndConstrainActiveContent',
+ 'PhorgeGovernanceMediaHTTPProtocolTestCase::testDisabledCandidateEndpointsDenyWithoutCreatingAuthority',
+ 'PhorgeGovernanceMediaHTTPProtocolTestCase::testDisabledHTTPPreservesNativeCredentialsAndOmitsBootstrap'})
 def exact(value,wanted):
  if type(value)is not type(wanted):raise ValueError('typed evidence mismatch')
  if type(wanted)is dict:
@@ -87,13 +96,14 @@ def pure_inventory(root):
   methods=re.findall(r'public\s+function\s+(test[A-Za-z0-9_]+)\s*\(',paths[0].read_text())
   if len(methods)!=len(set(methods)):raise ValueError('pure method duplicate')
   ids.update(cls+'::'+method for method in methods)
- if len(ids)!=280:raise ValueError('current pure IDs refused')
+ if len(ids)!=285:raise ValueError('current pure IDs refused')
+ if not CURRENT_PURE_ADDITIONS<=ids or digest(json.dumps(sorted(ids-CURRENT_PURE_ADDITIONS),separators=(',',':')).encode())!=BASE_PURE_IDS_SHA256:raise ValueError('original280 plus exact five current cases required')
  return ids
 def validate_pure(data,ids):
- if data.get('passed')is not True or data.get('runtime')!='8.5.12'or type(data.get('expected_methods'))is not int or data['expected_methods']!=280:raise ValueError('actual pure outcome refused')
+ if data.get('passed')is not True or data.get('runtime')!='8.5.12'or type(data.get('expected_methods'))is not int or data['expected_methods']!=285:raise ValueError('actual pure outcome refused')
  results=data.get('results')
- if type(results)is not list or len(results)!=280 or len({r['id']for r in results})!=280 or {r['id']for r in results}!=ids or any(r.get('result')!='pass'for r in results):raise ValueError('actual pure IDs refused')
- return {'passed':True,'methods':280,'classes':49,'new_executions':1}
+ if type(results)is not list or len(results)!=285 or len({r['id']for r in results})!=285 or {r['id']for r in results}!=ids or any(r.get('result')!='pass'for r in results):raise ValueError('actual pure IDs refused')
+ return {'passed':True,'methods':285,'classes':49,'new_executions':1}
 def cleanup_proved(receipt,revision):
  try:
   exact(receipt['cleanup'],{'ownedSchemasRemoved':55,'ownedRuntimeUsersRemoved':2,'readerRemoved':True})

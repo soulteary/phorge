@@ -91,6 +91,9 @@ CI_V2_NEW_PATHS.update({
 })
 # Exact additions for the external CI proof tool and its runbook.
 CI_V2_NEW_PATHS.update({'scripts/ci/create_merge_source_proof.py','docs/ci/merge-source-proof.md'})
+# Exact reviewed main additions: identity regression and portable SQL isolation.
+CI_V2_NEW_PATHS.update({'src/applications/auth/__tests__/PhabricatorTraefikSessionIdentityTestCase.php','tests/contract/runtime/media-isolation.php'})
+
 def need(v):
  if v is not True:raise ValueError('task_SourceOperation_admission_refused')
 def sha(raw):return hashlib.sha256(raw).hexdigest()

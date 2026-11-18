@@ -6,6 +6,22 @@ import ast,copy,hashlib,json,os,subprocess,sys,tempfile,unittest
 from unittest.mock import patch
 import yaml
 ROOT=Path(__file__).resolve().parents[2];sys.path.insert(0,str(ROOT/'scripts/governance'))
+
+
+def _full_trigger_contract(raw,relative):
+ # CURRENT invocation remains full-only and exact-head bound. The old PR
+ # filter below is immutable historical metadata DATA, never source authority.
+ import importlib.util,yaml
+ spec=importlib.util.spec_from_file_location('focused_contract_DATA',ROOT/'scripts/ci/focused_workflows.py')
+ contract=importlib.util.module_from_spec(spec);spec.loader.exec_module(contract)
+ contract.focused_contract(yaml.load(raw,Loader=yaml.BaseLoader),Path(relative).name)
+ inventory=contract.inventory(ROOT)
+ assert inventory['focused_full_workflows']==12 and inventory['release_full_workflows']==13
+ old=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'show',
+  '7b23c47e329f32e4fe083d0efa23fd82d6eefe6f:'+relative],timeout=10)
+ historical=yaml.safe_load(old);events=historical.get('on',historical.get(True))
+ return events['pull_request']['paths']
+
 import sys
 sys.path.insert(0,str(ROOT/'scripts/governance'))
 import check_recovery_file_parent_policy as driver_admission
@@ -112,7 +128,7 @@ class CurrentAssessment(unittest.TestCase):
    p.write_text(json.dumps({'batch':'native-oauth-access-producer-owner','passed':False,'failure':failure}));self.assertFalse(diagnostic.project(p)['diagnostic_available'])
  def test_focused_real_entry_binary_map_and_success_only_artifact_contract(self):
   path=ROOT/'.github/workflows/assessment-credential-focused.yml';workflow=yaml.safe_load(path.read_text());steps=workflow['jobs']['assessment-credential-owner']['steps'];run='\n'.join(s.get('run','')for s in steps)
-  events=workflow.get('on',workflow.get(True));paths=events['pull_request']['paths']
+  events=workflow.get('on',workflow.get(True));self.assertEqual(set(events),{'workflow_call','workflow_dispatch'});paths=_full_trigger_contract(path.read_bytes(),'.github/workflows/assessment-credential-focused.yml')
   self.assertIn('.github/workflows/assessment-credential-focused.yml',paths)
   for source in ('auth','conduit','oauthserver'):self.assertNotIn('src/applications/'+source+'/**',paths)
   self.assertIn('tests/governance/test_recovery_assessment_credential*.py',paths)
@@ -129,7 +145,7 @@ class CurrentAssessment(unittest.TestCase):
   self.assertIn('--expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT"',run)
   self.assertEqual(workflow['jobs']['assessment-credential-owner']['services']['mysql']['image'],'mysql:8.4.13@sha256:a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7')
   self.assertEqual({k:v for k,v in workflow.items()if k not in ('jobs','on',True,'concurrency')},{k:v for k,v in parent.items()if k not in ('jobs','on',True,'concurrency')})
-  self.assertEqual([step.get('name')for step in steps if step.get('name')!='Bind external event head and isolated PUBLIC verification home'],[step.get('name')for step in parent['jobs']['assessment-credential-owner']['steps']])
+  self.assertEqual([step.get('name')for step in steps if step.get('name')not in ('Bind external event head and isolated PUBLIC verification home','Require exact full-tier caller checkpoint')],[step.get('name')for step in parent['jobs']['assessment-credential-owner']['steps']])
   self.assertEqual(run.count('php bin/rebuild-library-map'),2);self.assertNotIn('unittest discover',run)
   for step in steps:
    if step.get('run'):self.assertEqual(subprocess.run(['bash','-n'],input=step['run'],text=True,capture_output=True).returncode,0)

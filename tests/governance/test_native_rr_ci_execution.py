@@ -54,14 +54,52 @@ class Controls(unittest.TestCase):
     with self.subTest(change=change),self.assertRaises(ValueError):e.extract_current_archive(raw.getvalue(),root)
     self.assertEqual([],list(root.iterdir()))
  def test_actual_current_pure_inventory_and_typed_outcome(self):
-  ids=e.pure_inventory(ROOT);self.assertEqual(280,len(ids));data={'passed':True,'runtime':'8.5.12','expected_methods':280,'results':[{'id':i,'result':'pass'}for i in ids]};self.assertTrue(e.validate_pure(data,ids)['passed'])
-  for change in ('bool','duplicate','failed','old-count'):
+  ids=e.pure_inventory(ROOT);self.assertEqual(285,len(ids));data={'passed':True,'runtime':'8.5.12','expected_methods':285,'results':[{'id':i,'result':'pass'}for i in ids]};self.assertTrue(e.validate_pure(data,ids)['passed'])
+  for change in ('bool','duplicate','failed','old-count','stale-280'):
    bad=copy.deepcopy(data)
    if change=='bool':bad['expected_methods']=True
    elif change=='duplicate':bad['results'][0]=bad['results'][1]
    elif change=='old-count':bad['expected_methods']=277
+   elif change=='stale-280':bad['expected_methods']=280
    else:bad['results'][0]['result']='fail'
    with self.subTest(change=change),self.assertRaises(ValueError):e.validate_pure(bad,ids)
+ def test_five_current_media_methods_are_not_omitted_from_real_inventory(self):
+  ids=e.pure_inventory(ROOT)
+  additions={
+   'PhorgeGovernanceMediaExchangeServiceTestCase::testIsolationRowsKeepExactNamesAndKnownNativeValues',
+   'PhorgeGovernanceMediaFileGuardTestCase::testDisabledFileGuardDeniesBeforeInterpretingRouteOrIdentity',
+   'PhorgeGovernanceMediaFileGuardTestCase::testPrivateResponsesDisableCachingAndConstrainActiveContent',
+   'PhorgeGovernanceMediaHTTPProtocolTestCase::testDisabledCandidateEndpointsDenyWithoutCreatingAuthority',
+   'PhorgeGovernanceMediaHTTPProtocolTestCase::testDisabledHTTPPreservesNativeCredentialsAndOmitsBootstrap'}
+  self.assertTrue(additions<=ids)
+  self.assertEqual(additions,e.CURRENT_PURE_ADDITIONS)
+  for removed in additions:
+   data={'passed':True,'runtime':'8.5.12','expected_methods':285,
+         'results':[{'id':i,'result':'pass'}for i in ids if i!=removed]}
+   with self.subTest(removed=removed),self.assertRaises(ValueError):e.validate_pure(data,ids)
+  # The historical280 prefix/success bit cannot replace all current285 IDs.
+  old=ids-additions
+  with self.assertRaises(ValueError):e.validate_pure({'passed':True,'runtime':'8.5.12',
+   'expected_methods':280,'results':[{'id':i,'result':'pass'}for i in old]},ids)
+ def test_unchanged_count_cannot_replace_original_or_new_method(self):
+  import re
+  text=(ROOT/'tests/governance/run.php').read_text()
+  classes=re.findall(r"'(Phorge[A-Za-z0-9_]+TestCase)'",text.split('$classes = array(',1)[1].split(');',1)[0])
+  with tempfile.TemporaryDirectory()as tmp:
+   root=Path(tmp);runner=root/'tests/governance/run.php';runner.parent.mkdir(parents=True);runner.write_text(text)
+   files={}
+   for cls in classes:
+    original=next((ROOT/'src').rglob(cls+'.php'));target=root/'src'/original.name
+    target.parent.mkdir(exist_ok=True);target.write_text(original.read_text());files[cls]=target
+   self.assertEqual(285,len(e.pure_inventory(root)))
+   for identity in ('PhorgeGovernanceDirectoryReaderTestCase',
+                    'PhorgeGovernanceMediaExchangeServiceTestCase'):
+    target=files[identity];original=target.read_text()
+    method=('testIsolationRowsKeepExactNamesAndKnownNativeValues'if 'MediaExchange'in identity
+            else re.search(r'public\s+function\s+(test[A-Za-z0-9_]+)\s*\(',original).group(1))
+    target.write_text(original.replace(method,'testUnreviewedReplacement',1))
+    with self.subTest(identity=identity),self.assertRaises(ValueError):e.pure_inventory(root)
+    target.write_text(original)
  def test_cleanup_unknown_and_bool_are_never_zero(self):
   data=template();self.assertTrue(e.cleanup_proved(data,REV));data['passed']=False;self.assertTrue(e.cleanup_proved(data,REV))
   for target,key,value in (('cleanup','ownedSchemasRemoved',True),('worker_cleanup','workers_registered',False),('worker_cleanup','live_processes_after_cleanup',1)):

@@ -1,5 +1,5 @@
 """Portable build recipe host controls, not hosted build or RR21 execution."""
-import copy,importlib.util,hashlib,json,os,sys,tempfile,unittest
+import copy,importlib.util,hashlib,json,os,sys,tempfile,types,unittest
 from unittest.mock import patch
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2];sys.path.insert(0,str(ROOT/'tests/governance/native_rr_ci'))
@@ -29,6 +29,71 @@ class Controls(unittest.TestCase):
   for key in env:
    d=env.copy();d[key]='unknown'
    with self.subTest(key=key),self.assertRaises(ValueError):b.ci_identity(d,REV)
+ def release_env(self):
+  tag='2026.11.19-r1';ref='refs/tags/'+tag
+  temporary=tempfile.TemporaryDirectory();self.addCleanup(temporary.cleanup)
+  event=Path(temporary.name).resolve()/'event.json'
+  event.write_text(json.dumps({'inputs':{'release_tag':tag},'repository':{'full_name':'soulteary/phorge'}}))
+  return {'GITHUB_ACTIONS':'true','RUNNER_OS':'Linux','RUNNER_ARCH':'X64','GITHUB_SHA':REV,
+   'GITHUB_RUN_ID':'12','GITHUB_RUN_ATTEMPT':'1','GITHUB_EVENT_NAME':'workflow_dispatch',
+   'GITHUB_REF':ref,'GITHUB_JOB':'owner-build','GITHUB_REPOSITORY':'soulteary/phorge',
+   'GITHUB_WORKFLOW_REF':'soulteary/phorge/.github/workflows/container-image.yml@'+ref,
+   'NATIVE_RR_EXPECTED_HEAD':REV,'NATIVE_RR_WORKFLOW_SHA':REV,'NATIVE_RR_RELEASE_TAG':tag,
+   'GITHUB_EVENT_PATH':str(event)}
+ def test_release_reusable_caller_binds_actual_tag_and_same_source(self):
+  with patch.object(b,'command',return_value=(REV+'\n').encode())as git:
+   result=b.ci_identity(self.release_env(),REV)
+  git.assert_called_once_with(['git','-C',str(b.ROOT),'rev-parse','--verify','refs/tags/2026.11.19-r1^{commit}'])
+  self.assertEqual(result['source_kind'],'workflow-dispatch-checkout')
+  self.assertEqual(result['source_revision'],REV)
+  self.assertFalse(result['PR_head_measured'])
+ def test_release_identity_tampering_and_tag_resolution_refused(self):
+  env=self.release_env()
+  with patch.object(b,'command',return_value=(REV+'\n').encode()):
+   for key in env:
+    for value in ('unknown',''):
+     bad=env.copy();bad[key]=value
+     with self.subTest(key=key,value=value),self.assertRaises(ValueError):b.ci_identity(bad,REV)
+   for tag in ('2026.02.30-r1','2026.11.19-r0','latest','2026.11.19-r1/other'):
+    bad=env.copy();bad.update(NATIVE_RR_RELEASE_TAG=tag,GITHUB_REF='refs/tags/'+tag,
+     GITHUB_WORKFLOW_REF='soulteary/phorge/.github/workflows/container-image.yml@refs/tags/'+tag)
+    with self.subTest(tag=tag),self.assertRaises(ValueError):b.ci_identity(bad,REV)
+   for workflow in ('other.yml','release-full.yml','native-rr-owner-build.yml.extra'):
+    bad=env.copy();bad['GITHUB_WORKFLOW_REF']='soulteary/phorge/.github/workflows/'+workflow+'@'+env['GITHUB_REF']
+    with self.subTest(workflow=workflow),self.assertRaises(ValueError):b.ci_identity(bad,REV)
+  with patch.object(b,'command',return_value=('b'*40+'\n').encode()),self.assertRaises(ValueError):b.ci_identity(env,REV)
+  with patch.object(b,'command',side_effect=RuntimeError('missing tag')),self.assertRaises(RuntimeError):b.ci_identity(env,REV)
+ def test_release_actual_event_not_environment_claim(self):
+  env=self.release_env();event=Path(env['GITHUB_EVENT_PATH'])
+  for value in ({'inputs':{'release_tag':'2026.11.19-r2'},'repository':{'full_name':'soulteary/phorge'}},
+                {'inputs':{'release_tag':env['NATIVE_RR_RELEASE_TAG']},'repository':{'full_name':'foreign/phorge'}},
+                {'inputs':{},'repository':{'full_name':'soulteary/phorge'}},[],{'inputs':[]}):
+   event.write_text(json.dumps(value))
+   with patch.object(b,'command',side_effect=AssertionError('tag query before event admission')),self.assertRaises(ValueError):b.ci_identity(env,REV)
+  event.write_text('{"inputs":{"release_tag":"2026.11.19-r1","release_tag":"2026.11.19-r1"},"repository":{"full_name":"soulteary/phorge"}}')
+  with self.assertRaises(ValueError):b.ci_identity(env,REV)
+ def test_release_event_size_and_metadata_change_refused(self):
+  env=self.release_env();event=Path(env['GITHUB_EVENT_PATH'])
+  event.write_bytes(b' '*(1048576+1))
+  with self.assertRaises(ValueError):b.release_event(env)
+  event.write_text(json.dumps({'inputs':{'release_tag':env['NATIVE_RR_RELEASE_TAG']},'repository':{'full_name':'soulteary/phorge'}}))
+  before=event.stat();fields=('st_dev','st_ino','st_mode','st_uid','st_gid','st_nlink','st_size','st_mtime_ns','st_ctime_ns')
+  changed=types.SimpleNamespace(**{k:getattr(before,k)+(1 if k=='st_mtime_ns' else 0)for k in fields})
+  with patch.object(b.os,'fstat',side_effect=[before,changed]),self.assertRaises(ValueError):b.release_event(env)
+  target=event.with_name('target.json');event.replace(target);event.symlink_to(target)
+  with self.assertRaises(ValueError):b.ci_identity(env,REV)
+ def test_direct_dispatch_backcompat_needs_no_release_inputs(self):
+  env=self.release_env();env['GITHUB_REF']='refs/heads/main'
+  env['GITHUB_WORKFLOW_REF']='soulteary/phorge/.github/workflows/native-rr-owner-build.yml@refs/heads/main'
+  for key in ('NATIVE_RR_RELEASE_TAG','NATIVE_RR_EXPECTED_HEAD','NATIVE_RR_WORKFLOW_SHA','GITHUB_REPOSITORY'):env.pop(key)
+  with patch.object(b,'command',side_effect=AssertionError('direct path must not resolve release tag')):
+   self.assertEqual(b.ci_identity(env,REV)['source_kind'],'workflow-dispatch-checkout')
+ def test_rr_workflow_passes_explicit_same_source_release_context(self):
+  workflow=(ROOT/'.github/workflows/native-rr-owner-build.yml').read_text()
+  for line in ('NATIVE_RR_EXPECTED_HEAD: ${{ inputs.expected_head }}',
+               'NATIVE_RR_WORKFLOW_SHA: ${{ github.workflow_sha }}',
+               'NATIVE_RR_RELEASE_TAG: ${{ github.event.inputs.release_tag }}'):
+   self.assertEqual(workflow.count(line),1)
  def test_real_filesystem_signed_source_and_symlink_refusal(self):
   with tempfile.TemporaryDirectory()as tmp:
    root=Path(tmp)

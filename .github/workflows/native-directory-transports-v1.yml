@@ -56,7 +56,8 @@ jobs:
             --public-key "$GITHUB_WORKSPACE/support/governance/source-operation/ci-source-verifier.asc" --trust-home "$trust_home"
           python3 -B scripts/governance/check_task_ci_head_v1.py --root "$GITHUB_WORKSPACE" \
             --event-file "$GITHUB_EVENT_PATH" --event-name "$GITHUB_EVENT_NAME" \
-            --expected-head "$EXPECTED_SOURCE_CHECKPOINT" --github-sha "$GITHUB_SHA" --trust-home "$trust_home"
+            --expected-head "$EXPECTED_SOURCE_CHECKPOINT" --github-sha "$GITHUB_SHA" --trust-home "$trust_home" --external-proof-tag "source-proof/$EXPECTED_SOURCE_CHECKPOINT"
+          echo "PHORGE_CI_MERGE_SOURCE_PROOF=source-proof/$EXPECTED_SOURCE_CHECKPOINT" >> "$GITHUB_ENV"
           echo "HOME=$trust_home" >> "$GITHUB_ENV"
       - uses: shivammathur/setup-php@v2
         with:
