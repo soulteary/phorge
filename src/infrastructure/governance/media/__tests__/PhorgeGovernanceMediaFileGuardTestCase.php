@@ -1,6 +1,27 @@
 <?php
 
 final class PhorgeGovernanceMediaFileGuardTestCase extends PhutilTestCase {
+  public function testDisabledFileGuardDeniesBeforeInterpretingRouteOrIdentity(){
+    $env=PhorgeGovernanceMediaHTTPProtocolTestCase::newDisabledConfigurationForTest();
+    try{
+      PhorgeGovernanceMediaFileGuard::authorize(new AphrontRequest('example.invalid','/'));
+      $this->assertFailure('Disabled media guard unexpectedly authorized a request.');
+    }catch(RuntimeException $error){$this->assertEqual('media_file_disabled',$error->getMessage());}
+  }
+  public function testPrivateResponsesDisableCachingAndConstrainActiveContent(){
+    $file=(new PhabricatorFile())->setName('synthetic.html')->setMimeType('text/html');
+    $response=(new AphrontFileResponse())->setMimeType('text/html')->setContent('synthetic');
+    $this->assertEqual($response,PhorgeGovernanceMediaFileGuard::secureResponse($response,$file));
+    $this->assertEqual('application/octet-stream',$response->getMimeType());
+    $this->assertEqual('synthetic.html',$response->getDownload());
+    $headers=array();foreach($response->getHeaders() as $header){$headers[strtolower($header[0])]=$header[1];}
+    $this->assertEqual('no-store, private',$headers['cache-control']);
+    $this->assertEqual('no-cache',$headers['pragma']);
+    $this->assertEqual('nosniff',$headers['x-content-type-options']);
+    $this->assertEqual('no-referrer',$headers['referrer-policy']);
+    $this->assertEqual("sandbox; default-src 'none'; base-uri 'none'; frame-ancestors 'none'",$headers['content-security-policy']);
+    $this->assertEqual('synthetic',$response->buildResponseString());
+  }
   public function testActiveFormatsCannotBecomeInlineThroughMimeConfiguration(){
     foreach(array('text/html','image/svg+xml','application/javascript','text/javascript','application/xml','text/xml','application/pdf','text/css','application/xhtml+xml') as $mime){
       $this->assertFalse(PhorgeGovernanceMediaFileGuard::safeInlineMime($mime));

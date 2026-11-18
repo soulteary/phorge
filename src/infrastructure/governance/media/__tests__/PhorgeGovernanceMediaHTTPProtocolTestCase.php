@@ -1,6 +1,66 @@
 <?php
 
 final class PhorgeGovernanceMediaHTTPProtocolTestCase extends PhutilTestCase {
+  /** Install no database source, and restore both cold and existing test state. */
+  public static function newDisabledConfigurationForTest(){
+    $stack_property=new ReflectionProperty(PhabricatorEnv::class,'sourceStack');
+    $cache_property=new ReflectionProperty(PhabricatorEnv::class,'cache');
+    $old_stack=$stack_property->getValue();$old_cache=$cache_property->getValue();$env=null;
+    try{
+      if($old_stack===null){
+        $stack=new PhabricatorConfigStackSource();
+        $stack->pushSource(new PhabricatorConfigDefaultSource());
+        $stack_property->setValue(null,$stack);$cache_property->setValue(null,array());
+      }
+      $env=PhabricatorEnv::beginScopedEnv();
+      $env->overrideEnvConfig('governance.media-exchange.enabled',false);
+      $env->overrideEnvConfig('governance.media-exchange.http-enabled',false);
+    }catch(Throwable $error){
+      $env=null;$stack_property->setValue(null,$old_stack);$cache_property->setValue(null,$old_cache);throw $error;
+    }
+    $restore=static function()use(&$env,$stack_property,$cache_property,$old_stack,$old_cache){
+      try{$env=null;}finally{$stack_property->setValue(null,$old_stack);$cache_property->setValue(null,$old_cache);}
+    };
+    return new class($restore){
+      private $restore;
+      public function __construct(Closure $restore){$this->restore=$restore;}
+      public function __destruct(){($this->restore)();}
+    };
+  }
+  public function testDisabledHTTPPreservesNativeCredentialsAndOmitsBootstrap(){
+    $stack_property=new ReflectionProperty(PhabricatorEnv::class,'sourceStack');
+    $cache_property=new ReflectionProperty(PhabricatorEnv::class,'cache');
+    $old_stack=$stack_property->getValue();$old_cache=$cache_property->getValue();
+    $env=self::newDisabledConfigurationForTest();$server=$_SERVER;$cookies=$_COOKIE;
+    try{
+      $_SERVER['HTTP_COOKIE']='phsid=synthetic-session; phusr=synthetic-user';
+      $_SERVER['HTTP_AUTHORIZATION']='Bearer synthetic';
+      $_COOKIE=array('phsid'=>'synthetic-session','phusr'=>'synthetic-user');
+      $before_server=$_SERVER;$before_cookies=$_COOKIE;
+      $request=new AphrontRequest('files.example.invalid','/file/data/example');
+      PhorgeGovernanceMediaHTTPProtocol::restrictFileOriginCredentials($request);
+      $this->assertEqual($before_server,$_SERVER);
+      $this->assertEqual($before_cookies,$_COOKIE);
+      $this->assertEqual(null,PhorgeGovernanceMediaHTTPProtocol::pageBootstrapConfig($request));
+      // A nested scope exercises the already-initialized branch, including cache restoration.
+      $active_stack=$stack_property->getValue();$active_cache=$cache_property->getValue();
+      $nested=self::newDisabledConfigurationForTest();
+      PhabricatorEnv::getEnvConfig('governance.media-exchange.enabled');unset($nested);
+      $this->assertTrue($stack_property->getValue()===$active_stack);
+      $this->assertTrue($cache_property->getValue()===$active_cache);
+    }finally{$_SERVER=$server;$_COOKIE=$cookies;unset($env);}
+    $this->assertTrue($stack_property->getValue()===$old_stack);
+    $this->assertTrue($cache_property->getValue()===$old_cache);
+  }
+  public function testDisabledCandidateEndpointsDenyWithoutCreatingAuthority(){
+    $env=self::newDisabledConfigurationForTest();
+    foreach(array(new PhorgeGovernanceMediaResourceController(),new PhorgeGovernanceMediaAuthorizeController()) as $controller){
+      $response=$controller->handleRequest(new AphrontRequest('example.invalid','/'));
+      $this->assertEqual(403,$response->getHTTPResponseCode());
+      $this->assertEqual(array('error'=>'media_request_unavailable'),json_decode($response->buildResponseString(),true));
+      foreach($response->getHeaders() as $header){$this->assertFalse(strtolower($header[0])==='set-cookie');}
+    }
+  }
   public function testOriginIsStrictHTTPSAuthorityOnly(){
     $this->assertEqual('https://media.example.invalid',PhorgeGovernanceMediaHTTPProtocol::origin('https://media.example.invalid/'));
     $this->assertEqual('https://media.example.invalid:9443',PhorgeGovernanceMediaHTTPProtocol::origin('https://media.example.invalid:9443/'));

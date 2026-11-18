@@ -14,6 +14,10 @@ try {
   // is a failure here. No test body, factory or production class is replaced.
   $selected=array(
     array('PhorgeGovernanceMediaExchangeServiceTestCase','testConfigurationIsRegisteredDisabledAndLocked'),
+    array('PhorgeGovernanceMediaHTTPProtocolTestCase','testDisabledHTTPPreservesNativeCredentialsAndOmitsBootstrap'),
+    array('PhorgeGovernanceMediaHTTPProtocolTestCase','testDisabledCandidateEndpointsDenyWithoutCreatingAuthority'),
+    array('PhorgeGovernanceMediaFileGuardTestCase','testDisabledFileGuardDeniesBeforeInterpretingRouteOrIdentity'),
+    array('PhorgeGovernanceMediaFileGuardTestCase','testPrivateResponsesDisableCachingAndConstrainActiveContent'),
     array('PhorgeGovernanceNoticeEventTestCase','testNativeRemovalAndNoopDoNotReadNoticeConfiguration'),
     array('PhorgeGovernanceNoticeEventTestCase','testNoticeSwitchIsActuallyRegisteredFalseAndLocked'),
     array('PhorgeRecoveryGuardTestCase','testEmergencyDisableDoesNotReadRecoveryConfiguration'),

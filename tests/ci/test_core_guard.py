@@ -23,6 +23,8 @@ class TierPolicy(unittest.TestCase):
    with self.assertRaises(ValueError):guard.aggregate(mode,rows)
  def test_native_guard_reuses_real_tests_and_disallows_deployment(self):
   source=(ROOT/'scripts/ci/core_guard.php').read_text();self.assertIn("new PhabricatorConfigDefaultSource()",source);self.assertIn("getDefault()!==false",source);self.assertIn("getLocked()!==true",source);self.assertIn("$test->$method()",source);self.assertIn("$count<1",source);self.assertIn("catch(Throwable $error)",source);self.assertNotIn('eval(',source);self.assertNotIn('new PDO',source)
+  for method in ('testDisabledHTTPPreservesNativeCredentialsAndOmitsBootstrap','testDisabledCandidateEndpointsDenyWithoutCreatingAuthority','testDisabledFileGuardDeniesBeforeInterpretingRouteOrIdentity','testPrivateResponsesDisableCachingAndConstrainActiveContent'):
+   self.assertIn(method,source)
 if __name__=='__main__':unittest.main()
 
 class StrictOriginalUnittest(unittest.TestCase):
