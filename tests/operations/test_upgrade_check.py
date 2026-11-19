@@ -210,6 +210,8 @@ class UpgradeChecks(unittest.TestCase):
             with self.assertRaisesRegex(m.CheckError, 'INPUT_AMBIGUOUS'): m.read_json(p)
             p.write_text('[' * 2000 + ']' * 2000)
             with self.assertRaisesRegex(m.CheckError, 'INPUT_UNREADABLE'): m.read_json(p)
+            p.write_text(json.dumps({'literal': '[' * 2000}))
+            self.assertEqual(m.read_json(p)['literal'], '[' * 2000)
 
     def test_invalid_cli_and_subprocess_errors_do_not_print_input_or_stderr(self):
         private = 'private-host.example.invalid:credential-fixture'

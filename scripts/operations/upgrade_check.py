@@ -52,10 +52,25 @@ def unique_object(pairs):
     return value
 
 
+def check_depth(value):
+    pending = [(value, 0)]
+    while pending:
+        item, depth = pending.pop()
+        if depth > 64:
+            fail('INPUT_UNREADABLE')
+        if isinstance(item, (dict, list)):
+            pending.extend((child, depth + 1) for child in (
+                item.values() if isinstance(item, dict) else item))
+    return value
+
+
 def read_json(path):
     try:
         with Path(path).open() as stream:
-            return json.load(stream, object_pairs_hook=unique_object)
+            raw = stream.read(8 * 1024 * 1024 + 1)
+        if len(raw) > 8 * 1024 * 1024:
+            fail('INPUT_UNREADABLE')
+        return check_depth(json.loads(raw, object_pairs_hook=unique_object))
     except (OSError, ValueError, RecursionError):
         fail('INPUT_UNREADABLE')
 
@@ -67,8 +82,10 @@ def docker(args):
         fail('DOCKER_UNAVAILABLE')
     if p.returncode:
         fail('DOCKER_COMMAND_FAILED')
+    if len(p.stdout) > 8 * 1024 * 1024:
+        fail('DOCKER_RESPONSE_INVALID')
     try:
-        return json.loads(p.stdout, object_pairs_hook=unique_object)
+        return check_depth(json.loads(p.stdout, object_pairs_hook=unique_object))
     except (ValueError, UnicodeError, RecursionError):
         fail('DOCKER_RESPONSE_INVALID')
 

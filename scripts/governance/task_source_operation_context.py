@@ -100,6 +100,9 @@ CI_V2_NEW_PATHS.update({'scripts/governance/check_native_user_rr_mdl_current_res
 # Exact upgrade documentation additions; unknown paths still refuse.
 CI_V2_NEW_PATHS.update({'docs/operations/upgrade-and-rollback.md', 'docs/operations/2026.11.19-upgrade-acceptance.json', 'docs/operations/2026.11.19-r3-components.json'})
 
+# Exact read-only upgrade tooling additions; no new wildcard.
+CI_V2_NEW_PATHS.update({'scripts/operations/upgrade_check.py', 'scripts/operations/README.upgrade-check.md', 'tests/operations/test_upgrade_check.py'})
+
 # Fixed release history is inert literal DATA, never executable historical code.
 RELEASE_HISTORY='support/governance/source-operation/task-release-source-history-v1.json'
 RELEASE_HISTORY_BYTES=90919
