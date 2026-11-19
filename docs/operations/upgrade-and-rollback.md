@@ -10,6 +10,10 @@ It covers ten deployed components, not every Gorge candidate. Supporting-service
 versions are observations, not a tested compatibility range or an instruction to
 enable them. This document does not change Compose defaults.
 
+The [read-only inventory utility](../../scripts/operations/README.md#read-only-upgrade-inventory)
+can collect bounded observations and compare image/feature settings. It never
+performs an upgrade or marks the external acceptance gates complete.
+
 ## Before changing services
 
 1. Define the application and infrastructure scope, interruption window, owner,
