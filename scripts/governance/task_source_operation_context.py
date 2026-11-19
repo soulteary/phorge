@@ -97,6 +97,9 @@ CI_V2_NEW_PATHS.update({'src/applications/auth/__tests__/PhabricatorTraefikSessi
 # Explicit RR current-restore metadata consumer and pure negative tests.
 CI_V2_NEW_PATHS.update({'scripts/governance/check_native_user_rr_mdl_current_restore_v2.py','tests/ci/test_rr_current_restore_v2.py'})
 
+# Exact upgrade documentation additions; unknown paths still refuse.
+CI_V2_NEW_PATHS.update({'docs/operations/upgrade-and-rollback.md', 'docs/operations/2026.11.19-upgrade-acceptance.json', 'docs/operations/2026.11.19-r3-components.json'})
+
 # Fixed release history is inert literal DATA, never executable historical code.
 RELEASE_HISTORY='support/governance/source-operation/task-release-source-history-v1.json'
 RELEASE_HISTORY_BYTES=90919

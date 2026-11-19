@@ -113,7 +113,10 @@ class DeclaredSourceInventory(unittest.TestCase):
   def check(entries):module.need(eval(code,dict(scope,entries=entries)))
   check(current)
   reviewed={'src/applications/auth/__tests__/PhabricatorTraefikSessionIdentityTestCase.php',
-            'tests/contract/runtime/media-isolation.php'}
+            'tests/contract/runtime/media-isolation.php',
+            'docs/operations/2026.11.19-r3-components.json',
+            'docs/operations/2026.11.19-upgrade-acceptance.json',
+            'docs/operations/upgrade-and-rollback.md'}
   self.assertTrue(reviewed<=module.CI_V2_NEW_PATHS)
   for rows in [current|{'tests/contract/runtime/unreviewed.php'}]+[current-{p}for p in reviewed]:
    with self.assertRaises(ValueError):check(rows)

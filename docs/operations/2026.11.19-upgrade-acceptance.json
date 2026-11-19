@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-19",
+  "kind": "Operator observation summary; raw private evidence is not published.",
+  "release": "2026.11.19-r3",
+  "component_catalog": "2026.11.19-r3-components.json",
+  "acceptance": "partial",
+  "scope": {
+    "native_permission_axes_preserved": true,
+    "permission_model_migration": false,
+    "optional_features_enabled": false,
+    "secondary_application_image_preserved": true
+  },
+  "observations": {
+    "configuration_and_file_backups_created": true,
+    "three_logical_database_backups_restored_in_isolation": true,
+    "paired_schema_rehearsal_passed": true,
+    "ten_paired_image_signatures_verified_with_exact_workflow_identity": true,
+    "arm64_source_revisions_checked": true,
+    "paired_runtime_health_passed": true,
+    "authentication_health_probes_passed": true,
+    "tls_entry_checks_passed": true,
+    "secondary_application_direct_health_passed": true,
+    "owlmail_synthetic_smtp_and_restart_persistence_passed": true,
+    "owlmail_mode": "standalone",
+    "new_kernel_boot_and_service_recovery_passed": true,
+    "temporary_test_containers_removed": true,
+    "optional_flags": {
+      "governance.media-exchange.http-enabled": false,
+      "governance.media-exchange.enabled": false,
+      "governance.notifications.enabled": false,
+      "governance.account-recovery.enabled": false,
+      "governance.account-recovery.owned-rr-scope.enabled": false,
+      "governance.account-recovery.session-lease.enabled": false,
+      "governance.organization.enabled": false,
+      "governance.private-mail.enabled": false,
+      "governance.project-content-grants.enabled": false,
+      "governance.project-approval.enabled": false,
+      "governance.recovery-stop-ledger.enabled": false,
+      "governance.task-content-grants.enabled": false
+    }
+  },
+  "host_observations": {
+    "distribution_series": "Ubuntu 24.04",
+    "kernel": "6.8.0-149-generic",
+    "docker": "29.10.0",
+    "cloud_init": "Existing hold retained by operator decision."
+  },
+  "configuration_changes": [
+    "Removed retired Warden OTP settings from the upgraded authentication configuration.",
+    "Removed the published demonstration shared-password fallback; per-user authentication remains configured.",
+    "Corrected the dormant TOTP encryption-key format only after confirming the store was empty; TOTP remains disabled.",
+    "Preserved ownership when restoring the isolated Owlmail data copy."
+  ],
+  "open_gates": [
+    {
+      "id": "database-redis-images",
+      "status": "blocked",
+      "reason": "Official registry endpoints were unreachable over the required direct network. Existing database and Redis images were retained. Restore checks do not verify image currency."
+    },
+    {
+      "id": "real-otp-login",
+      "status": "not_executed",
+      "reason": "Fresh real-provider OTP login was not repeated after this upgrade. Health probes and TLS redirects are insufficient."
+    }
+  ],
+  "limitations": [
+    "Independent GitHub provenance-attestation verification was not recorded in this upgrade summary; it must not be inferred from Cosign verification.",
+    "No claim of authenticated browser business acceptance, production load qualification, or candidate private-media identity acceptance.",
+    "The existing backup tool does not cover this entire multi-stack topology. Bespoke backup and restore observations do not extend its supported scope.",
+    "The rollback procedure below was documented, not executed end to end in this upgrade.",
+    "This record does not authorize a later deployment or optional-feature activation."
+  ]
+}

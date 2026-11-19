@@ -1,0 +1,139 @@
+{
+  "schema_version": 1,
+  "release": "2026.11.19-r3",
+  "purpose": "Observed native-core deployment reference; not a default Compose override or full-suite certification.",
+  "components": {
+    "phorge": {
+      "repository": "ghcr.io/soulteary/phorge",
+      "index_digest": "sha256:ca25b093728b447596a3d7d04c18b051f75571f91e2e899c73be065d1a9f4977",
+      "platform_digests": {
+        "amd64": "sha256:8dc91b37bf4fd33da9e9ffdb4e772ba8122348fc37c371fcc37e40b5d6f54ca3",
+        "arm64": "sha256:3b8a21d9998385fa29aab42b9f2f184d1b95532f579e4917c124f2fd095cc34a"
+      },
+      "source_revision": "50c6205cc162aca6724b8ff45220a5a858dc5b39",
+      "platforms": [
+        "amd64",
+        "arm64"
+      ],
+      "signature_identity": "https://github.com/soulteary/phorge/.github/workflows/container-image.yml@refs/tags/2026.11.19-r3"
+    },
+    "gorge-conduit": {
+      "repository": "ghcr.io/soulteary/gorge",
+      "index_digest": "sha256:30fa543081bc377bbfb9c6c07ade695c23b3d42fbf53da910596a4f7d8bd05d5",
+      "source_revision": "6660ee285f21ae36906abf160db86cdeb8a51b01",
+      "platforms": [
+        "amd64",
+        "arm64"
+      ],
+      "signature_identity": "https://github.com/soulteary/gorge/.github/workflows/release.yml@refs/tags/2026.11.19-r3"
+    },
+    "gorge-db-api": {
+      "repository": "ghcr.io/soulteary/gorge",
+      "index_digest": "sha256:5e26bc428293218bf91f243f35af955695992dfe4955d786001e468db9737101",
+      "source_revision": "6660ee285f21ae36906abf160db86cdeb8a51b01",
+      "platforms": [
+        "amd64",
+        "arm64"
+      ],
+      "signature_identity": "https://github.com/soulteary/gorge/.github/workflows/release.yml@refs/tags/2026.11.19-r3"
+    },
+    "gorge-file-storage": {
+      "repository": "ghcr.io/soulteary/gorge",
+      "index_digest": "sha256:eb536f219d66528a8d3afbee2ab272905595ad567b8fc0ae20cb25eba256fbcf",
+      "source_revision": "6660ee285f21ae36906abf160db86cdeb8a51b01",
+      "platforms": [
+        "amd64",
+        "arm64"
+      ],
+      "signature_identity": "https://github.com/soulteary/gorge/.github/workflows/release.yml@refs/tags/2026.11.19-r3"
+    },
+    "gorge-mailer": {
+      "repository": "ghcr.io/soulteary/gorge",
+      "index_digest": "sha256:a453bb42cda8182556c5eaec39e06028a8d4e5c033ccbcfd7da2980a22e7e613",
+      "source_revision": "6660ee285f21ae36906abf160db86cdeb8a51b01",
+      "platforms": [
+        "amd64",
+        "arm64"
+      ],
+      "signature_identity": "https://github.com/soulteary/gorge/.github/workflows/release.yml@refs/tags/2026.11.19-r3"
+    },
+    "gorge-notification": {
+      "repository": "ghcr.io/soulteary/gorge",
+      "index_digest": "sha256:225c23f1cee1f68e5e3d1682191f52705b64707c141281c796c0fe00ad66f1b8",
+      "source_revision": "6660ee285f21ae36906abf160db86cdeb8a51b01",
+      "platforms": [
+        "amd64",
+        "arm64"
+      ],
+      "signature_identity": "https://github.com/soulteary/gorge/.github/workflows/release.yml@refs/tags/2026.11.19-r3"
+    },
+    "gorge-render": {
+      "repository": "ghcr.io/soulteary/gorge",
+      "index_digest": "sha256:a1c36b24db5f7a558e5567900a242746f5dc9290e62ecea0f392f3468b9d62b5",
+      "source_revision": "6660ee285f21ae36906abf160db86cdeb8a51b01",
+      "platforms": [
+        "amd64",
+        "arm64"
+      ],
+      "signature_identity": "https://github.com/soulteary/gorge/.github/workflows/release.yml@refs/tags/2026.11.19-r3"
+    },
+    "gorge-taskqueue": {
+      "repository": "ghcr.io/soulteary/gorge",
+      "index_digest": "sha256:2fe6973983aa0d69237b29d17342bde8f840fc2aedabe5e068683605d43735a6",
+      "source_revision": "6660ee285f21ae36906abf160db86cdeb8a51b01",
+      "platforms": [
+        "amd64",
+        "arm64"
+      ],
+      "signature_identity": "https://github.com/soulteary/gorge/.github/workflows/release.yml@refs/tags/2026.11.19-r3"
+    },
+    "gorge-webhook": {
+      "repository": "ghcr.io/soulteary/gorge",
+      "index_digest": "sha256:8ece5de52635effdecc6eb0d7beb333351f944d0993614c87ac03c3dc74a9b10",
+      "source_revision": "6660ee285f21ae36906abf160db86cdeb8a51b01",
+      "platforms": [
+        "amd64",
+        "arm64"
+      ],
+      "signature_identity": "https://github.com/soulteary/gorge/.github/workflows/release.yml@refs/tags/2026.11.19-r3"
+    },
+    "gorge-worker": {
+      "repository": "ghcr.io/soulteary/gorge",
+      "index_digest": "sha256:80210179e784d1b04eed13a9d0f71810df9d132a8bfe6b45c7026045133e4b1b",
+      "source_revision": "6660ee285f21ae36906abf160db86cdeb8a51b01",
+      "platforms": [
+        "amd64",
+        "arm64"
+      ],
+      "signature_identity": "https://github.com/soulteary/gorge/.github/workflows/release.yml@refs/tags/2026.11.19-r3"
+    }
+  },
+  "observed_support_versions": {
+    "stargate": "1.8.0",
+    "warden": "1.9.1",
+    "herald": "1.9.0",
+    "herald-dingtalk": "1.2.8",
+    "herald-totp": "2.0.4",
+    "owlmail": "0.15.0",
+    "traefik": "3.7.19",
+    "whoami": "1.12.0"
+  },
+  "sources": [
+    {
+      "url": "https://github.com/soulteary/phorge/releases/tag/2026.11.19-r3",
+      "asset": "2026.11.19-r3-paired-release-manifest.json",
+      "sha256": "36c2e9d2a4d99a44cbc9ac2a7223a280776d5bdf314dde92741160bd9ab15c7e"
+    },
+    {
+      "url": "https://github.com/soulteary/gorge/releases/tag/2026.11.19-r3",
+      "asset": "2026.11.19-r3-gorge-release-manifest.json",
+      "sha256": "5e44006cee315c4ba7f2f96d7c8913dcb062c257e82c233fb324a22b50be1b8c"
+    }
+  ],
+  "not_in_scope": [
+    "Gorge image, search, maintenance, integrations and Gitea candidates",
+    "Optional governance features",
+    "General support certification for the authentication tuple",
+    "Database or Redis image update approval"
+  ]
+}
