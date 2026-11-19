@@ -14,11 +14,6 @@
 !/docs/releases/
 /docs/releases/*
 !/docs/releases/*.md
-!/docs/operations/
-/docs/operations/*
-!/docs/operations/upgrade-and-rollback.md
-!/docs/operations/2026.11.19-r3-components.json
-!/docs/operations/2026.11.19-upgrade-acceptance.json
 /.divinercache/
 /webroot/rsrc/externals/javelin/.divinercache/
 /webroot/rsrc/externals/javelin/docs/.divinercache/
