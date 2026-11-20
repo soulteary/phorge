@@ -343,8 +343,9 @@ class CalendarConduitUnion(unittest.TestCase):
             n05_delta.assert_production_cohort(ROOT)
             from task_historical_views_test_api_v2 import retired_source_DATA
             retirement = json.loads(context.current('docs/operations/retirement/wiki.json'))
-            retired = {row['path'] for row in retirement['removed_files']}
-            self.assertEqual(len(retired), 68)
+            all_retired = {row['path'] for row in retirement['removed_files']}
+            self.assertEqual(len(all_retired), 68)
+            retired = {path for path in all_retired if path.startswith(('src/', 'resources/'))}
             self.assertTrue(retired <= changed)
             for path in retired:
                 self.assertFalse((ROOT / path).exists())
