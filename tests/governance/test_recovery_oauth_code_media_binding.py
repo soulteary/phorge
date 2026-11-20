@@ -174,8 +174,11 @@ class SignedSourceBinding(unittest.TestCase):
   self.assertEqual(len(set(entries)|set(module.OVERLAY)),len(set(expected['entries'])|set(_MEDIA_OVERLAY_NAMES)))
  def test_all_other_fixture_runtime_and_source_guards_byteexact_signed_source(self):
   paths=self.git('ls-tree','-r','--name-only',BASE,'--','support/governance/media-session-ci','support/governance/media-session-docker','support/governance/media-session-positive').decode().splitlines();self.assertGreaterEqual(len(paths),17)
+  context=self._operation._task_contexts[ROOT]
   for name in paths:
-   raw=(ROOT/name).read_bytes()
+   self.assertEqual((ROOT/name).read_bytes(),context.current(name))
+   # Compare authenticated predecessor DATA, not the current security runtime.
+   raw=context.parent(name)
    if name in self.media_binding.SOURCE_INPUTS:raw=self.media_binding.reduce_current(name,raw)
    self.assertEqual(raw,self.git('show',BASE+':'+name),name)
  def test_previous_signed_recipe_literals_are_exact_test_only_and_unknown_refused(self):
