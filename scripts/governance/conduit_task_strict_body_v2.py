@@ -1,7 +1,7 @@
 """Conduit CURRENT literal body adaptation; no source admission or SQL."""
 import ast,copy,hashlib,re,types,os,stat
 from pathlib import Path
-PINS={'check_completion': 'fa9f6c1e360a95822651f3b4af0277cc243e8edac78ad78f1cf924c713c46b1c', 'check_native_organization': 'c2c614ab497e6590c13455bd1b495f9f9230c62acd066884b738d460023be300', 'check_recovery_partial_composition': '76930e99b57cb3a4488817fa88865f9b8a17df9c2cf8c501367f8779abb3e0ca', 'check_recovery_conduit_producer': '336053a5fd975918b34fc3f47f829c8120fe0d7d0302685b49213c3caf47b464'}
+PINS={'check_completion': 'b412555b95a1f450540474807c044e0c20dd3305b3e17e5635c9812122e08296', 'check_native_organization': 'c2c614ab497e6590c13455bd1b495f9f9230c62acd066884b738d460023be300', 'check_recovery_partial_composition': '1a06ef08a91bc152ffee0d8810210a1e0536223bda683a4a4dbb2028fdf1660f', 'check_recovery_conduit_producer': 'a2fc42b3a54074852503d37f6059084094ec5f25670ebe314c495a1892ada109'}
 IMAGE='mysql:8.4.13@sha256:a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7'
 def need(v):
  if v is not True:raise ValueError('Task_Conduit_body_refused')

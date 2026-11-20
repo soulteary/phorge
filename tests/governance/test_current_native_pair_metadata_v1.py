@@ -20,6 +20,11 @@ class MetadataControls(unittest.TestCase):
   retired_binding=[n for n in old_validate.body if isinstance(n,ast.Assign)and ast.unparse(n.targets[0])=="expected_wiki['render_cleanup']['binary_sha256']"]
   self.assertEqual(len(retired_binding),1)
   old_validate.body.remove(retired_binding[0])
+  class SecurityVersion(ast.NodeTransformer):
+   def visit_Constant(self,node):
+    if node.value=='8.5.12':return ast.copy_location(ast.Constant('8.5.13'),node)
+    return node
+  old_validate=SecurityVersion().visit(old_validate)
   current_validate=next(n for n in current.body if isinstance(n,ast.FunctionDef)and n.name=='validate')
   self.assertEqual(ast.dump(old_validate,include_attributes=False),ast.dump(current_validate,include_attributes=False))
   for name in ['FIELDS','BLOCKERS']:
