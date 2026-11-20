@@ -38,7 +38,7 @@ final class PhorgeGovernanceCapabilityMapTestCase extends PhutilTestCase {
       $this->assertEqual(PhabricatorPolicyCapability::CAN_EDIT,
         $row['native_requirements']['native_edit_path']);
     }
-    $this->assertTrue(count($ids) > 20);
+    $this->assertEqual(17, count($ids));
   }
 
   public function testBuiltinProjectDescriptionUsesActualCustomFieldKey() {
@@ -60,17 +60,11 @@ final class PhorgeGovernanceCapabilityMapTestCase extends PhutilTestCase {
     $task = PhorgeGovernanceCapabilityMap::classify(
       ManiphestTask::class, ManiphestTransaction::class,
       ManiphestTaskTitleTransaction::TRANSACTIONTYPE);
-    $wiki = PhorgeGovernanceCapabilityMap::classify(
-      PhrictionDocument::class, PhrictionTransaction::class,
-      PhrictionDocumentTitleTransaction::TRANSACTIONTYPE);
     $this->assertEqual('task.title', $task['operation']);
-    $this->assertEqual('wiki.title', $wiki['operation']);
     $this->assertEqual('low', $task['risk']);
-    // Same literal type (title) must not mix two objects or handlers.
-    $this->assertEqual($task['transaction_type'], $wiki['transaction_type']);
     foreach (array(
-      array(ManiphestTask::class, PhrictionTransaction::class),
-      array(PhrictionDocument::class, ManiphestTransaction::class),
+      array(ManiphestTask::class, 'PhrictionTransaction'),
+      array('PhrictionDocument', ManiphestTransaction::class),
       array(PhabricatorProject::class, ManiphestTransaction::class),
       array(ManiphestTask::class, ManiphestTaskTitleTransaction::class),
     ) as $pair) {
@@ -81,28 +75,11 @@ final class PhorgeGovernanceCapabilityMapTestCase extends PhutilTestCase {
     }
   }
 
-  public function testWikiContentRequiresValueAndExpansionReview() {
-    foreach (array(PhrictionDocumentTitleTransaction::TRANSACTIONTYPE,
-      PhrictionDocumentContentTransaction::TRANSACTIONTYPE) as $type) {
-      $result = PhorgeGovernanceCapabilityMap::classify(
-        PhrictionDocument::class, PhrictionTransaction::class, $type);
-      $this->assertEqual('content-candidate', $result['classification']);
-      $this->assertEqual('high', $result['risk']);
-      $this->assertFalse($result['risk_complete']);
-      $this->assertFalse(in_array('WIKI.COMMENT.ENGINE',
-        $result['source_ids'], true));
-      $this->assertFalse(in_array('WIKI.EDIT.CONDUIT',
-        $result['source_ids'], true));
-      $this->assertTrue(in_array('WIKI.EDIT.CONDUIT.LEGACY',
-        $result['source_ids'], true));
-    }
-  }
 
   public function testPolicyAndSpaceAreSensitiveWithoutCallerRisk() {
     foreach (array(
       PhabricatorProject::class => PhabricatorProjectTransaction::class,
       ManiphestTask::class => ManiphestTransaction::class,
-      PhrictionDocument::class => PhrictionTransaction::class,
     ) as $object => $envelope) {
       foreach (array(PhabricatorTransactions::TYPE_VIEW_POLICY,
         PhabricatorTransactions::TYPE_EDIT_POLICY,
@@ -172,8 +149,6 @@ final class PhorgeGovernanceCapabilityMapTestCase extends PhutilTestCase {
         ManiphestTaskOwnerTransaction::TRANSACTIONTYPE),
       array(ManiphestTask::class, ManiphestTransaction::class,
         ManiphestTaskColumnTransaction::TRANSACTIONTYPE),
-      array(PhrictionDocument::class, PhrictionTransaction::class,
-        PhrictionDocumentMoveToTransaction::TRANSACTIONTYPE),
     ) as $triple) {
       $result = PhorgeGovernanceCapabilityMap::classify(
         $triple[0], $triple[1], $triple[2]);
@@ -233,8 +208,8 @@ final class PhorgeGovernanceCapabilityMapTestCase extends PhutilTestCase {
     $forged = $title;
     $forged['risk'] = 'low';
     foreach (array(array(), array('named' => $title), array('not-a-descriptor'),
-      array($forged), array($title, $this->descriptor(PhrictionTransaction::class,
-        PhrictionDocumentTitleTransaction::TRANSACTIONTYPE)),
+      array($forged), array($title, $this->descriptor('PhrictionTransaction',
+        'title')),
       array($title, $this->descriptor(ManiphestTransaction::class, 'unknown')),
       array_fill(0, 101, $title)) as $batch) {
       $result = PhorgeGovernanceCapabilityMap::classifyBatch(
@@ -253,7 +228,6 @@ final class PhorgeGovernanceCapabilityMapTestCase extends PhutilTestCase {
     foreach (array(
       PhabricatorProject::class => 'project.policy',
       ManiphestTask::class => 'task.owner',
-      PhrictionDocument::class => 'wiki.parent',
     ) as $object => $specific_kind) {
       foreach (PhorgeGovernanceCapabilityMap::getKnownOperations($object) as $op) {
         $kinds = PhorgeGovernanceCapabilityMap::getRequiredSourceKinds($op, $object);
@@ -266,7 +240,7 @@ final class PhorgeGovernanceCapabilityMapTestCase extends PhutilTestCase {
         }
       }
     }
-    foreach (array(array('task.title', PhrictionDocument::class),
+    foreach (array(array('task.title', 'PhrictionDocument'),
       array('project.members', ManiphestTask::class),
       array('unknown', PhabricatorProject::class)) as $pair) {
       $caught = false;
@@ -276,6 +250,30 @@ final class PhorgeGovernanceCapabilityMapTestCase extends PhutilTestCase {
         $caught = true;
       }
       $this->assertTrue($caught);
+    }
+  }
+
+  public function testRetiredWikiCannotAcquireContentOrManagementCapabilities() {
+    $this->assertEqual(array(),
+      PhorgeGovernanceCapabilityMap::getKnownOperations('PhrictionDocument'));
+    foreach (array('title', 'content', 'core:view', 'core:edit', 'move-to')
+      as $type) {
+      $result = PhorgeGovernanceCapabilityMap::classify(
+        'PhrictionDocument', 'PhrictionTransaction', $type);
+      $this->assertEqual('blocked', $result['status']);
+      $this->assertFalse($result['can_execute']);
+    }
+    foreach (array('wiki.title', 'wiki.content', 'policy.replace',
+      'object.space', 'object.relationship') as $operation) {
+      $this->assertEqual(null,
+        PhorgeGovernanceReadSetValidator::getRequiredSourceKinds(
+          $operation, 'PhrictionDocument'));
+    }
+    foreach (array('wiki.title', 'wiki.content') as $operation) {
+      $result = PhorgeGovernanceContentDecision::evaluate(
+        'content', $operation, array());
+      $this->assertEqual('unsupported_operation', $result['reason']);
+      $this->assertFalse($result['can_execute']);
     }
   }
 

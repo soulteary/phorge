@@ -278,8 +278,7 @@ final class PhorgeGovernanceNativeReadView extends Phobject {
 
   private function newTargetQuery(PhabricatorUser $viewer) {
     $queries = array(PhabricatorProject::class => PhabricatorProjectQuery::class,
-      ManiphestTask::class => ManiphestTaskQuery::class,
-      PhrictionDocument::class => PhrictionDocumentQuery::class);
+      ManiphestTask::class => ManiphestTaskQuery::class);
     $class = $queries[$this->binding['object_class']];
     $query = (new $class())->setViewer($viewer)
       ->withPHIDs(array($this->binding['target']))->setLimit(1);

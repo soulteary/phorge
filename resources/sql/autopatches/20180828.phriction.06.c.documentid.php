@@ -7,14 +7,14 @@
 // There's no "IF EXISTS" modifier for "ALTER TABLE" so run this as a PHP patch
 // instead of an SQL patch.
 
-$table = new PhrictionContent();
-$conn = $table->establishConnection('w');
+$table = 'phriction_content';
+$conn = $this->getConn('phriction');
 
 try {
   queryfx(
     $conn,
     'ALTER TABLE %T DROP KEY documentID',
-    $table->getTableName());
+    $table);
 } catch (AphrontQueryException $ex) {
   // Ignore.
 }

@@ -195,7 +195,7 @@ final class PhorgeGovernanceNativeSourceReader extends Phobject {
         throw new RuntimeException('Unsupported operation.');
       }
       $types = array('PhabricatorProject' => 'PROJ',
-        'ManiphestTask' => 'TASK', 'PhrictionDocument' => 'WIKI');
+        'ManiphestTask' => 'TASK');
       foreach (array('actor', 'executor', 'approver') as $role) {
         if (!preg_match('/\APHID-USER-[a-zA-Z0-9]{20}\z/', $binding[$role]) ||
             !preg_match('/\A[a-f0-9]{64}\z/', $binding[$role.'_session'])) {
@@ -428,8 +428,7 @@ final class PhorgeGovernanceNativeSourceReader extends Phobject {
     $projects = array_column($this->rows['project.project'], null, 'phid');
     $accounts = array_column($this->rows['user.user'], null, 'phid');
     $tables = array('PhabricatorProject' => 'project.project',
-      'ManiphestTask' => 'maniphest.maniphest_task',
-      'PhrictionDocument' => 'phriction.phriction_document');
+      'ManiphestTask' => 'maniphest.maniphest_task');
     $objects = array_column($this->rows[$tables[$this->binding['object_class']]],
       null, 'phid');
     $target = isset($objects[$this->binding['target']]) ?
@@ -540,7 +539,6 @@ final class PhorgeGovernanceNativeSourceReader extends Phobject {
           break;
         case 'project.policy':
         case 'task.policy':
-        case 'wiki.policy':
           $data = $target;
           break;
         case 'task.owner':
@@ -552,9 +550,6 @@ final class PhorgeGovernanceNativeSourceReader extends Phobject {
           break;
         case 'project.parent':
           $data = $this->rows['project.project'];
-          break;
-        case 'wiki.parent':
-          $data = $this->rows['phriction.phriction_document'];
           break;
         case 'space.policy':
           $data = $this->rows['spaces.spaces_namespace'];

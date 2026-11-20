@@ -42,8 +42,6 @@ These are inline styles, and can be applied to most text:
   {M123}                    # Embed Pholio Mock
   @username                 # Mention a User
   #project                  # Mention a Project
-  [[wiki page]]             # Link to Phriction
-  [[wiki page | name]]      # Named link to Phriction
   https://xyz/               # Link to web
   [[https://xyz/ | name]]    # Named link to web
   [name](https://xyz/)       # Alternate Link
@@ -388,40 +386,6 @@ By default, the font used to create the text for the meme is `tuffy.ttf`. For
 the more authentic feel of `impact.ttf`, you simply have to place the Impact
 TrueType font in the Phorge subfolder `/resources/font/`. If Remarkup
 detects the presence of `impact.ttf`, it will automatically use it.
-
-
-= Phriction Documents =
-
-You can link to Phriction documents with a name or path:
-
-  Make sure you sign and date your [[legal/Letter of Marque and Reprisal]]!
-
-By default, the link will render with the document title as the link name.
-With a pipe (`|`), you can retitle the link. Use this to mislead your
-opponents:
-
-  Check out these [[legal/boring_documents/ | exciting legal documents]]!
-
-Links to pages which do not exist are shown in red. Links to pages which exist
-but which the viewer does not have permission to see are shown with a lock
-icon, and the link will not disclose the page title.
-
-If you begin a link path with `./` or `../`, the remainder of the path will be
-evaluated relative to the current wiki page. For example, if you are writing
-content for the document `fruit/` a link to `[[./guava]]` is the same as a link
-to `[[fruit/guava]]` from elsewhere.
-
-Relative links may use `../` to transverse up the document tree. From the
-`produce/vegetables/` page, you can use `[[../fruit/guava]]` to link to the
-`produce/fruit/guava` page.
-
-Relative links do not work when used outside of wiki pages. For example,
-you can't use a relative link in a comment on a task, because there is no
-reasonable place for the link to start resolving from.
-
-When documents are moved, relative links are not automatically updated: they
-are preserved as currently written. After moving a document, you may need to
-review and adjust any relative links it contains.
 
 
 = Literal Blocks =

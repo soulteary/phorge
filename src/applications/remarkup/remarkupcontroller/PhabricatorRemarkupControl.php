@@ -131,7 +131,6 @@ final class PhabricatorRemarkupControl
           'autocomplete' => 1,
         ));
 
-    $phriction_datasource = new PhrictionDocumentDatasource();
     $phurl_datasource = new PhabricatorPhurlURLDatasource();
 
     // Get users involved in surrounding object (if available)
@@ -198,18 +197,6 @@ final class PhabricatorRemarkupControl
 //            'p', // Too risky, many emojis starting with lowercase p
               'P',
             ),
-          ),
-          91 => array( // "["
-            'datasourceURI' => $phriction_datasource->getDatasourceURI(),
-            'headerIcon' => 'fa-book',
-            'headerText' => pht('Find Document:'),
-            'hintText' => $phriction_datasource->getPlaceholderText(),
-            'cancel' => array(
-              ':', // Cancel on "http:" and similar.
-              '|',
-              ']',
-            ),
-            'prefix' => '^\\[',
           ),
           40 => array( // "("
             'datasourceURI' => $phurl_datasource->getDatasourceURI(),

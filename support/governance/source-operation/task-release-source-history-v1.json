@@ -106,20 +106,40 @@
       ]
     },
     "src/__phutil_library_map__.php": {
-      "current_bytes": 871377,
-      "current_sha256": "fedf4562d50c59db02b7bc460ba431c2efae8eeef36375479ed8f0e1094af01d",
+      "current_bytes": 859271,
+      "current_sha256": "0c1680ccd1c0127ec426425ad37d276750102dffd3500673eeb558a09a188f15",
       "target_bytes": 871175,
       "target_sha256": "081e5cf740a2aa893274774885a949f3d90fd233370517ce08f7f6ab007765a2",
       "edits": [
         {
-          "offset": 418943,
+          "offset": 338948,
+          "current": "",
+          "parent": "    'PhabricatorPhrictionApplication' => 'applications/phriction/application/PhabricatorPhrictionApplication.php',\n"
+        },
+        {
+          "offset": 418828,
           "current": "    'PhabricatorTraefikSessionIdentityTestCase' => 'applications/auth/__tests__/PhabricatorTraefikSessionIdentityTestCase.php',\n",
           "parent": ""
         },
         {
-          "offset": 804888,
+          "offset": 490941,
+          "current": "",
+          "parent": "    'PhrictionChangeType' => 'applications/phriction/constants/PhrictionChangeType.php',\n    'PhrictionConduitAPIMethod' => 'applications/phriction/conduit/PhrictionConduitAPIMethod.php',\n    'PhrictionConstants' => 'applications/phriction/constants/PhrictionConstants.php',\n    'PhrictionContent' => 'applications/phriction/storage/PhrictionContent.php',\n    'PhrictionContentPHIDType' => 'applications/phriction/phid/PhrictionContentPHIDType.php',\n    'PhrictionContentQuery' => 'applications/phriction/query/PhrictionContentQuery.php',\n    'PhrictionContentSearchConduitAPIMethod' => 'applications/phriction/conduit/PhrictionContentSearchConduitAPIMethod.php',\n    'PhrictionContentSearchEngine' => 'applications/phriction/query/PhrictionContentSearchEngine.php',\n    'PhrictionContentSearchEngineAttachment' => 'applications/phriction/engineextension/PhrictionContentSearchEngineAttachment.php',\n    'PhrictionController' => 'applications/phriction/controller/PhrictionController.php',\n    'PhrictionCreateConduitAPIMethod' => 'applications/phriction/conduit/PhrictionCreateConduitAPIMethod.php',\n    'PhrictionDAO' => 'applications/phriction/storage/PhrictionDAO.php',\n    'PhrictionDatasourceEngineExtension' => 'applications/phriction/engineextension/PhrictionDatasourceEngineExtension.php',\n    'PhrictionDeleteController' => 'applications/phriction/controller/PhrictionDeleteController.php',\n    'PhrictionDiffController' => 'applications/phriction/controller/PhrictionDiffController.php',\n    'PhrictionDocument' => 'applications/phriction/storage/PhrictionDocument.php',\n    'PhrictionDocumentAuthorHeraldField' => 'applications/phriction/herald/PhrictionDocumentAuthorHeraldField.php',\n    'PhrictionDocumentContentHeraldField' => 'applications/phriction/herald/PhrictionDocumentContentHeraldField.php',\n    'PhrictionDocumentContentTransaction' => 'applications/phriction/xaction/PhrictionDocumentContentTransaction.php',\n    'PhrictionDocumentController' => 'applications/phriction/controller/PhrictionDocumentController.php',\n    'PhrictionDocumentDatasource' => 'applications/phriction/typeahead/PhrictionDocumentDatasource.php',\n    'PhrictionDocumentDeleteTransaction' => 'applications/phriction/xaction/PhrictionDocumentDeleteTransaction.php',\n    'PhrictionDocumentDraftTransaction' => 'applications/phriction/xaction/PhrictionDocumentDraftTransaction.php',\n    'PhrictionDocumentEditConduitAPIMethod' => 'applications/phriction/conduit/PhrictionDocumentEditConduitAPIMethod.php',\n    'PhrictionDocumentEditEngine' => 'applications/phriction/editor/PhrictionDocumentEditEngine.php',\n    'PhrictionDocumentEditTransaction' => 'applications/phriction/xaction/PhrictionDocumentEditTransaction.php',\n    'PhrictionDocumentFerretEngine' => 'applications/phriction/search/PhrictionDocumentFerretEngine.php',\n    'PhrictionDocumentFulltextEngine' => 'applications/phriction/search/PhrictionDocumentFulltextEngine.php',\n    'PhrictionDocumentHeraldAdapter' => 'applications/phriction/herald/PhrictionDocumentHeraldAdapter.php',\n    'PhrictionDocumentHeraldField' => 'applications/phriction/herald/PhrictionDocumentHeraldField.php',\n    'PhrictionDocumentHeraldFieldGroup' => 'applications/phriction/herald/PhrictionDocumentHeraldFieldGroup.php',\n    'PhrictionDocumentMoveAwayTransaction' => 'applications/phriction/xaction/PhrictionDocumentMoveAwayTransaction.php',\n    'PhrictionDocumentMoveToTransaction' => 'applications/phriction/xaction/PhrictionDocumentMoveToTransaction.php',\n    'PhrictionDocumentPHIDType' => 'applications/phriction/phid/PhrictionDocumentPHIDType.php',\n    'PhrictionDocumentPathHeraldField' => 'applications/phriction/herald/PhrictionDocumentPathHeraldField.php',\n    'PhrictionDocumentPolicyCodex' => 'applications/phriction/codex/PhrictionDocumentPolicyCodex.php',\n    'PhrictionDocumentPublishTransaction' => 'applications/phriction/xaction/PhrictionDocumentPublishTransaction.php',\n    'PhrictionDocumentPublishedHeraldField' => 'applications/phriction/herald/PhrictionDocumentPublishedHeraldField.php',\n    'PhrictionDocumentQuery' => 'applications/phriction/query/PhrictionDocumentQuery.php',\n    'PhrictionDocumentSearchConduitAPIMethod' => 'applications/phriction/conduit/PhrictionDocumentSearchConduitAPIMethod.php',\n    'PhrictionDocumentSearchEngine' => 'applications/phriction/query/PhrictionDocumentSearchEngine.php',\n    'PhrictionDocumentStatus' => 'applications/phriction/constants/PhrictionDocumentStatus.php',\n    'PhrictionDocumentTitleHeraldField' => 'applications/phriction/herald/PhrictionDocumentTitleHeraldField.php',\n    'PhrictionDocumentTitleTransaction' => 'applications/phriction/xaction/PhrictionDocumentTitleTransaction.php',\n    'PhrictionDocumentTransactionType' => 'applications/phriction/xaction/PhrictionDocumentTransactionType.php',\n    'PhrictionDocumentVersionTransaction' => 'applications/phriction/xaction/PhrictionDocumentVersionTransaction.php',\n    'PhrictionEditConduitAPIMethod' => 'applications/phriction/conduit/PhrictionEditConduitAPIMethod.php',\n    'PhrictionEditController' => 'applications/phriction/controller/PhrictionEditController.php',\n    'PhrictionEditEngineController' => 'applications/phriction/controller/PhrictionEditEngineController.php',\n    'PhrictionHistoryConduitAPIMethod' => 'applications/phriction/conduit/PhrictionHistoryConduitAPIMethod.php',\n    'PhrictionHistoryController' => 'applications/phriction/controller/PhrictionHistoryController.php',\n    'PhrictionHovercardEngineExtension' => 'applications/phriction/engineextension/PhrictionHovercardEngineExtension.php',\n    'PhrictionInfoConduitAPIMethod' => 'applications/phriction/conduit/PhrictionInfoConduitAPIMethod.php',\n    'PhrictionListController' => 'applications/phriction/controller/PhrictionListController.php',\n    'PhrictionMarkupPreviewController' => 'applications/phriction/controller/PhrictionMarkupPreviewController.php',\n    'PhrictionMoveController' => 'applications/phriction/controller/PhrictionMoveController.php',\n    'PhrictionNewController' => 'applications/phriction/controller/PhrictionNewController.php',\n    'PhrictionPublishController' => 'applications/phriction/controller/PhrictionPublishController.php',\n    'PhrictionRemarkupRule' => 'applications/phriction/markup/PhrictionRemarkupRule.php',\n    'PhrictionReplyHandler' => 'applications/phriction/mail/PhrictionReplyHandler.php',\n    'PhrictionSchemaSpec' => 'applications/phriction/storage/PhrictionSchemaSpec.php',\n    'PhrictionTransaction' => 'applications/phriction/storage/PhrictionTransaction.php',\n    'PhrictionTransactionComment' => 'applications/phriction/storage/PhrictionTransactionComment.php',\n    'PhrictionTransactionEditor' => 'applications/phriction/editor/PhrictionTransactionEditor.php',\n    'PhrictionTransactionQuery' => 'applications/phriction/query/PhrictionTransactionQuery.php',\n"
+        },
+        {
+          "offset": 744850,
+          "current": "",
+          "parent": "    'PhabricatorPhrictionApplication' => 'PhabricatorApplication',\n"
+        },
+        {
+          "offset": 797849,
           "current": "    'PhabricatorTraefikSessionIdentityTestCase' => 'PhabricatorTestCase',\n",
           "parent": ""
+        },
+        {
+          "offset": 842277,
+          "current": "",
+          "parent": "    'PhrictionChangeType' => 'PhrictionConstants',\n    'PhrictionConduitAPIMethod' => 'ConduitAPIMethod',\n    'PhrictionConstants' => 'Phobject',\n    'PhrictionContent' => array(\n      'PhrictionDAO',\n      'PhabricatorPolicyInterface',\n      'PhabricatorDestructibleInterface',\n      'PhabricatorConduitResultInterface',\n    ),\n    'PhrictionContentPHIDType' => 'PhabricatorPHIDType',\n    'PhrictionContentQuery' => 'PhabricatorCursorPagedPolicyAwareQuery',\n    'PhrictionContentSearchConduitAPIMethod' => 'PhabricatorSearchEngineAPIMethod',\n    'PhrictionContentSearchEngine' => 'PhabricatorApplicationSearchEngine',\n    'PhrictionContentSearchEngineAttachment' => 'PhabricatorSearchEngineAttachment',\n    'PhrictionController' => 'PhabricatorController',\n    'PhrictionCreateConduitAPIMethod' => 'PhrictionConduitAPIMethod',\n    'PhrictionDAO' => 'PhabricatorLiskDAO',\n    'PhrictionDatasourceEngineExtension' => 'PhabricatorDatasourceEngineExtension',\n    'PhrictionDeleteController' => 'PhrictionController',\n    'PhrictionDiffController' => 'PhrictionController',\n    'PhrictionDocument' => array(\n      'PhrictionDAO',\n      'PhabricatorPolicyInterface',\n      'PhabricatorSubscribableInterface',\n      'PhabricatorFlaggableInterface',\n      'PhabricatorTokenReceiverInterface',\n      'PhabricatorDestructibleInterface',\n      'PhabricatorFulltextInterface',\n      'PhabricatorFerretInterface',\n      'PhabricatorProjectInterface',\n      'PhabricatorApplicationTransactionInterface',\n      'PhabricatorConduitResultInterface',\n      'PhabricatorPolicyCodexInterface',\n      'PhabricatorSpacesInterface',\n    ),\n    'PhrictionDocumentAuthorHeraldField' => 'PhrictionDocumentHeraldField',\n    'PhrictionDocumentContentHeraldField' => 'PhrictionDocumentHeraldField',\n    'PhrictionDocumentContentTransaction' => 'PhrictionDocumentEditTransaction',\n    'PhrictionDocumentController' => 'PhrictionController',\n    'PhrictionDocumentDatasource' => 'PhabricatorTypeaheadDatasource',\n    'PhrictionDocumentDeleteTransaction' => 'PhrictionDocumentVersionTransaction',\n    'PhrictionDocumentDraftTransaction' => 'PhrictionDocumentEditTransaction',\n    'PhrictionDocumentEditConduitAPIMethod' => 'PhabricatorEditEngineAPIMethod',\n    'PhrictionDocumentEditEngine' => 'PhabricatorEditEngine',\n    'PhrictionDocumentEditTransaction' => 'PhrictionDocumentVersionTransaction',\n    'PhrictionDocumentFerretEngine' => 'PhabricatorFerretEngine',\n    'PhrictionDocumentFulltextEngine' => 'PhabricatorFulltextEngine',\n    'PhrictionDocumentHeraldAdapter' => 'HeraldAdapter',\n    'PhrictionDocumentHeraldField' => 'HeraldField',\n    'PhrictionDocumentHeraldFieldGroup' => 'HeraldFieldGroup',\n    'PhrictionDocumentMoveAwayTransaction' => 'PhrictionDocumentVersionTransaction',\n    'PhrictionDocumentMoveToTransaction' => 'PhrictionDocumentVersionTransaction',\n    'PhrictionDocumentPHIDType' => 'PhabricatorPHIDType',\n    'PhrictionDocumentPathHeraldField' => 'PhrictionDocumentHeraldField',\n    'PhrictionDocumentPolicyCodex' => 'PhabricatorPolicyCodex',\n    'PhrictionDocumentPublishTransaction' => 'PhrictionDocumentTransactionType',\n    'PhrictionDocumentPublishedHeraldField' => 'PhrictionDocumentHeraldField',\n    'PhrictionDocumentQuery' => 'PhabricatorCursorPagedPolicyAwareQuery',\n    'PhrictionDocumentSearchConduitAPIMethod' => 'PhabricatorSearchEngineAPIMethod',\n    'PhrictionDocumentSearchEngine' => 'PhabricatorApplicationSearchEngine',\n    'PhrictionDocumentStatus' => 'PhabricatorObjectStatus',\n    'PhrictionDocumentTitleHeraldField' => 'PhrictionDocumentHeraldField',\n    'PhrictionDocumentTitleTransaction' => 'PhrictionDocumentVersionTransaction',\n    'PhrictionDocumentTransactionType' => 'PhabricatorModularTransactionType',\n    'PhrictionDocumentVersionTransaction' => 'PhrictionDocumentTransactionType',\n    'PhrictionEditConduitAPIMethod' => 'PhrictionConduitAPIMethod',\n    'PhrictionEditController' => 'PhrictionController',\n    'PhrictionEditEngineController' => 'PhrictionController',\n    'PhrictionHistoryConduitAPIMethod' => 'PhrictionConduitAPIMethod',\n    'PhrictionHistoryController' => 'PhrictionController',\n    'PhrictionHovercardEngineExtension' => 'PhabricatorHovercardEngineExtension',\n    'PhrictionInfoConduitAPIMethod' => 'PhrictionConduitAPIMethod',\n    'PhrictionListController' => 'PhrictionController',\n    'PhrictionMarkupPreviewController' => 'PhabricatorController',\n    'PhrictionMoveController' => 'PhrictionController',\n    'PhrictionNewController' => 'PhrictionController',\n    'PhrictionPublishController' => 'PhrictionController',\n    'PhrictionRemarkupRule' => 'PhutilRemarkupRule',\n    'PhrictionReplyHandler' => 'PhabricatorApplicationTransactionReplyHandler',\n    'PhrictionSchemaSpec' => 'PhabricatorConfigSchemaSpec',\n    'PhrictionTransaction' => 'PhabricatorModularTransaction',\n    'PhrictionTransactionComment' => 'PhabricatorApplicationTransactionComment',\n    'PhrictionTransactionEditor' => 'PhabricatorApplicationTransactionEditor',\n    'PhrictionTransactionQuery' => 'PhabricatorApplicationTransactionQuery',\n"
         }
       ]
     },
@@ -559,6 +579,702 @@
           "offset": 198,
           "current": "  public function testAnonymousWebserverChecksRespectEnabledForwardAuth() {\n    $proxy = id(new PhabricatorAuthProviderConfig())\n      ->setProviderClass('PhabricatorTraefikAuthProvider')\n      ->setIsEnabled(true);\n    $password = id(new PhabricatorAuthProviderConfig())\n      ->setProviderClass('PhabricatorPasswordAuthProvider')\n      ->setIsEnabled(true);\n    $this->assertFalse(\n      PhabricatorWebServerSetupCheck::shouldSkipAnonymousChecks(array()));\n    $this->assertFalse(\n      PhabricatorWebServerSetupCheck::shouldSkipAnonymousChecks(array($password)));\n    $this->assertTrue(\n      PhabricatorWebServerSetupCheck::shouldSkipAnonymousChecks(array($proxy)));\n    $this->assertTrue(\n      PhabricatorWebServerSetupCheck::shouldSkipAnonymousChecks(array($password, $proxy)));\n    $proxy->setIsEnabled(false);\n    $this->assertFalse(\n      PhabricatorWebServerSetupCheck::shouldSkipAnonymousChecks(array($proxy)));\n  }\n\n",
           "parent": ""
+        }
+      ]
+    },
+    "resources/celerity/map.php": {
+      "current_bytes": 84847,
+      "current_sha256": "7f8757eb5d97030ac20f8a6d02564ad8099df2b0ce1ae4e7c802c94c35106961",
+      "target_bytes": 84970,
+      "target_sha256": "a04024e565cceb3e987818958ef4f700a24398713ba1282648d0006993cb4a41",
+      "edits": [
+        {
+          "offset": 4666,
+          "current": "",
+          "parent": "    'rsrc/css/application/phriction/phriction-document-css.css' => 'd8f8cdd6',\n"
+        },
+        {
+          "offset": 40758,
+          "current": "",
+          "parent": "    'phriction-document-css' => 'd8f8cdd6',\n"
+        }
+      ]
+    },
+    "resources/sql/autopatches/20141107.phriction.policy.2.php": {
+      "current_bytes": 1793,
+      "current_sha256": "8872c40288139e1412104052ab2a4c193e615e8e7c1f2c05608f761574271ba4",
+      "target_bytes": 1801,
+      "target_sha256": "89417b6b2608dfb25525ba5a52a45fbb904a4744638a277d36ce425e0d5e03b2",
+      "edits": [
+        {
+          "offset": 7,
+          "current": "$table = 'phriction_document';\n$conn_w = $this->getConn('phriction');\n",
+          "parent": "$table = new PhrictionDocument();\n$conn_w = $table->establishConnection('w');\n"
+        },
+        {
+          "offset": 243,
+          "current": "foreach (new LiskRawMigrationIterator($conn_w, $table) as $doc) {\n  $id = $doc['id'];\n",
+          "parent": "foreach (new LiskMigrationIterator($table) as $doc) {\n  $id = $doc->getID();\n"
+        },
+        {
+          "offset": 330,
+          "current": "  if ($doc['viewPolicy'] && $doc['editPolicy']) {\n",
+          "parent": "  if ($doc->getViewPolicy() && $doc->getEditPolicy()) {\n"
+        },
+        {
+          "offset": 747,
+          "current": "  $slug = $doc['slug'];\n",
+          "parent": "  $slug = $doc->getSlug();\n"
+        },
+        {
+          "offset": 1626,
+          "current": "    'UPDATE %T SET viewPolicy = %s, editPolicy = %s\n",
+          "parent": "    'UPDATE %R SET viewPolicy = %s, editPolicy = %s\n"
+        }
+      ]
+    },
+    "resources/sql/autopatches/20141107.phriction.popkeys.php": {
+      "current_bytes": 746,
+      "current_sha256": "54a46ad4dc49cf8974592e5baff49be10a89095262a30b167a4de74192d90d9d",
+      "target_bytes": 764,
+      "target_sha256": "e00dd766293b27a20c703db9ec272a24a8674045ded1ce8f83cf471708d3904b",
+      "edits": [
+        {
+          "offset": 7,
+          "current": "$table = 'phriction_document';\n$conn_w = $this->getConn('phriction');\n",
+          "parent": "$table = new PhrictionDocument();\n$conn_w = $table->establishConnection('w');\n"
+        },
+        {
+          "offset": 128,
+          "current": "foreach (new LiskRawMigrationIterator($conn_w, $table) as $doc) {\n  $id = $doc['id'];\n",
+          "parent": "foreach (new LiskMigrationIterator($table) as $doc) {\n  $id = $doc->getID();\n"
+        },
+        {
+          "offset": 215,
+          "current": "  $key = $doc['mailKey'];\n",
+          "parent": "  $key = $doc->getMailKey();\n"
+        },
+        {
+          "offset": 672,
+          "current": "      $table,\n",
+          "parent": "      $table->getTableName(),\n"
+        }
+      ]
+    },
+    "resources/sql/autopatches/20180215.phriction.02.phidvalues.php": {
+      "current_bytes": 332,
+      "current_sha256": "13958db7b638b19267d4c5ac6971cdeac9b7b1a251b07c27077207ace206d36a",
+      "target_bytes": 334,
+      "target_sha256": "c30d0bc947d73819a115fb051cc1aa36e2f7014180e87c7f5aba5a38403da3d0",
+      "edits": [
+        {
+          "offset": 7,
+          "current": "$table = 'phriction_content';\n$conn = $this->getConn('phriction');\n",
+          "parent": "$table = new PhrictionContent();\n$conn = $table->establishConnection('w');\n"
+        },
+        {
+          "offset": 75,
+          "current": "foreach (new LiskRawMigrationIterator($conn, $table) as $row) {\n  if (strlen($row['phid'])) {\n",
+          "parent": "foreach (new LiskMigrationIterator($table) as $row) {\n  if (strlen($row->getPHID())) {\n"
+        },
+        {
+          "offset": 255,
+          "current": "    $table,\n    PhabricatorPHID::generateNewPHID('WRDS'),\n    $row['id']);\n",
+          "parent": "    $table->getTableName(),\n    $table->generatePHID(),\n    $row->getID());\n"
+        }
+      ]
+    },
+    "resources/sql/autopatches/20180828.phriction.04.migrate.php": {
+      "current_bytes": 1222,
+      "current_sha256": "3062c73002a3cc4d2539252e95b300fb7927d0cc38be219a67471b7bf8d797b9",
+      "target_bytes": 1338,
+      "target_sha256": "ef60a264d53418d66b28cba9fe26d44ec831205c382587a463c942c7163d14ac",
+      "edits": [
+        {
+          "offset": 121,
+          "current": "$document_table = 'phriction_document';\n$content_table = 'phriction_content';\n",
+          "parent": "$document_table = new PhrictionDocument();\n$content_table = new PhrictionContent();\n"
+        },
+        {
+          "offset": 200,
+          "current": "$conn = $this->getConn('phriction');\n",
+          "parent": "$conn = $document_table->establishConnection('w');\n"
+        },
+        {
+          "offset": 298,
+          "current": "  $document_table);\n",
+          "parent": "  $document_table->getTableName());\n"
+        },
+        {
+          "offset": 488,
+          "current": "    $content_table,\n",
+          "parent": "    $content_table->getTableName(),\n"
+        },
+        {
+          "offset": 661,
+          "current": "    $document_table,\n",
+          "parent": "    $document_table->getTableName(),\n"
+        },
+        {
+          "offset": 820,
+          "current": "  $content_table);\n",
+          "parent": "  $content_table->getTableName());\n"
+        },
+        {
+          "offset": 998,
+          "current": "    $document_table,\n",
+          "parent": "    $document_table->getTableName(),\n"
+        },
+        {
+          "offset": 1156,
+          "current": "    $content_table,\n",
+          "parent": "    $content_table->getTableName(),\n"
+        }
+      ]
+    },
+    "resources/sql/autopatches/20180828.phriction.06.c.documentid.php": {
+      "current_bytes": 499,
+      "current_sha256": "271a4cecb2708499876cff291287a9a922e101f868a063c613e10f0fe1fa7038",
+      "target_bytes": 523,
+      "target_sha256": "ae369f8e79dc09d930093cec503a05fc34d3c6216e5523c88995681f0339b6ca",
+      "edits": [
+        {
+          "offset": 295,
+          "current": "$table = 'phriction_content';\n$conn = $this->getConn('phriction');\n",
+          "parent": "$table = new PhrictionContent();\n$conn = $table->establishConnection('w');\n"
+        },
+        {
+          "offset": 433,
+          "current": "    $table);\n",
+          "parent": "    $table->getTableName());\n"
+        }
+      ]
+    },
+    "resources/sql/autopatches/20180829.phriction.01.mailkey.php": {
+      "current_bytes": 706,
+      "current_sha256": "2efbc298d6247157905ff2e0d1397c828ee718905bcf34c80edb6a19c5262fec",
+      "target_bytes": 739,
+      "target_sha256": "0eff3fb62a5039091ef122e50e8dd1f4b2d1703d73bc7c533317f9e79b911750",
+      "edits": [
+        {
+          "offset": 7,
+          "current": "$document_table = 'phriction_document';\n$document_conn = $this->getConn('phriction');\n$document_name = $document_table;\n",
+          "parent": "$document_table = new PhrictionDocument();\n$document_conn = $document_table->establishConnection('w');\n$document_name = $document_table->getTableName();\n"
+        }
+      ]
+    },
+    "resources/sql/autopatches/20180830.phriction.02.maxes.php": {
+      "current_bytes": 633,
+      "current_sha256": "b63e38372934989ea12951e3db8c5e279ba2f46bdc5d1ddb3373ae1ae93679bf",
+      "target_bytes": 701,
+      "target_sha256": "4fec4c638196a870db0d686bedf8e059b04d1791fc9d82fc3e261e7def6a6eeb",
+      "edits": [
+        {
+          "offset": 104,
+          "current": "$document_table = 'phriction_document';\n$content_table = 'phriction_content';\n",
+          "parent": "$document_table = new PhrictionDocument();\n$content_table = new PhrictionContent();\n"
+        },
+        {
+          "offset": 183,
+          "current": "$conn = $this->getConn('phriction');\n",
+          "parent": "$conn = $document_table->establishConnection('w');\n"
+        },
+        {
+          "offset": 272,
+          "current": "  $document_table);\n",
+          "parent": "  $document_table->getTableName());\n"
+        },
+        {
+          "offset": 422,
+          "current": "    $content_table,\n",
+          "parent": "    $content_table->getTableName(),\n"
+        },
+        {
+          "offset": 572,
+          "current": "    $document_table,\n",
+          "parent": "    $document_table->getTableName(),\n"
+        }
+      ]
+    },
+    "src/applications/remarkup/conduit/RemarkupProcessConduitAPIMethod.php": {
+      "current_bytes": 2051,
+      "current_sha256": "7abbcdada30f5010b8e804cd7218d5781dd9c3b20e7ff631ca95417a07179c8a",
+      "target_bytes": 2100,
+      "target_sha256": "db67c3bcdd0b06a3a253256b33474fe3e6e419ee6a14078871c770aa2d93c34f",
+      "edits": [
+        {
+          "offset": 1804,
+          "current": "",
+          "parent": "      'phriction' => 'newPhrictionMarkupEngine',\n"
+        }
+      ]
+    },
+    "src/applications/remarkup/content/RemarkupReferenceBasicModule.php": {
+      "current_bytes": 11562,
+      "current_sha256": "0472073d217af371256788c5d3e661df048d6b0974968d8edd9a2fb9a17d2e2c",
+      "target_bytes": 13126,
+      "target_sha256": "5cf1c2d25e73f591ff9891304e2a94b0c5228283beb507fb9519d69b228af1f5",
+      "edits": [
+        {
+          "offset": 1226,
+          "current": "",
+          "parent": "  [[wiki page]]             # Link to Phriction\n  [[wiki page | name]]      # Named link to Phriction\n"
+        },
+        {
+          "offset": 8256,
+          "current": "",
+          "parent": "= Phriction Documents =\n\nYou can link to Phriction documents with a name or path:\n\n  Make sure you sign and date your [[legal/Letter of Marque and Reprisal]]!\n\nBy default, the link will render with the document title as the link name.\nWith a pipe (`|`), you can retitle the link. Use this to mislead your\nopponents:\n\n  Check out these [[legal/boring_documents/ | exciting legal documents]]!\n\nLinks to pages which do not exist are shown in red. Links to pages which exist\nbut which the viewer does not have permission to see are shown with a lock\nicon, and the link will not disclose the page title.\n\nIf you begin a link path with `./` or `../`, the remainder of the path will be\nevaluated relative to the current wiki page. For example, if you are writing\ncontent for the document `fruit/` a link to `[[./guava]]` is the same as a link\nto `[[fruit/guava]]` from elsewhere.\n\nRelative links may use `../` to transverse up the document tree. From the\n`produce/vegetables/` page, you can use `[[../fruit/guava]]` to link to the\n`produce/fruit/guava` page.\n\nRelative links do not work when used outside of wiki pages. For example,\nyou can't use a relative link in a comment on a task, because there is no\nreasonable place for the link to start resolving from.\n\nWhen documents are moved, relative links are not automatically updated: they\nare preserved as currently written. After moving a document, you may need to\nreview and adjust any relative links it contains.\n\n\n"
+        }
+      ]
+    },
+    "src/applications/remarkup/remarkupcontroller/PhabricatorRemarkupControl.php": {
+      "current_bytes": 12313,
+      "current_sha256": "1ccd444af6b3c05efa96b392b69e3624fc6646ddb619a2ec73abe855cb080116",
+      "target_bytes": 12823,
+      "target_sha256": "7dd3b0d1e0104d59c3fb904e3860e44d28661d7fbc47ef8d0e596fba43f25cfc",
+      "edits": [
+        {
+          "offset": 3648,
+          "current": "",
+          "parent": "    $phriction_datasource = new PhrictionDocumentDatasource();\n"
+        },
+        {
+          "offset": 6052,
+          "current": "",
+          "parent": "          ),\n          91 => array( // \"[\"\n            'datasourceURI' => $phriction_datasource->getDatasourceURI(),\n            'headerIcon' => 'fa-book',\n            'headerText' => pht('Find Document:'),\n            'hintText' => $phriction_datasource->getPlaceholderText(),\n            'cancel' => array(\n              ':', // Cancel on \"http:\" and similar.\n              '|',\n              ']',\n            ),\n            'prefix' => '^\\\\[',\n"
+        }
+      ]
+    },
+    "src/applications/search/menuitem/PhabricatorProfileMenuItemIconSet.php": {
+      "current_bytes": 1442,
+      "current_sha256": "f76e2bd0e7bf435d3a9eff1f9d6741ae6719e9b86efdfab1c943303ffe6256e9",
+      "target_bytes": 1559,
+      "target_sha256": "90df421a494912c085a629396e8f29a79d3ef6420dcfba278d48f61f1b40b018",
+      "edits": [
+        {
+          "offset": 596,
+          "current": "",
+          "parent": "      ),\n      array(\n        'key' => 'phriction',\n        'icon' => 'fa-book',\n        'name' => pht('Phriction'),\n"
+        }
+      ]
+    },
+    "src/infrastructure/governance/consistency/PhorgeGovernanceNativeReadView.php": {
+      "current_bytes": 14521,
+      "current_sha256": "de81f9c5042ca94247404013d171aa8e34f5cb837809c45b335c0516052aa95e",
+      "target_bytes": 14586,
+      "target_sha256": "bac094310783c6b05625e8bb1805bebaeecec15dc103b470f7caabbe983e1aa5",
+      "edits": [
+        {
+          "offset": 12220,
+          "current": "      ManiphestTask::class => ManiphestTaskQuery::class);\n",
+          "parent": "      ManiphestTask::class => ManiphestTaskQuery::class,\n      PhrictionDocument::class => PhrictionDocumentQuery::class);\n"
+        }
+      ]
+    },
+    "src/infrastructure/governance/contracts/PhorgeGovernanceContentDecision.php": {
+      "current_bytes": 2541,
+      "current_sha256": "26282032e65b10161dc4411c9741b1e58c82dd8d715c3865446430f7fc6c41ab",
+      "target_bytes": 2599,
+      "target_sha256": "f3eb13b1a434219590c75f7fc331cc535fa13cf191c428d28acc8ca47b75a995",
+      "edits": [
+        {
+          "offset": 417,
+          "current": "",
+          "parent": "      'wiki.title' => true,\n      'wiki.content' => true,\n"
+        }
+      ]
+    },
+    "src/infrastructure/governance/contracts/__tests__/PhorgeGovernanceContentDecisionTestCase.php": {
+      "current_bytes": 3631,
+      "current_sha256": "6fa3d53978133ff87cf09ce98a70875f1fe9b5571ef52c53120f383979ecb594",
+      "target_bytes": 3627,
+      "target_sha256": "72e51f95f84de98f8f4268375ee7728433a716116a8dab291e33b74665be8ca0",
+      "edits": [
+        {
+          "offset": 1890,
+          "current": "      'content', 'task.description', $context);\n",
+          "parent": "      'content', 'wiki.content', $context);\n"
+        }
+      ]
+    },
+    "src/infrastructure/governance/mapping/PhorgeGovernanceCapabilityMap.php": {
+      "current_bytes": 11822,
+      "current_sha256": "c918275a4bd8206be4cc7a2a11aed21a3f511642af78be67f2ec46566c825e30",
+      "target_bytes": 13489,
+      "target_sha256": "e7f8c2a843670d65184ac5d92613f00bfe591c0f334b3b099689dbf6626e3d9c",
+      "edits": [
+        {
+          "offset": 863,
+          "current": "",
+          "parent": "      case PhrictionDocument::class:\n        return array_merge($common, array('wiki.title', 'wiki.content'));\n"
+        },
+        {
+          "offset": 1846,
+          "current": "",
+          "parent": "      case PhrictionDocument::class:\n        $kinds = array_merge($kinds, array('wiki.policy', 'wiki.parent'));\n        break;\n"
+        },
+        {
+          "offset": 2715,
+          "current": "",
+          "parent": "      ),\n      PhrictionDocument::class => array(\n        'family' => 'WIKI',\n        'envelope' => PhrictionTransaction::class,\n        'sources' => array('WIKI.EDIT.WEB.LEGACY', 'WIKI.EDIT.EDITOR',\n          'WIKI.EDIT.CONDUIT', 'WIKI.EDIT.CONDUIT.LEGACY',\n          'WIKI.POLICY.SOURCE'),\n        'automatic_boundary' => 'native document and ancestry policy retained',\n"
+        },
+        {
+          "offset": 5131,
+          "current": "",
+          "parent": "      array('MAP.WIKI.TITLE', 'PhrictionDocumentTitleTransaction',\n        'title', 'wiki.title'),\n      array('MAP.WIKI.CONTENT', 'PhrictionDocumentContentTransaction',\n        'content', 'wiki.content'),\n"
+        },
+        {
+          "offset": 5149,
+          "current": "",
+          "parent": "      $wiki = strncmp($item[0], 'MAP.WIKI.', 9) === 0;\n"
+        },
+        {
+          "offset": 5184,
+          "current": "        $item[0], ManiphestTask::class,\n",
+          "parent": "        $item[0], $wiki ? PhrictionDocument::class : ManiphestTask::class,\n"
+        },
+        {
+          "offset": 5292,
+          "current": "        'content-candidate', 'low', array(),\n        'field classification only; native validation/expansion still required');\n",
+          "parent": "        'content-candidate', $wiki ? 'high' : 'low', array(),\n        $wiki ? 'title/content can publish or restore; empty content expands '.\n          'to deletion; value/creation/expansion adapter must verify' :\n          'field classification only; native validation/expansion still required');\n      if ($wiki) {\n        // The newer comment-oriented engine does not prove body-edit coverage.\n        $content['source_ids'] = array(\n          'WIKI.EDIT.WEB.LEGACY', 'WIKI.EDIT.EDITOR',\n          'WIKI.EDIT.CONDUIT.LEGACY', 'WIKI.CREATE.CONDUIT.LEGACY',\n          'WIKI.POLICY.SOURCE', 'TRANSACTION.MODULAR', 'TRANSACTION.LEGACY');\n      }\n"
+        },
+        {
+          "offset": 5563,
+          "current": "",
+          "parent": "        'MAP.WIKI.TITLE' => 'WIKI.TITLE.MODULAR',\n        'MAP.WIKI.CONTENT' => 'WIKI.CONTENT.MODULAR',\n"
+        },
+        {
+          "offset": 7682,
+          "current": "",
+          "parent": "      array('MAP.WIKI.MOVE', PhrictionDocument::class,\n        'PhrictionDocumentMoveToTransaction', 'move-to'),\n"
+        },
+        {
+          "offset": 7958,
+          "current": "    foreach (array(ManiphestTask::class) as $object) {\n",
+          "parent": "    foreach (array(ManiphestTask::class, PhrictionDocument::class) as $object) {\n"
+        }
+      ]
+    },
+    "src/infrastructure/governance/mapping/__tests__/PhorgeGovernanceCapabilityMapTestCase.php": {
+      "current_bytes": 13601,
+      "current_sha256": "e9a0ca0daed9dfe9feae6a69c4a87df0383e02c9b8390c235f2c04fa374c1f64",
+      "target_bytes": 14011,
+      "target_sha256": "6d4b89c48cf4e4be9772dcd8bda65d5dc026d266994f2e70e4266347f1daf398",
+      "edits": [
+        {
+          "offset": 1724,
+          "current": "    $this->assertEqual(17, count($ids));\n",
+          "parent": "    $this->assertTrue(count($ids) > 20);\n"
+        },
+        {
+          "offset": 2744,
+          "current": "",
+          "parent": "    $wiki = PhorgeGovernanceCapabilityMap::classify(\n      PhrictionDocument::class, PhrictionTransaction::class,\n      PhrictionDocumentTitleTransaction::TRANSACTIONTYPE);\n"
+        },
+        {
+          "offset": 2802,
+          "current": "",
+          "parent": "    $this->assertEqual('wiki.title', $wiki['operation']);\n"
+        },
+        {
+          "offset": 2848,
+          "current": "",
+          "parent": "    // Same literal type (title) must not mix two objects or handlers.\n    $this->assertEqual($task['transaction_type'], $wiki['transaction_type']);\n"
+        },
+        {
+          "offset": 2868,
+          "current": "      array(ManiphestTask::class, 'PhrictionTransaction'),\n      array('PhrictionDocument', ManiphestTransaction::class),\n",
+          "parent": "      array(ManiphestTask::class, PhrictionTransaction::class),\n      array(PhrictionDocument::class, ManiphestTransaction::class),\n"
+        },
+        {
+          "offset": 3401,
+          "current": "",
+          "parent": "  public function testWikiContentRequiresValueAndExpansionReview() {\n    foreach (array(PhrictionDocumentTitleTransaction::TRANSACTIONTYPE,\n      PhrictionDocumentContentTransaction::TRANSACTIONTYPE) as $type) {\n      $result = PhorgeGovernanceCapabilityMap::classify(\n        PhrictionDocument::class, PhrictionTransaction::class, $type);\n      $this->assertEqual('content-candidate', $result['classification']);\n      $this->assertEqual('high', $result['risk']);\n      $this->assertFalse($result['risk_complete']);\n      $this->assertFalse(in_array('WIKI.COMMENT.ENGINE',\n        $result['source_ids'], true));\n      $this->assertFalse(in_array('WIKI.EDIT.CONDUIT',\n        $result['source_ids'], true));\n      $this->assertTrue(in_array('WIKI.EDIT.CONDUIT.LEGACY',\n        $result['source_ids'], true));\n    }\n  }\n"
+        },
+        {
+          "offset": 3624,
+          "current": "",
+          "parent": "      PhrictionDocument::class => PhrictionTransaction::class,\n"
+        },
+        {
+          "offset": 7239,
+          "current": "",
+          "parent": "      array(PhrictionDocument::class, PhrictionTransaction::class,\n        PhrictionDocumentMoveToTransaction::TRANSACTIONTYPE),\n"
+        },
+        {
+          "offset": 10089,
+          "current": "      array($forged), array($title, $this->descriptor('PhrictionTransaction',\n        'title')),\n",
+          "parent": "      array($forged), array($title, $this->descriptor(PhrictionTransaction::class,\n        PhrictionDocumentTitleTransaction::TRANSACTIONTYPE)),\n"
+        },
+        {
+          "offset": 10963,
+          "current": "",
+          "parent": "      PhrictionDocument::class => 'wiki.parent',\n"
+        },
+        {
+          "offset": 11546,
+          "current": "    foreach (array(array('task.title', 'PhrictionDocument'),\n",
+          "parent": "    foreach (array(array('task.title', PhrictionDocument::class),\n"
+        },
+        {
+          "offset": 11955,
+          "current": "    }\n  }\n\n  public function testRetiredWikiCannotAcquireContentOrManagementCapabilities() {\n    $this->assertEqual(array(),\n      PhorgeGovernanceCapabilityMap::getKnownOperations('PhrictionDocument'));\n    foreach (array('title', 'content', 'core:view', 'core:edit', 'move-to')\n      as $type) {\n      $result = PhorgeGovernanceCapabilityMap::classify(\n        'PhrictionDocument', 'PhrictionTransaction', $type);\n      $this->assertEqual('blocked', $result['status']);\n      $this->assertFalse($result['can_execute']);\n    }\n    foreach (array('wiki.title', 'wiki.content', 'policy.replace',\n      'object.space', 'object.relationship') as $operation) {\n      $this->assertEqual(null,\n        PhorgeGovernanceReadSetValidator::getRequiredSourceKinds(\n          $operation, 'PhrictionDocument'));\n    }\n    foreach (array('wiki.title', 'wiki.content') as $operation) {\n      $result = PhorgeGovernanceContentDecision::evaluate(\n        'content', $operation, array());\n      $this->assertEqual('unsupported_operation', $result['reason']);\n      $this->assertFalse($result['can_execute']);\n",
+          "parent": ""
+        }
+      ]
+    },
+    "src/infrastructure/governance/native/PhorgeGovernanceNativePolicyCompositionVerifier.php": {
+      "current_bytes": 11250,
+      "current_sha256": "1593552b62b360a76ead59a4684660c8eb591e1674770ab8cea7389667358d31",
+      "target_bytes": 11353,
+      "target_sha256": "a503f3088502537e7e6881e75d0db1eebf0ec6f1b7ecda29b4ecd4b7fed8261f",
+      "edits": [
+        {
+          "offset": 1693,
+          "current": "      ManiphestTask::class => 'TASK');\n",
+          "parent": "      ManiphestTask::class => 'TASK', PhrictionDocument::class => 'WIKI');\n"
+        },
+        {
+          "offset": 9712,
+          "current": "        ManiphestTask::class => ManiphestTaskQuery::class);\n",
+          "parent": "        ManiphestTask::class => ManiphestTaskQuery::class,\n        PhrictionDocument::class => PhrictionDocumentQuery::class);\n"
+        }
+      ]
+    },
+    "src/infrastructure/governance/native/PhorgeGovernanceNativeRuleHierarchyVerifier.php": {
+      "current_bytes": 9485,
+      "current_sha256": "cb79b634229603a1cc169d81f1af90f1fee39062091f22415df637d38242bb53",
+      "target_bytes": 9517,
+      "target_sha256": "21c8b69d97967d43f23103d80178493f7ab66eb45f2b1ab4e3739f135125a575",
+      "edits": [
+        {
+          "offset": 1567,
+          "current": "    $allowed = array(PhabricatorProject::class, ManiphestTask::class);\n",
+          "parent": "    $allowed = array(PhabricatorProject::class, ManiphestTask::class,\n      PhrictionDocument::class);\n"
+        }
+      ]
+    },
+    "src/infrastructure/governance/native/PhorgeGovernanceNativeSourceReader.php": {
+      "current_bytes": 26248,
+      "current_sha256": "f6e05760da5be99fd8875be4e5b337fda63b60d360f1387dccee4a3e022e7e16",
+      "target_bytes": 26476,
+      "target_sha256": "affcc1461b7591e922c5cd93c48132dff0868925defd8d3ba0ecd649a4a11344",
+      "edits": [
+        {
+          "offset": 8579,
+          "current": "        'ManiphestTask' => 'TASK');\n",
+          "parent": "        'ManiphestTask' => 'TASK', 'PhrictionDocument' => 'WIKI');\n"
+        },
+        {
+          "offset": 17869,
+          "current": "      'ManiphestTask' => 'maniphest.maniphest_task');\n",
+          "parent": "      'ManiphestTask' => 'maniphest.maniphest_task',\n      'PhrictionDocument' => 'phriction.phriction_document');\n"
+        },
+        {
+          "offset": 22509,
+          "current": "",
+          "parent": "        case 'wiki.policy':\n"
+        },
+        {
+          "offset": 22921,
+          "current": "",
+          "parent": "          break;\n        case 'wiki.parent':\n          $data = $this->rows['phriction.phriction_document'];\n"
+        }
+      ]
+    },
+    "src/infrastructure/governance/notification/PhorgePrivateMailPolicy.php": {
+      "current_bytes": 22342,
+      "current_sha256": "abf416c6dc464e65bb50d64853113c4c74440519d62bce1925d76c2d6a213894",
+      "target_bytes": 22070,
+      "target_sha256": "67112136ba242de5c8ada4b22ee07958722fcf3fb93b34dabf08bc353364a361",
+      "edits": [
+        {
+          "offset": 602,
+          "current": "    if(in_array($producer,array('PhabricatorBadgesEditor','PhabricatorCalendarEventEditor','PhabricatorCalendarNotificationEngine','ConpherenceEditor','PhabricatorCountdownEditor','PhabricatorFileEditor','FileCreateMailReceiver','HeraldRuleEditor','LegalpadDocumentEditor','PhabricatorMacroEditor','ManiphestTransactionEditor','PhameBlogEditor','PhamePostEditor','PholioMockEditor','PhabricatorPhurlURLEditor','PhorgePolicyNamedPolicyTransactionEditor','PonderAnswerEditor','PonderQuestionEditor','PhabricatorProjectTransactionEditor','PhabricatorSlowvoteEditor'),true)){return 'business';}\n",
+          "parent": "    if(in_array($producer,array('PhabricatorBadgesEditor','PhabricatorCalendarEventEditor','PhabricatorCalendarNotificationEngine','ConpherenceEditor','PhabricatorCountdownEditor','PhabricatorFileEditor','FileCreateMailReceiver','HeraldRuleEditor','LegalpadDocumentEditor','PhabricatorMacroEditor','ManiphestTransactionEditor','PhameBlogEditor','PhamePostEditor','PholioMockEditor','PhrictionTransactionEditor','PhabricatorPhurlURLEditor','PhorgePolicyNamedPolicyTransactionEditor','PonderAnswerEditor','PonderQuestionEditor','PhabricatorProjectTransactionEditor','PhabricatorSlowvoteEditor'),true)){return 'business';}\n"
+        },
+        {
+          "offset": 2736,
+          "current": "    // Historical Wiki messages must not outlive the removed application's ACL.\n    if ($mail->getPrivateMailPolicyValue('governance.mail-producer') ===\n        'PhrictionTransactionEditor' ||\n        preg_match('/\\APHID-(?:WIKI|WRDS)-/', (string)$mail->getRelatedPHID())) {\n      return false;\n    }\n",
+          "parent": ""
+        }
+      ]
+    },
+    "src/infrastructure/governance/observation/PhorgeGovernanceNativeObservationVerifier.php": {
+      "current_bytes": 15517,
+      "current_sha256": "ad7a271cfbbbdd2f0b407a20432f5ad377ec462421a8ca9da28566703a0245cb",
+      "target_bytes": 19501,
+      "target_sha256": "21ae153a8a3cde5236e6a860b92ab46c80054373589311a08bf39653e70a00ef",
+      "edits": [
+        {
+          "offset": 1577,
+          "current": "      PhabricatorProject::class, ManiphestTask::class), true)) {\n",
+          "parent": "      PhabricatorProject::class, ManiphestTask::class,\n      PhrictionDocument::class), true)) {\n"
+        },
+        {
+          "offset": 1806,
+          "current": "",
+          "parent": "      PhrictionDocument::class => 'WIKI',\n"
+        },
+        {
+          "offset": 6046,
+          "current": "",
+          "parent": "  public function observeWikiLocalExpansion(\n    PhrictionDocument $document,\n    array $transactions) {\n\n    return $this->observeLocal(\n      $document, $transactions, PhrictionDocument::class,\n      PhrictionTransaction::class, PhrictionTransactionEditor::class,\n      'expandTransaction', null);\n  }\n\n  /** Observe the Wiki batch prelude, never validation or final effects. */\n  public function observeWikiBatchExpansion(\n    PhrictionDocument $document,\n    array $transactions) {\n\n    if (!self::hasIsolatedScope()) {\n      return self::blocked('isolated_scope_required');\n    }\n    try {\n      $content = $document->getContent();\n      if (get_class($document) !== PhrictionDocument::class ||\n          get_class($content) !== PhrictionContent::class ||\n          $content->getID() === null ||\n          !is_string($document->getPHID()) ||\n          !preg_match('/\\APHID-WIKI-[a-zA-Z0-9]{20}\\z/',\n            $document->getPHID()) ||\n          $content->getDocumentPHID() !== $document->getPHID() ||\n          !is_string($content->getPHID()) ||\n          !preg_match('/\\APHID-WRDS-[a-zA-Z0-9]{20}\\z/',\n            $content->getPHID()) ||\n          $document->getContentPHID() !== $content->getPHID() ||\n          self::nativeContentVersion($content->getVersion()) === null) {\n        return self::blocked('unsupported_attached_wiki_content');\n      }\n      $copy = clone $document;\n      $copy->attachContent(clone $content);\n      return $this->observeLocal(\n        $copy, $transactions, PhrictionDocument::class,\n        PhrictionTransaction::class, PhrictionTransactionEditor::class,\n        'expandTransactions', null);\n    } catch (Throwable $error) {\n      return self::blocked('unsupported_attached_wiki_content');\n    }\n  }\n\n"
+        },
+        {
+          "offset": 7703,
+          "current": "        $value = self::copyValue($value, 0, $budget);\n        if (!self::supportsLocalValue($expected_object, $type, $value)) {\n          return self::blocked('unsupported_local_value');\n",
+          "parent": "        if ($type === PhrictionDocumentMoveToTransaction::TRANSACTIONTYPE &&\n            $expected_object === PhrictionDocument::class) {\n          if (!is_object($value) ||\n              get_class($value) !== PhrictionDocument::class ||\n              $value->getID() === null ||\n              !self::isPolicyValue($value->getViewPolicy()) ||\n              !self::isPolicyValue($value->getEditPolicy())) {\n            return self::blocked('unsupported_move_destination');\n          }\n          $value = clone $value;\n        } else {\n          $value = self::copyValue($value, 0, $budget);\n          if (!self::supportsLocalValue($expected_object, $type, $value)) {\n            return self::blocked('unsupported_local_value');\n          }\n"
+        },
+        {
+          "offset": 9126,
+          "current": "",
+          "parent": "        if (is_object($value) &&\n            get_class($value) === PhrictionDocument::class) {\n          $value = array(\n            'object_class' => PhrictionDocument::class,\n            'view_policy' => $value->getViewPolicy(),\n            'edit_policy' => $value->getEditPolicy(),\n          );\n        }\n"
+        },
+        {
+          "offset": 10841,
+          "current": "",
+          "parent": "      if ($expected_object === PhrictionDocument::class &&\n          $method === 'expandTransactions') {\n        $old_content = (new ReflectionMethod(\n          PhrictionTransactionEditor::class, 'getOldContent'))->invoke($editor);\n        $result['editor_context'] = array(\n          'old_content_version' =>\n            self::nativeContentVersion($old_content->getVersion()),\n          'content_identity_digest' => hash('sha256',\n            $old_content->getPHID()),\n        );\n      }\n"
+        },
+        {
+          "offset": 12323,
+          "current": "",
+          "parent": "      case PhrictionDocument::class:\n        return in_array($type, array(\n          PhabricatorTransactions::TYPE_VIEW_POLICY,\n          PhabricatorTransactions::TYPE_EDIT_POLICY,\n          PhrictionDocumentTitleTransaction::TRANSACTIONTYPE,\n          PhrictionDocumentContentTransaction::TRANSACTIONTYPE,\n          PhrictionDocumentMoveToTransaction::TRANSACTIONTYPE), true);\n"
+        },
+        {
+          "offset": 12347,
+          "current": "",
+          "parent": "  }\n\n  private static function nativeContentVersion($value) {\n    // Native uint32 columns can hydrate as canonical decimal strings.\n    if (is_int($value)) {\n      return $value >= 1 && $value <= 4294967295 ? $value : null;\n    }\n    if (!is_string($value) ||\n        !preg_match('/\\A[1-9][0-9]{0,9}\\z/', $value) ||\n        (strlen($value) === 10 && strcmp($value, '4294967295') > 0)) {\n      return null;\n    }\n    return (int)$value;\n"
+        },
+        {
+          "offset": 13566,
+          "current": "    // The remaining task title and body cases require text. This is\n",
+          "parent": "    // The remaining task/Wiki title and body cases require text. This is\n"
+        }
+      ]
+    },
+    "src/infrastructure/governance/observation/__tests__/PhorgeGovernanceNativeObservationTestCase.php": {
+      "current_bytes": 22742,
+      "current_sha256": "14b5471780cf6a21275587715fe4aa7e57b4456c87f76695885ae3d527ca3a37",
+      "target_bytes": 33097,
+      "target_sha256": "4728d22d7cceb10195f254ea04b2565d0675021f5551f28024a6e50e972e8457",
+      "edits": [
+        {
+          "offset": 1145,
+          "current": "",
+          "parent": "  private function newWiki() {\n    return (new PhrictionDocument())\n      ->setID(1)\n      ->setPHID('PHID-WIKI-cccccccccccccccccccc');\n  }\n"
+        },
+        {
+          "offset": 1636,
+          "current": "    $result = $verifier->observeTaskLocalExpansion(\n      $this->newTask(), $this->newViewer(), array());\n",
+          "parent": "    $result = $verifier->observeWikiLocalExpansion($this->newWiki(), array());\n"
+        },
+        {
+          "offset": 6541,
+          "current": "",
+          "parent": "  public function testWikiEmptyBodyActuallyExpandsToDelete() {\n    $transaction = (new PhrictionTransaction())\n      ->setTransactionType(PhrictionDocumentContentTransaction::TRANSACTIONTYPE)\n      ->setNewValue('');\n    $result = PhorgeGovernanceNativeObservationVerifier::newIsolated()\n      ->observeWikiLocalExpansion($this->newWiki(), array($transaction));\n    $this->assertEqual('observed-native-local-expansion', $result['status']);\n    $this->assertEqual(2, count($result['transactions']));\n    $this->assertEqual(PhrictionDocumentDeleteTransaction::TRANSACTIONTYPE,\n      $result['transactions'][1]['transaction_type']);\n    $this->assertTrue($result['transactions'][1]['content_delete']);\n    $this->assertFalse($result['full_expansion_verified']);\n    $this->assertFalse($result['can_execute']);\n  }\n\n  public function testWikiNonemptyBodyDoesNotClaimPublicationValidated() {\n    $transaction = (new PhrictionTransaction())\n      ->setTransactionType(PhrictionDocumentContentTransaction::TRANSACTIONTYPE)\n      ->setNewValue('synthetic-wiki-body');\n    $result = PhorgeGovernanceNativeObservationVerifier::newIsolated()\n      ->observeWikiLocalExpansion($this->newWiki(), array($transaction));\n    $this->assertEqual(1, count($result['transactions']));\n    $this->assertFalse($result['risk_complete']);\n  }\n\n  public function testWikiMoveActuallyAddsDestinationPolicies() {\n    $destination = $this->newWiki()->setID(2)\n      ->setViewPolicy(PhabricatorPolicies::POLICY_USER)\n      ->setEditPolicy(PhabricatorPolicies::POLICY_ADMIN);\n    $transaction = (new PhrictionTransaction())\n      ->setTransactionType(PhrictionDocumentMoveToTransaction::TRANSACTIONTYPE)\n      ->setNewValue($destination);\n    $result = PhorgeGovernanceNativeObservationVerifier::newIsolated()\n      ->observeWikiLocalExpansion($this->newWiki(), array($transaction));\n    $this->assertEqual('observed-native-local-expansion', $result['status']);\n    $this->assertEqual(3, count($result['transactions']));\n    $this->assertEqual(PhabricatorTransactions::TYPE_VIEW_POLICY,\n      $result['transactions'][1]['transaction_type']);\n    $this->assertEqual(PhabricatorTransactions::TYPE_EDIT_POLICY,\n      $result['transactions'][2]['transaction_type']);\n    $this->assertEqual(hash('sha256', json_encode(\n      PhabricatorPolicies::POLICY_ADMIN)),\n      $result['transactions'][2]['value_digest']);\n    $this->assertEqual(PhabricatorPolicies::POLICY_ADMIN,\n      $destination->getEditPolicy());\n  }\n\n  public function testWikiMoveCannotInjectAnArbitraryObject() {\n    $transaction = (new PhrictionTransaction())\n      ->setTransactionType(PhrictionDocumentMoveToTransaction::TRANSACTIONTYPE)\n      ->setNewValue(new stdClass());\n    $result = PhorgeGovernanceNativeObservationVerifier::newIsolated()\n      ->observeWikiLocalExpansion($this->newWiki(), array($transaction));\n    $this->assertEqual('unsupported_move_destination', $result['reason']);\n  }\n\n  public function testCreationWrongEnvelopeAndUnknownBatchBlock() {\n    $transaction = (new PhrictionTransaction())\n      ->setTransactionType(PhrictionDocumentTitleTransaction::TRANSACTIONTYPE)\n      ->setNewValue('synthetic-title');\n    $verifier = PhorgeGovernanceNativeObservationVerifier::newIsolated();\n    $this->assertEqual('unsupported_existing_object_or_batch',\n      $verifier->observeWikiLocalExpansion(\n        new PhrictionDocument(), array($transaction))['reason']);\n    $this->assertEqual('unsupported_transaction_envelope',\n      $verifier->observeWikiLocalExpansion(\n        $this->newWiki(), array(new ManiphestTransaction()))['reason']);\n    $unknown = (new PhrictionTransaction())\n      ->setTransactionType('synthetic-unknown')->setNewValue('value');\n    $result = $verifier->observeWikiLocalExpansion(\n      $this->newWiki(), array($transaction, $unknown));\n    $this->assertEqual('blocked', $result['status']);\n    $this->assertFalse(isset($result['transactions']));\n  }\n\n"
+        },
+        {
+          "offset": 10568,
+          "current": "\n",
+          "parent": "    $transaction = (new PhrictionTransaction())\n      ->setTransactionType(PhrictionDocumentContentTransaction::TRANSACTIONTYPE)\n      ->setNewValue(false);\n    $result = $verifier->observeWikiLocalExpansion(\n      $this->newWiki(), array($transaction));\n    $this->assertEqual('unsupported_local_value', $result['reason']);\n    $this->assertFalse($result['can_execute']);\n"
+        },
+        {
+          "offset": 16642,
+          "current": "  public function testTaskPolicyItemsAreOnlyLocalPassThrough() {\n",
+          "parent": "  private function newWikiWithContent() {\n    $document = $this->newWiki();\n    $content = (new PhrictionContent())->setID(10)\n      ->setPHID('PHID-WRDS-eeeeeeeeeeeeeeeeeeee')\n      ->setDocumentPHID($document->getPHID())->setVersion(3)\n      ->setTitle('synthetic old title')->setContent('synthetic old body');\n    return $document->setContentPHID($content->getPHID())\n      ->attachContent($content);\n  }\n\n  public function testWikiBatchPreludeUsesAttachedNativeContent() {\n    $document = $this->newWikiWithContent();\n    $title = (new PhrictionTransaction())\n      ->setTransactionType(PhrictionDocumentTitleTransaction::TRANSACTIONTYPE)\n      ->setNewValue('synthetic new title');\n    $body = (new PhrictionTransaction())\n      ->setTransactionType(PhrictionDocumentContentTransaction::TRANSACTIONTYPE)\n      ->setNewValue('');\n    $result = PhorgeGovernanceNativeObservationVerifier::newIsolated()\n      ->observeWikiBatchExpansion($document, array($title, $body));\n    $this->assertEqual('observed-native-local-expansion', $result['status']);\n    $this->assertEqual('PhrictionTransactionEditor::expandTransactions',\n      $result['method']);\n    $this->assertEqual(3, count($result['transactions']));\n    $this->assertTrue($result['transactions'][2]['content_delete']);\n    $this->assertEqual(3, $result['editor_context']['old_content_version']);\n    $this->assertEqual(hash('sha256', $document->getContentPHID()),\n      $result['editor_context']['content_identity_digest']);\n    $this->assertEqual('synthetic old body',\n      $document->getContent()->getContent());\n    $this->assertEqual(array(), $body->getMetadata());\n    $this->assertFalse($result['full_expansion_verified']);\n    $this->assertFalse($result['can_execute']);\n  }\n\n  public function testWikiBatchRejectsMissingOrMismatchedContent() {\n    $transaction = (new PhrictionTransaction())\n      ->setTransactionType(PhrictionDocumentTitleTransaction::TRANSACTIONTYPE)\n      ->setNewValue('synthetic');\n    $documents = array($this->newWiki());\n    foreach (array('document', 'content', 'version', 'phid', 'id') as $axis) {\n      $document = $this->newWikiWithContent();\n      $content = $document->getContent();\n      switch ($axis) {\n        case 'document': $content->setDocumentPHID('PHID-WIKI-ffffffffffffffffffff'); break;\n        case 'content': $document->setContentPHID('PHID-WRDS-ffffffffffffffffffff'); break;\n        case 'version': $content->setVersion(0); break;\n        case 'phid': $content->setPHID('not-content-phid'); break;\n        case 'id': $content->setID(null); break;\n      }\n      $documents[] = $document;\n    }\n    foreach ($documents as $document) {\n      $result = PhorgeGovernanceNativeObservationVerifier::newIsolated()\n        ->observeWikiBatchExpansion($document, array($transaction));\n      $this->assertEqual('unsupported_attached_wiki_content', $result['reason']);\n      $this->assertFalse($result['can_execute']);\n      $this->assertFalse(isset($result['transactions']));\n    }\n  }\n\n  public function testWikiBatchMoveAndDeletePreserveNativeOrder() {\n    $destination = $this->newWiki()->setID(2)\n      ->setViewPolicy(PhabricatorPolicies::POLICY_USER)\n      ->setEditPolicy(PhabricatorPolicies::POLICY_ADMIN);\n    $move = (new PhrictionTransaction())\n      ->setTransactionType(PhrictionDocumentMoveToTransaction::TRANSACTIONTYPE)\n      ->setNewValue($destination);\n    $body = (new PhrictionTransaction())\n      ->setTransactionType(PhrictionDocumentContentTransaction::TRANSACTIONTYPE)\n      ->setNewValue('');\n    $result = PhorgeGovernanceNativeObservationVerifier::newIsolated()\n      ->observeWikiBatchExpansion($this->newWikiWithContent(), array($move, $body));\n    $this->assertEqual('observed-native-local-expansion', $result['status']);\n    $this->assertEqual(array(\n      PhrictionDocumentMoveToTransaction::TRANSACTIONTYPE,\n      PhabricatorTransactions::TYPE_VIEW_POLICY,\n      PhabricatorTransactions::TYPE_EDIT_POLICY,\n      PhrictionDocumentContentTransaction::TRANSACTIONTYPE,\n      PhrictionDocumentDeleteTransaction::TRANSACTIONTYPE),\n      array_column($result['transactions'], 'transaction_type'));\n    $this->assertFalse($result['can_execute']);\n  }\n\n  public function testTaskAndWikiPolicyItemsAreOnlyLocalPassThrough() {\n"
+        },
+        {
+          "offset": 17034,
+          "current": "",
+          "parent": "      $wiki = (new PhrictionTransaction())->setTransactionType($type)\n        ->setNewValue(PhabricatorPolicies::POLICY_ADMIN);\n"
+        },
+        {
+          "offset": 17095,
+          "current": "        $this->newTask(), $this->newViewer(), array($task)));\n",
+          "parent": "        $this->newTask(), $this->newViewer(), array($task)),\n        $verifier->observeWikiLocalExpansion($this->newWiki(), array($wiki)));\n"
+        },
+        {
+          "offset": 18567,
+          "current": "",
+          "parent": "  public function testWikiBatchNativeCanonicalVersionHydration() {\n    $transaction = (new PhrictionTransaction())\n      ->setTransactionType(PhrictionDocumentTitleTransaction::TRANSACTIONTYPE)\n      ->setNewValue('synthetic');\n    $verifier = PhorgeGovernanceNativeObservationVerifier::newIsolated();\n    foreach (array(1, '1', 4294967295, '4294967295') as $version) {\n      $document = $this->newWikiWithContent();\n      $document->getContent()->setVersion($version);\n      $result = $verifier->observeWikiBatchExpansion($document,\n        array($transaction));\n      $this->assertEqual('observed-native-local-expansion', $result['status']);\n      $this->assertEqual((int)$version,\n        $result['editor_context']['old_content_version']);\n      $this->assertTrue(is_int($result['editor_context']['old_content_version']));\n      $this->assertEqual($version, $document->getContent()->getVersion());\n      $this->assertFalse($result['can_execute']);\n    }\n    foreach (array('01', '1.0', true, false, null, 0, '0', -1, '-1',\n      ' 1', '1 ', '+1', '1e0', '4294967296', 4294967296,\n      '999999999999999999999999999999', 1.0, array()) as $version) {\n      $document = $this->newWikiWithContent();\n      $document->getContent()->setVersion($version);\n      $result = $verifier->observeWikiBatchExpansion($document,\n        array($transaction));\n      $this->assertEqual('unsupported_attached_wiki_content', $result['reason']);\n      $this->assertFalse(isset($result['transactions']));\n      $this->assertFalse($result['can_execute']);\n    }\n  }\n"
+        }
+      ]
+    },
+    "src/infrastructure/governance/readset/PhorgeGovernanceReadSetValidator.php": {
+      "current_bytes": 5049,
+      "current_sha256": "ce0f5cead1b2d9e7233c9a46a42ff580cdaa12b74856a9396b66c94c0657ae2b",
+      "target_bytes": 5224,
+      "target_sha256": "c30cec49d1c56fd981dbc290fd0ae1900b7bc594eabb4b2b1e42c8445e2570bb",
+      "edits": [
+        {
+          "offset": 549,
+          "current": "",
+          "parent": "      'wiki.title' => 'PhrictionDocument',\n      'wiki.content' => 'PhrictionDocument',\n"
+        },
+        {
+          "offset": 717,
+          "current": "      'PhabricatorProject', 'ManiphestTask'), true) ||\n",
+          "parent": "      'PhabricatorProject', 'ManiphestTask', 'PhrictionDocument'), true) ||\n"
+        },
+        {
+          "offset": 1265,
+          "current": "",
+          "parent": "      'PhrictionDocument' => array('wiki.policy', 'wiki.parent'),\n"
+        }
+      ]
+    },
+    "src/infrastructure/governance/readset/__tests__/PhorgeGovernanceReadSetTestCase.php": {
+      "current_bytes": 12347,
+      "current_sha256": "f7163871e48d60700018c07e248c193942a9a4a76840772150d014f7743d9ffa",
+      "target_bytes": 12545,
+      "target_sha256": "1bdd0efb63a8942ff1284e271217bda424f4e1989af7146026e742996f4aee64",
+      "edits": [
+        {
+          "offset": 7158,
+          "current": "",
+          "parent": "      array('PhrictionDocument', 'wiki.content', array('wiki.policy', 'wiki.parent')),\n"
+        },
+        {
+          "offset": 7645,
+          "current": "  public function testTaskGroupDependenciesAreNotOmitted() {\n",
+          "parent": "  public function testTaskAndWikiGroupDependenciesAreNotOmitted() {\n"
+        },
+        {
+          "offset": 7726,
+          "current": "      array('object_class' => 'ManiphestTask', 'operation' => 'task.title'))\n",
+          "parent": "      array('object_class' => 'ManiphestTask', 'operation' => 'task.title'),\n      array('object_class' => 'PhrictionDocument', 'operation' => 'wiki.content'))\n"
+        },
+        {
+          "offset": 8460,
+          "current": "    foreach (array('PhabricatorProject', 'ManiphestTask') as $class) {\n",
+          "parent": "    foreach (array('PhabricatorProject', 'ManiphestTask', 'PhrictionDocument') as $class) {\n"
+        }
+      ]
+    },
+    "src/infrastructure/markup/PhabricatorMarkupEngine.php": {
+      "current_bytes": 21274,
+      "current_sha256": "7846ac9ab0476a719e88d7eb46dde02f8882091794223368192d802dd01b0853",
+      "target_bytes": 21449,
+      "target_sha256": "abd1d3f07c20f237aa9a23beba38a6259d26f045817d95e497fbaeec20bb992b",
+      "edits": [
+        {
+          "offset": 10228,
+          "current": "",
+          "parent": "    ));\n  }\n\n\n  /**\n   * @task engine\n   */\n  public static function newPhrictionMarkupEngine() {\n    return self::newMarkupEngine(array(\n      'header.generate-toc' => true,\n"
+        }
+      ]
+    },
+    "src/infrastructure/markup/markuprule/PhutilRemarkupDocumentLinkRule.php": {
+      "current_bytes": 5103,
+      "current_sha256": "35afba36ffebfd62b4151ed486295036d1ab305c079bd13daa7d3735f7bc3732",
+      "target_bytes": 5386,
+      "target_sha256": "3dbf27748b2ff4bb76b5a16e2987d439ad5eb11766b017d72b24e3b0265e9d6c",
+      "edits": [
+        {
+          "offset": 4964,
+          "current": "",
+          "parent": "    // As a special case, skip \"[[ / ]]\" so that Phriction picks it up as a\n    // link to the Phriction root. It is more useful to be able to use this\n    // syntax to link to the root document than the home page of the install.\n    if ($uri == '/') {\n      $is_uri = false;\n    }\n\n"
         }
       ]
     }

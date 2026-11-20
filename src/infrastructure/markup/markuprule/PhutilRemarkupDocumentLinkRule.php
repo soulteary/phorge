@@ -172,13 +172,6 @@ final class PhutilRemarkupDocumentLinkRule extends PhutilRemarkupRule {
       }
     }
 
-    // As a special case, skip "[[ / ]]" so that Phriction picks it up as a
-    // link to the Phriction root. It is more useful to be able to use this
-    // syntax to link to the root document than the home page of the install.
-    if ($uri == '/') {
-      $is_uri = false;
-    }
-
     if (!$is_uri) {
       return $matches[0];
     }

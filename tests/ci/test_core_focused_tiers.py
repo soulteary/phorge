@@ -123,7 +123,7 @@ class DeclaredSourceInventory(unittest.TestCase):
             'tests/operations/webserver_selfcheck_fixture.php',
             'tests/operations/test_webserver_selfcheck.py'}
   self.assertTrue(reviewed<=module.CI_V2_NEW_PATHS)
-  for rows in [current|{'tests/contract/runtime/unreviewed.php'}]+[current-{p}for p in reviewed]:
+  for rows in [current|{'tests/contract/runtime/unreviewed.php'}]+[current-{p}for p in reviewed]+[current|{p}for p in module.WIKI_RETIRED_PATHS]:
    with self.assertRaises(ValueError):check(rows)
 
 class ReleaseHistoryLiteralData(unittest.TestCase):
@@ -138,8 +138,9 @@ class ReleaseHistoryLiteralData(unittest.TestCase):
   cls.delta=importlib.util.module_from_spec(spec);spec.loader.exec_module(cls.delta)
  def test_all_21_current_payloads_roundtrip_and_original_parent_pins_still_match(self):
   # Retain the original 21 targets and the reviewed caller and self-check inputs.
-  self.assertEqual(len(self.doc['files']),25)
+  self.assertEqual(len(self.doc['files']),25+len(self.scope.WIKI_RETIREMENT_HISTORY_PATHS))
   extra={'support/governance/recovery/native-writer-rr-ci-profile.php', 'tests/governance/test_native_rr_ci_anchor.py', 'src/applications/config/check/PhabricatorWebServerSetupCheck.php', 'src/applications/config/check/__tests__/PhabricatorSetupCheckTestCase.php'}
+  extra |= self.scope.WIKI_RETIREMENT_HISTORY_PATHS
   self.assertTrue(extra <= set(self.doc['files']))
   self.assertEqual(hashlib.sha256(json.dumps(sorted(set(self.doc['files'])-extra),separators=(',',':')).encode()).hexdigest(),'2fc0c75cbf1640a24ee30a9c241d2636d555f9b64fa891df2df9cc2bfd1be38c')
   parent=json.loads((ROOT/self.scope.BASELINE).read_bytes())['entries']
@@ -155,6 +156,13 @@ class ReleaseHistoryLiteralData(unittest.TestCase):
   checked=0
   for path,pin in parent.items():
    if pin['kind']!='file':continue
+   if path in self.scope.WIKI_RETIRED_PATHS:
+    self.assertFalse((ROOT/path).exists())
+    removed=json.loads((ROOT/self.scope.WIKI_RETIREMENT_MANIFEST).read_bytes())['removed_files']
+    hashes={row['path']:row['sha256'] for row in removed}
+    self.assertEqual(hashes[path],pin['sha256'])
+    checked+=1
+    continue
    raw=(ROOT/path).read_bytes()
    if path in ci or path in api:
     entry=(ci if path in ci else api)[path];decoder=zlib.decompressobj()

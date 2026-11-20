@@ -14,13 +14,11 @@ final class PhorgeGovernanceReadSetValidator extends Phobject {
       'project.description' => 'PhabricatorProject',
       'task.title' => 'ManiphestTask',
       'task.description' => 'ManiphestTask',
-      'wiki.title' => 'PhrictionDocument',
-      'wiki.content' => 'PhrictionDocument',
       'project.members' => 'PhabricatorProject',
     );
     $generic = array('policy.replace', 'object.space', 'object.relationship');
     if (!in_array($class, array(
-      'PhabricatorProject', 'ManiphestTask', 'PhrictionDocument'), true) ||
+      'PhabricatorProject', 'ManiphestTask'), true) ||
         ((!isset($specific[$operation]) || $specific[$operation] !== $class) &&
           !in_array($operation, $generic, true))) {
       return null;
@@ -33,7 +31,6 @@ final class PhorgeGovernanceReadSetValidator extends Phobject {
     $extra = array(
       'PhabricatorProject' => array('project.policy'),
       'ManiphestTask' => array('task.policy', 'task.owner'),
-      'PhrictionDocument' => array('wiki.policy', 'wiki.parent'),
     );
     return array_merge($kinds, $extra[$class]);
   }

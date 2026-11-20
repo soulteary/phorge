@@ -19,8 +19,6 @@ final class PhorgeGovernanceCapabilityMap extends Phobject {
         return array_merge($common, array('project.description', 'project.members'));
       case ManiphestTask::class:
         return array_merge($common, array('task.title', 'task.description'));
-      case PhrictionDocument::class:
-        return array_merge($common, array('wiki.title', 'wiki.content'));
       default:
         return array();
     }
@@ -45,9 +43,6 @@ final class PhorgeGovernanceCapabilityMap extends Phobject {
       case ManiphestTask::class:
         $kinds = array_merge($kinds, array('task.policy', 'task.owner'));
         break;
-      case PhrictionDocument::class:
-        $kinds = array_merge($kinds, array('wiki.policy', 'wiki.parent'));
-        break;
     }
     sort($kinds, SORT_STRING);
     return $kinds;
@@ -70,14 +65,6 @@ final class PhorgeGovernanceCapabilityMap extends Phobject {
           'TASK.EDIT.EDITOR', 'TASK.EDIT.CONDUIT', 'TASK.EDIT.BULK',
           'TASK.POLICY.SOURCE'),
         'automatic_boundary' => 'native task-owner view/edit retained',
-      ),
-      PhrictionDocument::class => array(
-        'family' => 'WIKI',
-        'envelope' => PhrictionTransaction::class,
-        'sources' => array('WIKI.EDIT.WEB.LEGACY', 'WIKI.EDIT.EDITOR',
-          'WIKI.EDIT.CONDUIT', 'WIKI.EDIT.CONDUIT.LEGACY',
-          'WIKI.POLICY.SOURCE'),
-        'automatic_boundary' => 'native document and ancestry policy retained',
       ),
     );
   }
@@ -136,31 +123,15 @@ final class PhorgeGovernanceCapabilityMap extends Phobject {
       array('MAP.TASK.TITLE', 'ManiphestTaskTitleTransaction', 'title', 'task.title'),
       array('MAP.TASK.DESCRIPTION', 'ManiphestTaskDescriptionTransaction',
         'description', 'task.description'),
-      array('MAP.WIKI.TITLE', 'PhrictionDocumentTitleTransaction',
-        'title', 'wiki.title'),
-      array('MAP.WIKI.CONTENT', 'PhrictionDocumentContentTransaction',
-        'content', 'wiki.content'),
     ) as $item) {
-      $wiki = strncmp($item[0], 'MAP.WIKI.', 9) === 0;
       $content = self::definition(
-        $item[0], $wiki ? PhrictionDocument::class : ManiphestTask::class,
+        $item[0], ManiphestTask::class,
         $item[1].'::TRANSACTIONTYPE', $item[1], $item[2], $item[3],
-        'content-candidate', $wiki ? 'high' : 'low', array(),
-        $wiki ? 'title/content can publish or restore; empty content expands '.
-          'to deletion; value/creation/expansion adapter must verify' :
-          'field classification only; native validation/expansion still required');
-      if ($wiki) {
-        // The newer comment-oriented engine does not prove body-edit coverage.
-        $content['source_ids'] = array(
-          'WIKI.EDIT.WEB.LEGACY', 'WIKI.EDIT.EDITOR',
-          'WIKI.EDIT.CONDUIT.LEGACY', 'WIKI.CREATE.CONDUIT.LEGACY',
-          'WIKI.POLICY.SOURCE', 'TRANSACTION.MODULAR', 'TRANSACTION.LEGACY');
-      }
+        'content-candidate', 'low', array(),
+        'field classification only; native validation/expansion still required');
       $content_sources = array(
         'MAP.TASK.TITLE' => 'TASK.TITLE.MODULAR',
         'MAP.TASK.DESCRIPTION' => 'TASK.DESCRIPTION.MODULAR',
-        'MAP.WIKI.TITLE' => 'WIKI.TITLE.MODULAR',
-        'MAP.WIKI.CONTENT' => 'WIKI.CONTENT.MODULAR',
       );
       $content['source_ids'][] = $content_sources[$item[0]];
       $rows[] = $content;
@@ -205,15 +176,13 @@ final class PhorgeGovernanceCapabilityMap extends Phobject {
         'ManiphestTaskOwnerTransaction', 'owner'),
       array('MAP.TASK.COLUMN', ManiphestTask::class,
         'ManiphestTaskColumnTransaction', 'column'),
-      array('MAP.WIKI.MOVE', PhrictionDocument::class,
-        'PhrictionDocumentMoveToTransaction', 'move-to'),
     ) as $item) {
       $rows[] = self::definition(
         $item[0], $item[1], $item[2].'::TRANSACTIONTYPE', $item[2], $item[3],
         'object.relationship', 'sensitive', 'high', array(),
         'relationship/automatic-capability effects require expanded adapter');
     }
-    foreach (array(ManiphestTask::class, PhrictionDocument::class) as $object) {
+    foreach (array(ManiphestTask::class) as $object) {
       $native = self::objectDefinitions()[$object];
       $rows[] = self::definition(
         'MAP.'.$native['family'].'.PROJECT.EDGE', $object,

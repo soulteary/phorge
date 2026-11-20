@@ -1,17 +1,17 @@
 <?php
 
-$table = new PhrictionDocument();
-$conn_w = $table->establishConnection('w');
+$table = 'phriction_document';
+$conn_w = $this->getConn('phriction');
 
 echo pht('Populating Phriction policies.')."\n";
 
 $default_view_policy = PhabricatorPolicies::POLICY_USER;
 $default_edit_policy = PhabricatorPolicies::POLICY_USER;
 
-foreach (new LiskMigrationIterator($table) as $doc) {
-  $id = $doc->getID();
+foreach (new LiskRawMigrationIterator($conn_w, $table) as $doc) {
+  $id = $doc['id'];
 
-  if ($doc->getViewPolicy() && $doc->getEditPolicy()) {
+  if ($doc['viewPolicy'] && $doc['editPolicy']) {
     echo pht('Skipping document %d; already has policy set.', $id)."\n";
     continue;
   }
@@ -22,7 +22,7 @@ foreach (new LiskMigrationIterator($table) as $doc) {
   // If this was previously a magical project wiki page (under projects/, but
   // not projects/ itself) we need to apply the project policies. Otherwise,
   // apply the default policies.
-  $slug = $doc->getSlug();
+  $slug = $doc['slug'];
   $slug = PhabricatorSlug::normalize($slug);
   $prefix = 'projects/';
   if (($slug != $prefix) && (strncmp($slug, $prefix, strlen($prefix)) === 0)) {
@@ -50,7 +50,7 @@ foreach (new LiskMigrationIterator($table) as $doc) {
 
   queryfx(
     $conn_w,
-    'UPDATE %R SET viewPolicy = %s, editPolicy = %s
+    'UPDATE %T SET viewPolicy = %s, editPolicy = %s
       WHERE id = %d',
     $table,
     $new_view_policy,

@@ -38,11 +38,6 @@ final class PhorgeGovernanceNativeObservationTestCase extends PhutilTestCase {
       ->setOwnerPHID($owner);
   }
 
-  private function newWiki() {
-    return (new PhrictionDocument())
-      ->setID(1)
-      ->setPHID('PHID-WIKI-cccccccccccccccccccc');
-  }
 
   public function testFactoryAndRevokedScopeAreBlocked() {
     putenv('PHORGE_GOVERNANCE_ISOLATED_TEST');
@@ -56,7 +51,8 @@ final class PhorgeGovernanceNativeObservationTestCase extends PhutilTestCase {
     putenv('PHORGE_GOVERNANCE_ISOLATED_TEST=1');
     $verifier = PhorgeGovernanceNativeObservationVerifier::newIsolated();
     putenv('PHORGE_GOVERNANCE_ISOLATED_TEST');
-    $result = $verifier->observeWikiLocalExpansion($this->newWiki(), array());
+    $result = $verifier->observeTaskLocalExpansion(
+      $this->newTask(), $this->newViewer(), array());
     $this->assertEqual('isolated_scope_required', $result['reason']);
     $this->assertFalse($result['can_execute']);
   }
@@ -158,81 +154,6 @@ final class PhorgeGovernanceNativeObservationTestCase extends PhutilTestCase {
     }
   }
 
-  public function testWikiEmptyBodyActuallyExpandsToDelete() {
-    $transaction = (new PhrictionTransaction())
-      ->setTransactionType(PhrictionDocumentContentTransaction::TRANSACTIONTYPE)
-      ->setNewValue('');
-    $result = PhorgeGovernanceNativeObservationVerifier::newIsolated()
-      ->observeWikiLocalExpansion($this->newWiki(), array($transaction));
-    $this->assertEqual('observed-native-local-expansion', $result['status']);
-    $this->assertEqual(2, count($result['transactions']));
-    $this->assertEqual(PhrictionDocumentDeleteTransaction::TRANSACTIONTYPE,
-      $result['transactions'][1]['transaction_type']);
-    $this->assertTrue($result['transactions'][1]['content_delete']);
-    $this->assertFalse($result['full_expansion_verified']);
-    $this->assertFalse($result['can_execute']);
-  }
-
-  public function testWikiNonemptyBodyDoesNotClaimPublicationValidated() {
-    $transaction = (new PhrictionTransaction())
-      ->setTransactionType(PhrictionDocumentContentTransaction::TRANSACTIONTYPE)
-      ->setNewValue('synthetic-wiki-body');
-    $result = PhorgeGovernanceNativeObservationVerifier::newIsolated()
-      ->observeWikiLocalExpansion($this->newWiki(), array($transaction));
-    $this->assertEqual(1, count($result['transactions']));
-    $this->assertFalse($result['risk_complete']);
-  }
-
-  public function testWikiMoveActuallyAddsDestinationPolicies() {
-    $destination = $this->newWiki()->setID(2)
-      ->setViewPolicy(PhabricatorPolicies::POLICY_USER)
-      ->setEditPolicy(PhabricatorPolicies::POLICY_ADMIN);
-    $transaction = (new PhrictionTransaction())
-      ->setTransactionType(PhrictionDocumentMoveToTransaction::TRANSACTIONTYPE)
-      ->setNewValue($destination);
-    $result = PhorgeGovernanceNativeObservationVerifier::newIsolated()
-      ->observeWikiLocalExpansion($this->newWiki(), array($transaction));
-    $this->assertEqual('observed-native-local-expansion', $result['status']);
-    $this->assertEqual(3, count($result['transactions']));
-    $this->assertEqual(PhabricatorTransactions::TYPE_VIEW_POLICY,
-      $result['transactions'][1]['transaction_type']);
-    $this->assertEqual(PhabricatorTransactions::TYPE_EDIT_POLICY,
-      $result['transactions'][2]['transaction_type']);
-    $this->assertEqual(hash('sha256', json_encode(
-      PhabricatorPolicies::POLICY_ADMIN)),
-      $result['transactions'][2]['value_digest']);
-    $this->assertEqual(PhabricatorPolicies::POLICY_ADMIN,
-      $destination->getEditPolicy());
-  }
-
-  public function testWikiMoveCannotInjectAnArbitraryObject() {
-    $transaction = (new PhrictionTransaction())
-      ->setTransactionType(PhrictionDocumentMoveToTransaction::TRANSACTIONTYPE)
-      ->setNewValue(new stdClass());
-    $result = PhorgeGovernanceNativeObservationVerifier::newIsolated()
-      ->observeWikiLocalExpansion($this->newWiki(), array($transaction));
-    $this->assertEqual('unsupported_move_destination', $result['reason']);
-  }
-
-  public function testCreationWrongEnvelopeAndUnknownBatchBlock() {
-    $transaction = (new PhrictionTransaction())
-      ->setTransactionType(PhrictionDocumentTitleTransaction::TRANSACTIONTYPE)
-      ->setNewValue('synthetic-title');
-    $verifier = PhorgeGovernanceNativeObservationVerifier::newIsolated();
-    $this->assertEqual('unsupported_existing_object_or_batch',
-      $verifier->observeWikiLocalExpansion(
-        new PhrictionDocument(), array($transaction))['reason']);
-    $this->assertEqual('unsupported_transaction_envelope',
-      $verifier->observeWikiLocalExpansion(
-        $this->newWiki(), array(new ManiphestTransaction()))['reason']);
-    $unknown = (new PhrictionTransaction())
-      ->setTransactionType('synthetic-unknown')->setNewValue('value');
-    $result = $verifier->observeWikiLocalExpansion(
-      $this->newWiki(), array($transaction, $unknown));
-    $this->assertEqual('blocked', $result['status']);
-    $this->assertFalse(isset($result['transactions']));
-  }
-
   public function testNonCurrentTransactionTargetIsBlocked() {
     $transaction = (new ManiphestTransaction())
       ->setTransactionType(ManiphestTaskTitleTransaction::TRANSACTIONTYPE)
@@ -313,13 +234,7 @@ final class PhorgeGovernanceNativeObservationTestCase extends PhutilTestCase {
         (new PhabricatorProject())->setID(1), array($transaction));
       $this->assertEqual('unsupported_local_value', $result['reason']);
     }
-    $transaction = (new PhrictionTransaction())
-      ->setTransactionType(PhrictionDocumentContentTransaction::TRANSACTIONTYPE)
-      ->setNewValue(false);
-    $result = $verifier->observeWikiLocalExpansion(
-      $this->newWiki(), array($transaction));
-    $this->assertEqual('unsupported_local_value', $result['reason']);
-    $this->assertFalse($result['can_execute']);
+
   }
 
   private function withNativeRouting(array $dictionary, $callback) {
@@ -461,101 +376,14 @@ final class PhorgeGovernanceNativeObservationTestCase extends PhutilTestCase {
     }
   }
 
-  private function newWikiWithContent() {
-    $document = $this->newWiki();
-    $content = (new PhrictionContent())->setID(10)
-      ->setPHID('PHID-WRDS-eeeeeeeeeeeeeeeeeeee')
-      ->setDocumentPHID($document->getPHID())->setVersion(3)
-      ->setTitle('synthetic old title')->setContent('synthetic old body');
-    return $document->setContentPHID($content->getPHID())
-      ->attachContent($content);
-  }
-
-  public function testWikiBatchPreludeUsesAttachedNativeContent() {
-    $document = $this->newWikiWithContent();
-    $title = (new PhrictionTransaction())
-      ->setTransactionType(PhrictionDocumentTitleTransaction::TRANSACTIONTYPE)
-      ->setNewValue('synthetic new title');
-    $body = (new PhrictionTransaction())
-      ->setTransactionType(PhrictionDocumentContentTransaction::TRANSACTIONTYPE)
-      ->setNewValue('');
-    $result = PhorgeGovernanceNativeObservationVerifier::newIsolated()
-      ->observeWikiBatchExpansion($document, array($title, $body));
-    $this->assertEqual('observed-native-local-expansion', $result['status']);
-    $this->assertEqual('PhrictionTransactionEditor::expandTransactions',
-      $result['method']);
-    $this->assertEqual(3, count($result['transactions']));
-    $this->assertTrue($result['transactions'][2]['content_delete']);
-    $this->assertEqual(3, $result['editor_context']['old_content_version']);
-    $this->assertEqual(hash('sha256', $document->getContentPHID()),
-      $result['editor_context']['content_identity_digest']);
-    $this->assertEqual('synthetic old body',
-      $document->getContent()->getContent());
-    $this->assertEqual(array(), $body->getMetadata());
-    $this->assertFalse($result['full_expansion_verified']);
-    $this->assertFalse($result['can_execute']);
-  }
-
-  public function testWikiBatchRejectsMissingOrMismatchedContent() {
-    $transaction = (new PhrictionTransaction())
-      ->setTransactionType(PhrictionDocumentTitleTransaction::TRANSACTIONTYPE)
-      ->setNewValue('synthetic');
-    $documents = array($this->newWiki());
-    foreach (array('document', 'content', 'version', 'phid', 'id') as $axis) {
-      $document = $this->newWikiWithContent();
-      $content = $document->getContent();
-      switch ($axis) {
-        case 'document': $content->setDocumentPHID('PHID-WIKI-ffffffffffffffffffff'); break;
-        case 'content': $document->setContentPHID('PHID-WRDS-ffffffffffffffffffff'); break;
-        case 'version': $content->setVersion(0); break;
-        case 'phid': $content->setPHID('not-content-phid'); break;
-        case 'id': $content->setID(null); break;
-      }
-      $documents[] = $document;
-    }
-    foreach ($documents as $document) {
-      $result = PhorgeGovernanceNativeObservationVerifier::newIsolated()
-        ->observeWikiBatchExpansion($document, array($transaction));
-      $this->assertEqual('unsupported_attached_wiki_content', $result['reason']);
-      $this->assertFalse($result['can_execute']);
-      $this->assertFalse(isset($result['transactions']));
-    }
-  }
-
-  public function testWikiBatchMoveAndDeletePreserveNativeOrder() {
-    $destination = $this->newWiki()->setID(2)
-      ->setViewPolicy(PhabricatorPolicies::POLICY_USER)
-      ->setEditPolicy(PhabricatorPolicies::POLICY_ADMIN);
-    $move = (new PhrictionTransaction())
-      ->setTransactionType(PhrictionDocumentMoveToTransaction::TRANSACTIONTYPE)
-      ->setNewValue($destination);
-    $body = (new PhrictionTransaction())
-      ->setTransactionType(PhrictionDocumentContentTransaction::TRANSACTIONTYPE)
-      ->setNewValue('');
-    $result = PhorgeGovernanceNativeObservationVerifier::newIsolated()
-      ->observeWikiBatchExpansion($this->newWikiWithContent(), array($move, $body));
-    $this->assertEqual('observed-native-local-expansion', $result['status']);
-    $this->assertEqual(array(
-      PhrictionDocumentMoveToTransaction::TRANSACTIONTYPE,
-      PhabricatorTransactions::TYPE_VIEW_POLICY,
-      PhabricatorTransactions::TYPE_EDIT_POLICY,
-      PhrictionDocumentContentTransaction::TRANSACTIONTYPE,
-      PhrictionDocumentDeleteTransaction::TRANSACTIONTYPE),
-      array_column($result['transactions'], 'transaction_type'));
-    $this->assertFalse($result['can_execute']);
-  }
-
-  public function testTaskAndWikiPolicyItemsAreOnlyLocalPassThrough() {
+  public function testTaskPolicyItemsAreOnlyLocalPassThrough() {
     foreach (array(PhabricatorTransactions::TYPE_VIEW_POLICY,
       PhabricatorTransactions::TYPE_EDIT_POLICY) as $type) {
       $verifier = PhorgeGovernanceNativeObservationVerifier::newIsolated();
       $task = (new ManiphestTransaction())->setTransactionType($type)
         ->setNewValue(PhabricatorPolicies::POLICY_NOONE);
-      $wiki = (new PhrictionTransaction())->setTransactionType($type)
-        ->setNewValue(PhabricatorPolicies::POLICY_ADMIN);
       $results = array($verifier->observeTaskLocalExpansion(
-        $this->newTask(), $this->newViewer(), array($task)),
-        $verifier->observeWikiLocalExpansion($this->newWiki(), array($wiki)));
+        $this->newTask(), $this->newViewer(), array($task)));
       foreach ($results as $result) {
         $this->assertEqual('observed-native-local-expansion', $result['status']);
         $this->assertEqual(1, count($result['transactions']));
@@ -586,35 +414,6 @@ final class PhorgeGovernanceNativeObservationTestCase extends PhutilTestCase {
     $this->assertFalse($result['can_execute']);
   }
 
-  public function testWikiBatchNativeCanonicalVersionHydration() {
-    $transaction = (new PhrictionTransaction())
-      ->setTransactionType(PhrictionDocumentTitleTransaction::TRANSACTIONTYPE)
-      ->setNewValue('synthetic');
-    $verifier = PhorgeGovernanceNativeObservationVerifier::newIsolated();
-    foreach (array(1, '1', 4294967295, '4294967295') as $version) {
-      $document = $this->newWikiWithContent();
-      $document->getContent()->setVersion($version);
-      $result = $verifier->observeWikiBatchExpansion($document,
-        array($transaction));
-      $this->assertEqual('observed-native-local-expansion', $result['status']);
-      $this->assertEqual((int)$version,
-        $result['editor_context']['old_content_version']);
-      $this->assertTrue(is_int($result['editor_context']['old_content_version']));
-      $this->assertEqual($version, $document->getContent()->getVersion());
-      $this->assertFalse($result['can_execute']);
-    }
-    foreach (array('01', '1.0', true, false, null, 0, '0', -1, '-1',
-      ' 1', '1 ', '+1', '1e0', '4294967296', 4294967296,
-      '999999999999999999999999999999', 1.0, array()) as $version) {
-      $document = $this->newWikiWithContent();
-      $document->getContent()->setVersion($version);
-      $result = $verifier->observeWikiBatchExpansion($document,
-        array($transaction));
-      $this->assertEqual('unsupported_attached_wiki_content', $result['reason']);
-      $this->assertFalse(isset($result['transactions']));
-      $this->assertFalse($result['can_execute']);
-    }
-  }
 
   private function newMemberTransaction() {
     return (new PhabricatorProjectTransaction())
