@@ -1320,7 +1320,7 @@
     ],
     "excluded_test_directory": "__tests__",
     "files_scanned": 4402,
-    "source_snapshot_sha256": "e53f7ac1aae106d0ae9983a7c043de66677e2cc219b8ebc8feb7ee8bf9753ada",
+    "source_snapshot_sha256": "531bfe2a363d2d18b8791a03e9e05574597d5c2bcf250ddaa2d95772d5523174",
     "candidates": [
       {
         "id": "CALL-e71899f6e4e06c5b",
@@ -1416,12 +1416,12 @@
       {
         "id": "CALL-799b222e757b891a",
         "path": "src/applications/almanac/controller/AlmanacBindingEditController.php",
-        "sha256": "b0696a535116063c6dffbc9c04adaa2930cdfdd4bec6fd5ef42e4467b11c2566",
+        "sha256": "5c19f7ae517789eb9607dcfd47450453a1b1138836455cd3abc798378fb43b6f",
         "matches": [
           {
             "pattern": "transaction_apply",
             "lines": [
-              75
+              79
             ]
           }
         ]

@@ -82,3 +82,7 @@ The current retirement implementation has additionally passed:
 
 Each SQL run used disposable storage with no public listener. These are scoped
 results, not a substitute for the final exact-head CI and source-owner checks.
+
+The merged Almanac fix changes one existing caller candidate hash. The caller
+snapshot is updated to those reviewed bytes; candidate identities, static-only
+triage, blockers and activation constraints are unchanged.
