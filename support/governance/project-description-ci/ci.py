@@ -30,6 +30,26 @@ def load_shared(root,revision):
  for p,h in lock['files'].items():need(sha(tracked(root,p,revision))==h)
  return m
 
+# Task-v2 only: exact PHP security continuation, never a general version reducer.
+TASK_PHP13_CONTINUATIONS={
+ 'support/governance/project-content-grants-ci/ci.py':(
+  'da1f1c6db0cf51ccfc4dba9d630233458d6f684add64ff14e6924faf8c536a9a',
+  '0db5be8fef363406c6dce16d0eb2dcc5a33ac2aea6ee9e6e083759654d92901c',
+  b"need(v['php_version']=='8.5.13' and v['mysql_version']=='8.4.13')"),
+ 'support/governance/project-description-qualification/native.php':(
+  '0f377110eb5186ec8f56efe70ff57b4b2a87f775fb0561d73ff9b21ca64cb9e3',
+  '0451da98e73b118cb066d5ef8a73bface226b8469dc199062521271d43834434',
+  b"qneed(PHP_VERSION==='8.5.13'&&in_array(ini_get('opcache.jit'),array('','0','disable','off'),true)&&(string)ini_get('opcache.jit_buffer_size')==='0'&&(string)ini_get('opcache.enable_cli')==='0');"),
+}
+def task_php13_continuation(path,raw,parent_pin):
+ need(type(path)is str and path in TASK_PHP13_CONTINUATIONS and type(raw)is bytes)
+ current,parent,anchor=TASK_PHP13_CONTINUATIONS[path]
+ need(parent_pin==parent and sha(raw)==current and raw.count(anchor)==1)
+ old=anchor.replace(b'8.5.13',b'8.5.12')
+ restored=raw.replace(anchor,old,1)
+ need(sha(restored)==parent and restored.replace(old,anchor,1)==raw)
+ return raw
+
 def load_shared_task_v2(root,revision):
  import sys
  folder=str(root/'scripts/governance')
@@ -40,11 +60,13 @@ def load_shared_task_v2(root,revision):
   relative='support/governance/project-content-grants-ci/ci.py';raw=operation._task_contexts[root].current(relative)
   lock=json.loads(tracked(root,'support/governance/project-description-ci/task-metadata-lock-v2.json',revision))
   need(set(lock)=={'schema','parent_lock_sha256','current_ci_sha256'}and lock['schema']=='Task-CI-shared-metadata-lock-v2')
-  need(sha(tracked(root,'support/governance/project-description-ci/metadata-lock.json',revision))==lock['parent_lock_sha256']and sha(raw)==lock['current_ci_sha256'])
+  need(sha(tracked(root,'support/governance/project-description-ci/metadata-lock.json',revision))==lock['parent_lock_sha256'])
+  task_php13_continuation(relative,raw,lock['current_ci_sha256'])
   old=json.loads(tracked(root,'support/governance/project-description-ci/metadata-lock.json',revision))
   need(set(old)=={'ci_sha256','files','description_template_sha256'})
   for path,pin in old['files'].items():need(sha(tracked(root,path,revision))==pin)
-  need(sha(tracked(root,'support/governance/project-description-qualification/native.php',revision))==old['description_template_sha256'])
+  template_path='support/governance/project-description-qualification/native.php'
+  task_php13_continuation(template_path,tracked(root,template_path,revision),old['description_template_sha256'])
   module=types.ModuleType('Task_actual_CURRENT_shared_CI');module.__file__=str(root/relative);exec(compile(raw,module.__file__,'exec'),module.__dict__)
   need(module.TARGET==TARGET and module.TREE==TREE)
  return module

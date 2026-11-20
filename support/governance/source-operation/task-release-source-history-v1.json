@@ -2987,6 +2987,19 @@
           "parent": "the test pair requires a reviewed source-pin change and fresh check results. Use only PHP 8.5.12 with JIT explicitly disabled and zero\n"
         }
       ]
+    },
+    "tests/governance/test_project_description_ci.py": {
+      "current_bytes": 6059,
+      "current_sha256": "ef7085b5395997e6e404ac12328356d0292bed2eb8f4d9481f94fef3b3a96c31",
+      "target_bytes": 5115,
+      "target_sha256": "5800a73a93c9e1d35ed6e4433d4d7954db54a9fb377330ff22a3085fd249d5d6",
+      "edits": [
+        {
+          "offset": 459,
+          "current": " def test_task_php13_continuations_keep_exact_old_targets_and_refuse_mutations(self):\n  for path,(current,parent,anchor) in ci.TASK_PHP13_CONTINUATIONS.items():\n   raw=(ROOT/path).read_bytes()\n   self.assertEqual(ci.task_php13_continuation(path,raw,parent),raw)\n   old=raw.replace(anchor,anchor.replace(b'8.5.13',b'8.5.12'),1)\n   self.assertEqual(ci.sha(old),parent)\n   for changed in [old,raw+b'\\n',raw.replace(anchor,anchor.replace(b'8.5.13',b'8.5.14'),1),raw.replace(anchor,b'',1),raw+anchor]:\n    with self.subTest(path=path,digest=ci.sha(changed)):\n     with self.assertRaises(ValueError):ci.task_php13_continuation(path,changed,parent)\n   for wrong in [None,'0'*64,current]:\n    with self.assertRaises(ValueError):ci.task_php13_continuation(path,raw,wrong)\n   with self.assertRaises(ValueError):ci.task_php13_continuation(path,bytearray(raw),parent)\n   with self.assertRaises(ValueError):ci.task_php13_continuation('unknown',raw,parent)\n\n",
+          "parent": ""
+        }
+      ]
     }
   }
 }

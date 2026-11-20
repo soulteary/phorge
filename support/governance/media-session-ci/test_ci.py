@@ -46,6 +46,12 @@ def require_current_workflow(s):
  old=golden.decode();old_intro=old.split('concurrency:',1)[0]
  normalized=s.replace(CURRENT_INTRO,old_intro,1).replace(CURRENT_BIND,'',1)
  normalized=normalized.replace(CURRENT_PROOF_FLAG,'',1).replace(CURRENT_PROOF_ENV,'',1)
+ # Only this reviewed stable baseline continuation inverses to the immutable
+ # golden DATA. Reject old/current substitutions before restoring history.
+ php_current="          php-version: '8.5.13'\n          ini-values: opcache.jit=disable, opcache.jit_buffer_size=0, opcache.enable_cli=0\n"
+ php_prior=php_current.replace("8.5.13", "8.5.12")
+ need(normalized.count(php_current)==1 and normalized.count('php-version:')==1)
+ normalized=normalized.replace(php_current,php_prior,1)
  need(normalized==old)
  s=normalized
  # Retain every original runtime/cleanup/upload assertion on the exact inverse.
@@ -75,6 +81,10 @@ def require_current_workflow(s):
  return True
 def require_current_cleanup_boundary(raw,legacy):
  import ast
+ if type(legacy)is not bytes or len(legacy)!=21006 or hashlib.sha256(legacy).hexdigest()!='7ecb21b2beb42ff6469be467ad9924278b3d717661040d6cded817d4350643ec':raise ValueError('current_media_deadline_refused')
+ for current,prior in ((b"pr['version']=='8.5.13'",b"pr['version']=='8.5.12'"),(b"{'version':'8.5.13','mysqli':True",b"{'version':'8.5.12','mysqli':True")):
+  if legacy.count(current)!=1:raise ValueError('current_media_version_anchor_refused')
+  legacy=legacy.replace(current,prior,1)
  if hashlib.sha256(legacy).hexdigest()!='8d84b9744560fba48aaa4634aa095e53e8f441a1138d39ede280326b67eb4209':raise ValueError('original_media_deadline_refused')
  tree=ast.parse(raw);outer=[n for n in tree.body if isinstance(n,ast.FunctionDef)and n.name=='execute']
  if len(outer)!=1:raise ValueError('media_execute_shape_refused')
@@ -203,6 +213,35 @@ class Controls(unittest.TestCase):
   self.assertTrue(require_current_cleanup_boundary(raw,legacy))
   for mutant in (raw.replace(b'legacy.execute(config_path,output,True)',b'legacy.execute(config_path,output,False)'),raw.replace(b'timeout=5)',b'timeout=10)'),raw.replace(b'microtime(true)+600',b'microtime(true)+900')):
    with self.assertRaises(ValueError):require_current_cleanup_boundary(mutant,legacy)
+ def test_current_legacy_php_inverse_preserves_deadline_and_cleanup(self):
+  root=Path(__file__).resolve().parents[3]
+  raw=(root/'scripts/governance/run_media_task_selected_v2.py').read_bytes()
+  legacy=(root/'support/governance/media-session-docker/run.py').read_bytes()
+  self.assertTrue(require_current_cleanup_boundary(raw,legacy))
+  for old,new in ((b"8.5.13",b"8.5.12"),(b"8.5.13",b"8.5.14"),
+                  (b"timeout=30",b"timeout=300"),(b"cleanup=False",b"cleanup=True")):
+   mutant=legacy.replace(old,new,1)
+   self.assertNotEqual(mutant,legacy)
+   with self.assertRaises(ValueError):require_current_cleanup_boundary(raw,mutant)
+  for mutant in (legacy+b'\n',legacy.replace(b"8.5.13",b"8.5.12")):
+   with self.assertRaises(ValueError):require_current_cleanup_boundary(raw,mutant)
+
+ def test_current_php_baseline_continuation_is_exact(self):
+  root=Path(__file__).resolve().parents[3]
+  s=(root/'.github/workflows/native-media-session-positive-sql.yml').read_text()
+  self.assertTrue(require_current_workflow(s))
+  for old,new in (("php-version: '8.5.13'", "php-version: '8.5.12'"),
+                  ("php-version: '8.5.13'", "php-version: '8.5.14'"),
+                  ("php-version: '8.5.13'", "php-version: '8.5.13RC1'"),
+                  ("php-version: '8.5.13'", "php-version: '8.5.13'\n          php-version: '8.5.13'"),
+                  ('opcache.jit=disable', 'opcache.jit=off'),
+                  ('extensions: mysqli, mbstring, posix, pcntl', 'extensions: mysqli, mbstring')):
+   with self.subTest(change=new),self.assertRaises(ValueError):
+    require_current_workflow(s.replace(old,new,1))
+  golden=subprocess.check_output(['git','--no-replace-objects','-C',str(root),'show',
+   '7b23c47e329f32e4fe083d0efa23fd82d6eefe6f:.github/workflows/native-media-session-positive-sql.yml'],timeout=10)
+  with self.assertRaises(ValueError):require_current_workflow(golden.decode())
+
  def test_current_workflow_rejects_binding_omission_failure_masks_and_raw_upload(self):
   import re
   root=Path(__file__).resolve().parents[3];s=(root/'.github/workflows/native-media-session-positive-sql.yml').read_text();require_current_workflow(s)

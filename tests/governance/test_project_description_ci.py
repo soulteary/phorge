@@ -5,6 +5,20 @@ def load(path,name):
  s=importlib.util.spec_from_file_location(name,ROOT/path);m=importlib.util.module_from_spec(s);s.loader.exec_module(m);return m
 ci=load('support/governance/project-description-ci/ci.py','description_ci')
 class DescriptionCI(unittest.TestCase):
+ def test_task_php13_continuations_keep_exact_old_targets_and_refuse_mutations(self):
+  for path,(current,parent,anchor) in ci.TASK_PHP13_CONTINUATIONS.items():
+   raw=(ROOT/path).read_bytes()
+   self.assertEqual(ci.task_php13_continuation(path,raw,parent),raw)
+   old=raw.replace(anchor,anchor.replace(b'8.5.13',b'8.5.12'),1)
+   self.assertEqual(ci.sha(old),parent)
+   for changed in [old,raw+b'\n',raw.replace(anchor,anchor.replace(b'8.5.13',b'8.5.14'),1),raw.replace(anchor,b'',1),raw+anchor]:
+    with self.subTest(path=path,digest=ci.sha(changed)):
+     with self.assertRaises(ValueError):ci.task_php13_continuation(path,changed,parent)
+   for wrong in [None,'0'*64,current]:
+    with self.assertRaises(ValueError):ci.task_php13_continuation(path,raw,wrong)
+   with self.assertRaises(ValueError):ci.task_php13_continuation(path,bytearray(raw),parent)
+   with self.assertRaises(ValueError):ci.task_php13_continuation('unknown',raw,parent)
+
  def test_one_profile_pin_successor_preserves_all_other_template_bytes(self):
   for kind,path in [('cases','support/governance/project-description-qualification/native.php'),('fixture','support/governance/project-description-ci/fixture.php')]:
    b=(ROOT/path).read_bytes();n=ci.successor(b,'1'*64,kind)
