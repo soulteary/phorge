@@ -12,7 +12,7 @@ def inventory():
  return classes,ids
 class Source(unittest.TestCase):
  def test_inventory_is_source_derived_not_runtime(self):
-  classes,ids=inventory();self.assertEqual(49,len(classes));self.assertEqual(285,len(ids));self.assertEqual(len(ids),len(set(ids)))
+  classes,ids=inventory();self.assertEqual(49,len(classes));self.assertEqual(276,len(ids));self.assertEqual(len(ids),len(set(ids)))
   baseline='e41afddcb6c7fc76274a8273eeca4cb8e3599d1a'
   old=subprocess.check_output(['git','-C',str(ROOT),'show',baseline+':tests/governance/run.php'],text=True)
   old_classes=re.findall(r"'([A-Za-z0-9_]+TestCase)'",old.split('$classes = array(',1)[1].split(');',1)[0]);old_ids=set()
@@ -42,7 +42,7 @@ class Source(unittest.TestCase):
    'PhorgeGovernanceMediaHTTPProtocolTestCase::testDisabledHTTPPreservesNativeCredentialsAndOmitsBootstrap'}
   self.assertEqual(14,len(original_delta));self.assertEqual(5,len(additions));self.assertFalse(original_delta&additions)
   def require_current(actual):
-   self.assertEqual(285,len(actual));self.assertEqual(len(actual),len(set(actual)))
+   self.assertEqual(276,len(actual));self.assertEqual(len(actual),len(set(actual)))
    self.assertTrue(old_ids<=set(actual));self.assertEqual(19,len(set(actual)-old_ids))
    self.assertEqual(original_delta|additions,set(actual)-old_ids)
   require_current(ids)

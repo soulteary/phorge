@@ -56,6 +56,8 @@ class PrivateNotificationEvidenceTests(unittest.TestCase):
         with tempfile.TemporaryDirectory()as directory:
             root=Path(directory)
             for row in self.data['producers']+self.data['consumers']:
+                if row.get('purpose_review')=='retired-runtime-removed':
+                    self.assertFalse((ROOT/row['path']).exists());continue
                 dest=root/row['path'];dest.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(ROOT/row['path'],dest)
             self.assertTrue(gate.validate(self.data,root)['passed'])
             extra=root/'src/unreviewed.php';extra.write_text("<?php $mail->setPrivateMailProducer('Security');")
@@ -90,7 +92,7 @@ class PrivateNotificationEvidenceTests(unittest.TestCase):
         with tempfile.TemporaryDirectory()as directory:
             private=Path(directory);binary=private/'file';binary.write_bytes(b'synthetic gate binary')
             render=private/'render';render.write_bytes(b'synthetic render gate input')
-            data=module.template();data['native']['private_mail_tests']['wiki_content_publication_tests']['render_cleanup']['binary_sha256']=hashlib.sha256(render.read_bytes()).hexdigest()
+            data=module.template()
             data['file_service_cleanup']['binary_sha256']=hashlib.sha256(binary.read_bytes()).hexdigest()
             receipt=private/'receipt.json';receipt.write_text(json.dumps(data))
             base=[sys.executable,'-B',str(ROOT/'scripts/governance/check_private_notifications.py'),
@@ -105,7 +107,7 @@ class PrivateNotificationEvidenceTests(unittest.TestCase):
                 self.assertEqual(expected,result.returncode)
                 self.assertEqual(source_window(),before,'CLI must preserve all source names, modes and hashes')
                 if expected==0:
-                    value=json.loads(result.stdout);self.assertEqual(936,value['native_checks'])
+                    value=json.loads(result.stdout);self.assertEqual(922,value['native_checks'])
                     self.assertIs(value['smtp_proved'],False)
             index=base.index('--render-binary');without=base[:index]+base[index+2:]
             missing=subprocess.run(without+['--measurement-source-revision','a'*40],capture_output=True,text=True)

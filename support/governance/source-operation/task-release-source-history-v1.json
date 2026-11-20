@@ -26,14 +26,14 @@
       ]
     },
     ".github/workflows/gorge-runtime-contracts.yml": {
-      "current_bytes": 17530,
-      "current_sha256": "d9851b8d7bb8b0a37d76e346adeb30ed1bd89b692fd3a0e2561e9a913a8068e2",
+      "current_bytes": 17699,
+      "current_sha256": "0318bd00cca44e47d155ab1a682c2629cff16efa78b47d5e072ad56397f9a1d7",
       "target_bytes": 14318,
       "target_sha256": "1fac4ce6d96459d41d5f86f618c987b0e9678a180afe19111888a369d623ef77",
       "edits": [
         {
           "offset": 414,
-          "current": "  media-isolation:\n    runs-on: ubuntu-latest\n    timeout-minutes: 10\n    strategy:\n      fail-fast: false\n      matrix:\n        include:\n          - family: mysql\n            image: mysql:8.4.13@sha256:a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7\n          - family: mariadb\n            image: mariadb@sha256:d769e37960821dfdcf096954f6e7ac89f747e116c1bba98e48edd265dfc7deae\n    services:\n      database:\n        image: ${{ matrix.image }}\n        env:\n          MYSQL_ROOT_PASSWORD: media-isolation-test-only\n          MYSQL_ROOT_HOST: '%'\n        ports: ['3306:3306']\n        options: --health-cmd \"mysqladmin --protocol=tcp --host=127.0.0.1 ping --silent\" --health-interval 5s --health-timeout 3s --health-retries 30\n    steps:\n      - uses: actions/checkout@v6\n      - uses: shivammathur/setup-php@v2\n        with:\n          php-version: '8.5.12'\n          ini-values: opcache.jit=disable, opcache.jit_buffer_size=0\n          extensions: mysqli, mbstring, curl\n          coverage: none\n      - name: Verify isolation row validation without database access\n        run: |\n          php -r 'require \"tests/contract/bootstrap.php\"; $test = new PhorgeGovernanceMediaExchangeServiceTestCase(); $test->testIsolationRowsKeepExactNamesAndKnownNativeValues(); $assertions = new ReflectionProperty(PhutilTestCase::class, \"assertions\"); if ($assertions->getValue($test) !== 22) { throw new RuntimeException(\"Unexpected assertion count.\"); }'\n      - name: Verify isolated media transactions and cleanup\n        env:\n          PHORGE_MEDIA_ISOLATION_TEST: '1'\n          PHORGE_MEDIA_DATABASE_FAMILY: ${{ matrix.family }}\n          PHORGE_MEDIA_MYSQL_HOST: 127.0.0.1\n          PHORGE_MEDIA_MYSQL_PASSWORD: media-isolation-test-only\n        run: php tests/contract/runtime/media-isolation.php\n  proxy-session-identity:\n    runs-on: ubuntu-latest\n    services:\n      mysql:\n        image: mysql:8.0\n        env:\n          MYSQL_ROOT_PASSWORD: proxy-session-test-only\n          MYSQL_ROOT_HOST: '%'\n        ports: ['3306:3306']\n        options: --health-cmd \"mysqladmin ping -pproxy-session-test-only\" --health-interval 5s --health-timeout 3s --health-retries 30\n    steps:\n      - uses: actions/checkout@v6\n      - uses: shivammathur/setup-php@v2\n        with:\n          php-version: '8.5.12'\n          ini-values: opcache.jit=disable, opcache.jit_buffer_size=0\n          extensions: mysqli, mbstring, curl, dom\n          coverage: none\n      - name: Prepare isolated authentication test database\n        run: |\n          php scripts/runtime/build.php all\n          mkdir -p conf/local\n          php -r '$db=new mysqli(\"127.0.0.1\",\"root\",\"proxy-session-test-only\",\"\",3306); $db->query(\"SET GLOBAL sql_mode = '\\''STRICT_ALL_TABLES'\\''\"); file_put_contents(\"conf/local/local.json\",json_encode([\"mysql.host\"=>\"127.0.0.1\",\"mysql.port\"=>\"3306\",\"mysql.user\"=>\"root\",\"mysql.pass\"=>\"proxy-session-test-only\"]));'\n      - name: Verify proxy identity and explicit account linking\n        run: |\n          php bin/unit --no-coverage \\\n            src/applications/auth/__tests__/PhabricatorTraefikSessionIdentityTestCase.php \\\n            src/applications/auth/__tests__/PhabricatorTraefikAuthProviderTestCase.php\n",
+          "current": "  media-isolation:\n    runs-on: ubuntu-latest\n    timeout-minutes: 10\n    strategy:\n      fail-fast: false\n      matrix:\n        include:\n          - family: mysql\n            image: mysql:8.4.13@sha256:a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7\n          - family: mariadb\n            image: mariadb@sha256:d769e37960821dfdcf096954f6e7ac89f747e116c1bba98e48edd265dfc7deae\n    services:\n      database:\n        image: ${{ matrix.image }}\n        env:\n          MYSQL_ROOT_PASSWORD: media-isolation-test-only\n          MYSQL_ROOT_HOST: '%'\n        ports: ['3306:3306']\n        options: --health-cmd \"mysqladmin --protocol=tcp --host=127.0.0.1 ping --silent\" --health-interval 5s --health-timeout 3s --health-retries 30\n    steps:\n      - uses: actions/checkout@v6\n      - uses: shivammathur/setup-php@v2\n        with:\n          php-version: '8.5.12'\n          ini-values: opcache.jit=disable, opcache.jit_buffer_size=0\n          extensions: mysqli, mbstring, curl\n          coverage: none\n      - name: Verify isolation row validation without database access\n        run: |\n          php -r 'require \"tests/contract/bootstrap.php\"; $test = new PhorgeGovernanceMediaExchangeServiceTestCase(); $test->testIsolationRowsKeepExactNamesAndKnownNativeValues(); $assertions = new ReflectionProperty(PhutilTestCase::class, \"assertions\"); if ($assertions->getValue($test) !== 22) { throw new RuntimeException(\"Unexpected assertion count.\"); }'\n      - name: Verify isolated media transactions and cleanup\n        env:\n          PHORGE_MEDIA_ISOLATION_TEST: '1'\n          PHORGE_MEDIA_DATABASE_FAMILY: ${{ matrix.family }}\n          PHORGE_MEDIA_MYSQL_HOST: 127.0.0.1\n          PHORGE_MEDIA_MYSQL_PASSWORD: media-isolation-test-only\n        run: php tests/contract/runtime/media-isolation.php\n  proxy-session-identity:\n    runs-on: ubuntu-latest\n    services:\n      mysql:\n        image: mysql:8.0\n        env:\n          MYSQL_ROOT_PASSWORD: proxy-session-test-only\n          MYSQL_ROOT_HOST: '%'\n        ports: ['3306:3306']\n        options: --health-cmd \"mysqladmin ping -pproxy-session-test-only\" --health-interval 5s --health-timeout 3s --health-retries 30\n    steps:\n      - uses: actions/checkout@v6\n      - uses: shivammathur/setup-php@v2\n        with:\n          php-version: '8.5.12'\n          ini-values: opcache.jit=disable, opcache.jit_buffer_size=0\n          extensions: mysqli, mbstring, curl, dom\n          coverage: none\n      - name: Prepare isolated authentication test database\n        run: |\n          php scripts/runtime/build.php all\n          mkdir -p conf/local\n          php -r '$db=new mysqli(\"127.0.0.1\",\"root\",\"proxy-session-test-only\",\"\",3306); $db->query(\"SET GLOBAL sql_mode = '\\''STRICT_ALL_TABLES'\\''\"); file_put_contents(\"conf/local/local.json\",json_encode([\"mysql.host\"=>\"127.0.0.1\",\"mysql.port\"=>\"3306\",\"mysql.user\"=>\"root\",\"mysql.pass\"=>\"proxy-session-test-only\"]));'\n      - name: Verify proxy identity and explicit account linking\n        run: |\n          php bin/unit --no-coverage \\\n            src/applications/auth/__tests__/PhabricatorTraefikSessionIdentityTestCase.php \\\n            src/applications/auth/__tests__/PhabricatorTraefikAuthProviderTestCase.php\n      - name: Verify native Almanac inventory boundaries\n        run: php bin/unit --no-coverage src/applications/almanac/__tests__/AlmanacInventoryBoundaryTestCase.php\n",
           "parent": ""
         }
       ]
@@ -106,38 +106,48 @@
       ]
     },
     "src/__phutil_library_map__.php": {
-      "current_bytes": 859271,
-      "current_sha256": "0c1680ccd1c0127ec426425ad37d276750102dffd3500673eeb558a09a188f15",
+      "current_bytes": 859449,
+      "current_sha256": "f0ce4a8a2b048b75a4cc153853a9b34d78d8bead90747bd584af4022c82dbb23",
       "target_bytes": 871175,
       "target_sha256": "081e5cf740a2aa893274774885a949f3d90fd233370517ce08f7f6ab007765a2",
       "edits": [
         {
-          "offset": 338948,
+          "offset": 8543,
+          "current": "    'AlmanacInventoryBoundaryTestCase' => 'applications/almanac/__tests__/AlmanacInventoryBoundaryTestCase.php',\n",
+          "parent": ""
+        },
+        {
+          "offset": 339061,
           "current": "",
           "parent": "    'PhabricatorPhrictionApplication' => 'applications/phriction/application/PhabricatorPhrictionApplication.php',\n"
         },
         {
-          "offset": 418828,
+          "offset": 418941,
           "current": "    'PhabricatorTraefikSessionIdentityTestCase' => 'applications/auth/__tests__/PhabricatorTraefikSessionIdentityTestCase.php',\n",
           "parent": ""
         },
         {
-          "offset": 490941,
+          "offset": 491054,
           "current": "",
           "parent": "    'PhrictionChangeType' => 'applications/phriction/constants/PhrictionChangeType.php',\n    'PhrictionConduitAPIMethod' => 'applications/phriction/conduit/PhrictionConduitAPIMethod.php',\n    'PhrictionConstants' => 'applications/phriction/constants/PhrictionConstants.php',\n    'PhrictionContent' => 'applications/phriction/storage/PhrictionContent.php',\n    'PhrictionContentPHIDType' => 'applications/phriction/phid/PhrictionContentPHIDType.php',\n    'PhrictionContentQuery' => 'applications/phriction/query/PhrictionContentQuery.php',\n    'PhrictionContentSearchConduitAPIMethod' => 'applications/phriction/conduit/PhrictionContentSearchConduitAPIMethod.php',\n    'PhrictionContentSearchEngine' => 'applications/phriction/query/PhrictionContentSearchEngine.php',\n    'PhrictionContentSearchEngineAttachment' => 'applications/phriction/engineextension/PhrictionContentSearchEngineAttachment.php',\n    'PhrictionController' => 'applications/phriction/controller/PhrictionController.php',\n    'PhrictionCreateConduitAPIMethod' => 'applications/phriction/conduit/PhrictionCreateConduitAPIMethod.php',\n    'PhrictionDAO' => 'applications/phriction/storage/PhrictionDAO.php',\n    'PhrictionDatasourceEngineExtension' => 'applications/phriction/engineextension/PhrictionDatasourceEngineExtension.php',\n    'PhrictionDeleteController' => 'applications/phriction/controller/PhrictionDeleteController.php',\n    'PhrictionDiffController' => 'applications/phriction/controller/PhrictionDiffController.php',\n    'PhrictionDocument' => 'applications/phriction/storage/PhrictionDocument.php',\n    'PhrictionDocumentAuthorHeraldField' => 'applications/phriction/herald/PhrictionDocumentAuthorHeraldField.php',\n    'PhrictionDocumentContentHeraldField' => 'applications/phriction/herald/PhrictionDocumentContentHeraldField.php',\n    'PhrictionDocumentContentTransaction' => 'applications/phriction/xaction/PhrictionDocumentContentTransaction.php',\n    'PhrictionDocumentController' => 'applications/phriction/controller/PhrictionDocumentController.php',\n    'PhrictionDocumentDatasource' => 'applications/phriction/typeahead/PhrictionDocumentDatasource.php',\n    'PhrictionDocumentDeleteTransaction' => 'applications/phriction/xaction/PhrictionDocumentDeleteTransaction.php',\n    'PhrictionDocumentDraftTransaction' => 'applications/phriction/xaction/PhrictionDocumentDraftTransaction.php',\n    'PhrictionDocumentEditConduitAPIMethod' => 'applications/phriction/conduit/PhrictionDocumentEditConduitAPIMethod.php',\n    'PhrictionDocumentEditEngine' => 'applications/phriction/editor/PhrictionDocumentEditEngine.php',\n    'PhrictionDocumentEditTransaction' => 'applications/phriction/xaction/PhrictionDocumentEditTransaction.php',\n    'PhrictionDocumentFerretEngine' => 'applications/phriction/search/PhrictionDocumentFerretEngine.php',\n    'PhrictionDocumentFulltextEngine' => 'applications/phriction/search/PhrictionDocumentFulltextEngine.php',\n    'PhrictionDocumentHeraldAdapter' => 'applications/phriction/herald/PhrictionDocumentHeraldAdapter.php',\n    'PhrictionDocumentHeraldField' => 'applications/phriction/herald/PhrictionDocumentHeraldField.php',\n    'PhrictionDocumentHeraldFieldGroup' => 'applications/phriction/herald/PhrictionDocumentHeraldFieldGroup.php',\n    'PhrictionDocumentMoveAwayTransaction' => 'applications/phriction/xaction/PhrictionDocumentMoveAwayTransaction.php',\n    'PhrictionDocumentMoveToTransaction' => 'applications/phriction/xaction/PhrictionDocumentMoveToTransaction.php',\n    'PhrictionDocumentPHIDType' => 'applications/phriction/phid/PhrictionDocumentPHIDType.php',\n    'PhrictionDocumentPathHeraldField' => 'applications/phriction/herald/PhrictionDocumentPathHeraldField.php',\n    'PhrictionDocumentPolicyCodex' => 'applications/phriction/codex/PhrictionDocumentPolicyCodex.php',\n    'PhrictionDocumentPublishTransaction' => 'applications/phriction/xaction/PhrictionDocumentPublishTransaction.php',\n    'PhrictionDocumentPublishedHeraldField' => 'applications/phriction/herald/PhrictionDocumentPublishedHeraldField.php',\n    'PhrictionDocumentQuery' => 'applications/phriction/query/PhrictionDocumentQuery.php',\n    'PhrictionDocumentSearchConduitAPIMethod' => 'applications/phriction/conduit/PhrictionDocumentSearchConduitAPIMethod.php',\n    'PhrictionDocumentSearchEngine' => 'applications/phriction/query/PhrictionDocumentSearchEngine.php',\n    'PhrictionDocumentStatus' => 'applications/phriction/constants/PhrictionDocumentStatus.php',\n    'PhrictionDocumentTitleHeraldField' => 'applications/phriction/herald/PhrictionDocumentTitleHeraldField.php',\n    'PhrictionDocumentTitleTransaction' => 'applications/phriction/xaction/PhrictionDocumentTitleTransaction.php',\n    'PhrictionDocumentTransactionType' => 'applications/phriction/xaction/PhrictionDocumentTransactionType.php',\n    'PhrictionDocumentVersionTransaction' => 'applications/phriction/xaction/PhrictionDocumentVersionTransaction.php',\n    'PhrictionEditConduitAPIMethod' => 'applications/phriction/conduit/PhrictionEditConduitAPIMethod.php',\n    'PhrictionEditController' => 'applications/phriction/controller/PhrictionEditController.php',\n    'PhrictionEditEngineController' => 'applications/phriction/controller/PhrictionEditEngineController.php',\n    'PhrictionHistoryConduitAPIMethod' => 'applications/phriction/conduit/PhrictionHistoryConduitAPIMethod.php',\n    'PhrictionHistoryController' => 'applications/phriction/controller/PhrictionHistoryController.php',\n    'PhrictionHovercardEngineExtension' => 'applications/phriction/engineextension/PhrictionHovercardEngineExtension.php',\n    'PhrictionInfoConduitAPIMethod' => 'applications/phriction/conduit/PhrictionInfoConduitAPIMethod.php',\n    'PhrictionListController' => 'applications/phriction/controller/PhrictionListController.php',\n    'PhrictionMarkupPreviewController' => 'applications/phriction/controller/PhrictionMarkupPreviewController.php',\n    'PhrictionMoveController' => 'applications/phriction/controller/PhrictionMoveController.php',\n    'PhrictionNewController' => 'applications/phriction/controller/PhrictionNewController.php',\n    'PhrictionPublishController' => 'applications/phriction/controller/PhrictionPublishController.php',\n    'PhrictionRemarkupRule' => 'applications/phriction/markup/PhrictionRemarkupRule.php',\n    'PhrictionReplyHandler' => 'applications/phriction/mail/PhrictionReplyHandler.php',\n    'PhrictionSchemaSpec' => 'applications/phriction/storage/PhrictionSchemaSpec.php',\n    'PhrictionTransaction' => 'applications/phriction/storage/PhrictionTransaction.php',\n    'PhrictionTransactionComment' => 'applications/phriction/storage/PhrictionTransactionComment.php',\n    'PhrictionTransactionEditor' => 'applications/phriction/editor/PhrictionTransactionEditor.php',\n    'PhrictionTransactionQuery' => 'applications/phriction/query/PhrictionTransactionQuery.php',\n"
         },
         {
-          "offset": 744850,
+          "offset": 526317,
+          "current": "    'AlmanacInventoryBoundaryTestCase' => 'PhabricatorTestCase',\n",
+          "parent": ""
+        },
+        {
+          "offset": 745028,
           "current": "",
           "parent": "    'PhabricatorPhrictionApplication' => 'PhabricatorApplication',\n"
         },
         {
-          "offset": 797849,
+          "offset": 798027,
           "current": "    'PhabricatorTraefikSessionIdentityTestCase' => 'PhabricatorTestCase',\n",
           "parent": ""
         },
         {
-          "offset": 842277,
+          "offset": 842455,
           "current": "",
           "parent": "    'PhrictionChangeType' => 'PhrictionConstants',\n    'PhrictionConduitAPIMethod' => 'ConduitAPIMethod',\n    'PhrictionConstants' => 'Phobject',\n    'PhrictionContent' => array(\n      'PhrictionDAO',\n      'PhabricatorPolicyInterface',\n      'PhabricatorDestructibleInterface',\n      'PhabricatorConduitResultInterface',\n    ),\n    'PhrictionContentPHIDType' => 'PhabricatorPHIDType',\n    'PhrictionContentQuery' => 'PhabricatorCursorPagedPolicyAwareQuery',\n    'PhrictionContentSearchConduitAPIMethod' => 'PhabricatorSearchEngineAPIMethod',\n    'PhrictionContentSearchEngine' => 'PhabricatorApplicationSearchEngine',\n    'PhrictionContentSearchEngineAttachment' => 'PhabricatorSearchEngineAttachment',\n    'PhrictionController' => 'PhabricatorController',\n    'PhrictionCreateConduitAPIMethod' => 'PhrictionConduitAPIMethod',\n    'PhrictionDAO' => 'PhabricatorLiskDAO',\n    'PhrictionDatasourceEngineExtension' => 'PhabricatorDatasourceEngineExtension',\n    'PhrictionDeleteController' => 'PhrictionController',\n    'PhrictionDiffController' => 'PhrictionController',\n    'PhrictionDocument' => array(\n      'PhrictionDAO',\n      'PhabricatorPolicyInterface',\n      'PhabricatorSubscribableInterface',\n      'PhabricatorFlaggableInterface',\n      'PhabricatorTokenReceiverInterface',\n      'PhabricatorDestructibleInterface',\n      'PhabricatorFulltextInterface',\n      'PhabricatorFerretInterface',\n      'PhabricatorProjectInterface',\n      'PhabricatorApplicationTransactionInterface',\n      'PhabricatorConduitResultInterface',\n      'PhabricatorPolicyCodexInterface',\n      'PhabricatorSpacesInterface',\n    ),\n    'PhrictionDocumentAuthorHeraldField' => 'PhrictionDocumentHeraldField',\n    'PhrictionDocumentContentHeraldField' => 'PhrictionDocumentHeraldField',\n    'PhrictionDocumentContentTransaction' => 'PhrictionDocumentEditTransaction',\n    'PhrictionDocumentController' => 'PhrictionController',\n    'PhrictionDocumentDatasource' => 'PhabricatorTypeaheadDatasource',\n    'PhrictionDocumentDeleteTransaction' => 'PhrictionDocumentVersionTransaction',\n    'PhrictionDocumentDraftTransaction' => 'PhrictionDocumentEditTransaction',\n    'PhrictionDocumentEditConduitAPIMethod' => 'PhabricatorEditEngineAPIMethod',\n    'PhrictionDocumentEditEngine' => 'PhabricatorEditEngine',\n    'PhrictionDocumentEditTransaction' => 'PhrictionDocumentVersionTransaction',\n    'PhrictionDocumentFerretEngine' => 'PhabricatorFerretEngine',\n    'PhrictionDocumentFulltextEngine' => 'PhabricatorFulltextEngine',\n    'PhrictionDocumentHeraldAdapter' => 'HeraldAdapter',\n    'PhrictionDocumentHeraldField' => 'HeraldField',\n    'PhrictionDocumentHeraldFieldGroup' => 'HeraldFieldGroup',\n    'PhrictionDocumentMoveAwayTransaction' => 'PhrictionDocumentVersionTransaction',\n    'PhrictionDocumentMoveToTransaction' => 'PhrictionDocumentVersionTransaction',\n    'PhrictionDocumentPHIDType' => 'PhabricatorPHIDType',\n    'PhrictionDocumentPathHeraldField' => 'PhrictionDocumentHeraldField',\n    'PhrictionDocumentPolicyCodex' => 'PhabricatorPolicyCodex',\n    'PhrictionDocumentPublishTransaction' => 'PhrictionDocumentTransactionType',\n    'PhrictionDocumentPublishedHeraldField' => 'PhrictionDocumentHeraldField',\n    'PhrictionDocumentQuery' => 'PhabricatorCursorPagedPolicyAwareQuery',\n    'PhrictionDocumentSearchConduitAPIMethod' => 'PhabricatorSearchEngineAPIMethod',\n    'PhrictionDocumentSearchEngine' => 'PhabricatorApplicationSearchEngine',\n    'PhrictionDocumentStatus' => 'PhabricatorObjectStatus',\n    'PhrictionDocumentTitleHeraldField' => 'PhrictionDocumentHeraldField',\n    'PhrictionDocumentTitleTransaction' => 'PhrictionDocumentVersionTransaction',\n    'PhrictionDocumentTransactionType' => 'PhabricatorModularTransactionType',\n    'PhrictionDocumentVersionTransaction' => 'PhrictionDocumentTransactionType',\n    'PhrictionEditConduitAPIMethod' => 'PhrictionConduitAPIMethod',\n    'PhrictionEditController' => 'PhrictionController',\n    'PhrictionEditEngineController' => 'PhrictionController',\n    'PhrictionHistoryConduitAPIMethod' => 'PhrictionConduitAPIMethod',\n    'PhrictionHistoryController' => 'PhrictionController',\n    'PhrictionHovercardEngineExtension' => 'PhabricatorHovercardEngineExtension',\n    'PhrictionInfoConduitAPIMethod' => 'PhrictionConduitAPIMethod',\n    'PhrictionListController' => 'PhrictionController',\n    'PhrictionMarkupPreviewController' => 'PhabricatorController',\n    'PhrictionMoveController' => 'PhrictionController',\n    'PhrictionNewController' => 'PhrictionController',\n    'PhrictionPublishController' => 'PhrictionController',\n    'PhrictionRemarkupRule' => 'PhutilRemarkupRule',\n    'PhrictionReplyHandler' => 'PhabricatorApplicationTransactionReplyHandler',\n    'PhrictionSchemaSpec' => 'PhabricatorConfigSchemaSpec',\n    'PhrictionTransaction' => 'PhabricatorModularTransaction',\n    'PhrictionTransactionComment' => 'PhabricatorApplicationTransactionComment',\n    'PhrictionTransactionEditor' => 'PhabricatorApplicationTransactionEditor',\n    'PhrictionTransactionQuery' => 'PhabricatorApplicationTransactionQuery',\n"
         }
@@ -278,8 +288,8 @@
       ]
     },
     "tests/governance/native_rr_ci/execution.py": {
-      "current_bytes": 18843,
-      "current_sha256": "6df2f35808d598b412a3b02fdf65329d90ac8bdb61c04145aa42038c6a7128b2",
+      "current_bytes": 20374,
+      "current_sha256": "2ef43559788ad70e198c0e74a850f869c5d8adeebd0d2e9af2d2728f31794e5f",
       "target_bytes": 8508,
       "target_sha256": "f250bcd482a4799d5b41c1f0d3af76b13605cbbf4be97d874ec54827edd34895",
       "edits": [
@@ -290,31 +300,31 @@
         },
         {
           "offset": 314,
-          "current": "CURRENT_RESTORE_CLI='scripts/governance/check_native_user_rr_mdl_current_restore_v2.py'\nCURRENT_RESTORE_ASSETS={\n 'resources/sql/autopatches/20261112.task.contentgrants.sql':'632b4412c18ea61787ca6b38afc9d3c16b62f76591e9a99d624401eeac117236',\n 'src/infrastructure/governance/content/PhorgeTaskContentGrantSchemaSpec.php':'7cac65fe600e2681eed05618fd584a02f37e27b7f532d6ca2b59244bf5045ccb'}\nCURRENT_RESTORE_PATHS=frozenset({CURRENT_RESTORE_CLI,*CURRENT_RESTORE_ASSETS})\n# Preserve all280 selected IDs at dd375d2d00, plus these five real current cases.\n# Encoding: SHA256(JSON(sorted IDs), separators=(',',':')). No PHP test is skipped.\nBASE_PURE_IDS_SHA256='6ba076f1a429860aab2b89c60d436a8bf5b1d4e42db1783d620eb84c243dc6fc'\nCURRENT_PURE_ADDITIONS=frozenset({\n 'PhorgeGovernanceMediaExchangeServiceTestCase::testIsolationRowsKeepExactNamesAndKnownNativeValues',\n 'PhorgeGovernanceMediaFileGuardTestCase::testDisabledFileGuardDeniesBeforeInterpretingRouteOrIdentity',\n 'PhorgeGovernanceMediaFileGuardTestCase::testPrivateResponsesDisableCachingAndConstrainActiveContent',\n 'PhorgeGovernanceMediaHTTPProtocolTestCase::testDisabledCandidateEndpointsDenyWithoutCreatingAuthority',\n 'PhorgeGovernanceMediaHTTPProtocolTestCase::testDisabledHTTPPreservesNativeCredentialsAndOmitsBootstrap'})\n",
+          "current": "CURRENT_RESTORE_CLI='scripts/governance/check_native_user_rr_mdl_current_restore_v2.py'\nCURRENT_RESTORE_ASSETS={\n 'resources/sql/autopatches/20261112.task.contentgrants.sql':'632b4412c18ea61787ca6b38afc9d3c16b62f76591e9a99d624401eeac117236',\n 'src/infrastructure/governance/content/PhorgeTaskContentGrantSchemaSpec.php':'7cac65fe600e2681eed05618fd584a02f37e27b7f532d6ca2b59244bf5045ccb'}\nCURRENT_RESTORE_PATHS=frozenset({CURRENT_RESTORE_CLI,*CURRENT_RESTORE_ASSETS})\n# Preserve all280 selected IDs at dd375d2d00, plus these five real current cases.\n# Encoding: SHA256(JSON(sorted IDs), separators=(',',':')). No PHP test is skipped.\nBASE_PURE_IDS_SHA256='6ba076f1a429860aab2b89c60d436a8bf5b1d4e42db1783d620eb84c243dc6fc'\nCURRENT_PURE_ADDITIONS=frozenset({\n 'PhorgeGovernanceMediaExchangeServiceTestCase::testIsolationRowsKeepExactNamesAndKnownNativeValues',\n 'PhorgeGovernanceMediaFileGuardTestCase::testDisabledFileGuardDeniesBeforeInterpretingRouteOrIdentity',\n 'PhorgeGovernanceMediaFileGuardTestCase::testPrivateResponsesDisableCachingAndConstrainActiveContent',\n 'PhorgeGovernanceMediaHTTPProtocolTestCase::testDisabledCandidateEndpointsDenyWithoutCreatingAuthority',\n 'PhorgeGovernanceMediaHTTPProtocolTestCase::testDisabledHTTPPreservesNativeCredentialsAndOmitsBootstrap'})\nRETIRED_PURE_IDS=frozenset(['PhorgeGovernanceCapabilityMapTestCase::testWikiContentRequiresValueAndExpansionReview', 'PhorgeGovernanceNativeObservationTestCase::testCreationWrongEnvelopeAndUnknownBatchBlock', 'PhorgeGovernanceNativeObservationTestCase::testTaskAndWikiPolicyItemsAreOnlyLocalPassThrough', 'PhorgeGovernanceNativeObservationTestCase::testWikiBatchMoveAndDeletePreserveNativeOrder', 'PhorgeGovernanceNativeObservationTestCase::testWikiBatchNativeCanonicalVersionHydration', 'PhorgeGovernanceNativeObservationTestCase::testWikiBatchPreludeUsesAttachedNativeContent', 'PhorgeGovernanceNativeObservationTestCase::testWikiBatchRejectsMissingOrMismatchedContent', 'PhorgeGovernanceNativeObservationTestCase::testWikiEmptyBodyActuallyExpandsToDelete', 'PhorgeGovernanceNativeObservationTestCase::testWikiMoveActuallyAddsDestinationPolicies', 'PhorgeGovernanceNativeObservationTestCase::testWikiMoveCannotInjectAnArbitraryObject', 'PhorgeGovernanceNativeObservationTestCase::testWikiNonemptyBodyDoesNotClaimPublicationValidated', 'PhorgeGovernanceReadSetTestCase::testTaskAndWikiGroupDependenciesAreNotOmitted'])\nRETIREMENT_PURE_ADDITIONS=frozenset(['PhorgeGovernanceCapabilityMapTestCase::testRetiredWikiCannotAcquireContentOrManagementCapabilities', 'PhorgeGovernanceNativeObservationTestCase::testTaskPolicyItemsAreOnlyLocalPassThrough', 'PhorgeGovernanceReadSetTestCase::testTaskGroupDependenciesAreNotOmitted'])\n",
           "parent": ""
         },
         {
-          "offset": 7409,
-          "current": " if len(ids)!=285:raise ValueError('current pure IDs refused')\n if not CURRENT_PURE_ADDITIONS<=ids or digest(json.dumps(sorted(ids-CURRENT_PURE_ADDITIONS),separators=(',',':')).encode())!=BASE_PURE_IDS_SHA256:raise ValueError('original280 plus exact five current cases required')\n",
+          "offset": 8833,
+          "current": " if len(ids)!=276:raise ValueError('current pure IDs refused')\n if not CURRENT_PURE_ADDITIONS<=ids or not RETIREMENT_PURE_ADDITIONS<=ids or RETIRED_PURE_IDS&ids or digest(json.dumps(sorted((ids-CURRENT_PURE_ADDITIONS-RETIREMENT_PURE_ADDITIONS)|RETIRED_PURE_IDS),separators=(',',':')).encode())!=BASE_PURE_IDS_SHA256:raise ValueError('original280 plus exact five current cases required')\n",
           "parent": " if len(ids)!=280:raise ValueError('current pure IDs refused')\n"
         },
         {
-          "offset": 7730,
-          "current": " if data.get('passed')is not True or data.get('runtime')!='8.5.12'or type(data.get('expected_methods'))is not int or data['expected_methods']!=285:raise ValueError('actual pure outcome refused')\n",
+          "offset": 9261,
+          "current": " if data.get('passed')is not True or data.get('runtime')!='8.5.12'or type(data.get('expected_methods'))is not int or data['expected_methods']!=276:raise ValueError('actual pure outcome refused')\n",
           "parent": " if data.get('passed')is not True or data.get('runtime')!='8.5.12'or type(data.get('expected_methods'))is not int or data['expected_methods']!=280:raise ValueError('actual pure outcome refused')\n"
         },
         {
-          "offset": 7954,
-          "current": " if type(results)is not list or len(results)!=285 or len({r['id']for r in results})!=285 or {r['id']for r in results}!=ids or any(r.get('result')!='pass'for r in results):raise ValueError('actual pure IDs refused')\n return {'passed':True,'methods':285,'classes':49,'new_executions':1}\n",
+          "offset": 9485,
+          "current": " if type(results)is not list or len(results)!=276 or len({r['id']for r in results})!=276 or {r['id']for r in results}!=ids or any(r.get('result')!='pass'for r in results):raise ValueError('actual pure IDs refused')\n return {'passed':True,'methods':276,'classes':49,'new_executions':1}\n",
           "parent": " if type(results)is not list or len(results)!=280 or len({r['id']for r in results})!=280 or {r['id']for r in results}!=ids or any(r.get('result')!='pass'for r in results):raise ValueError('actual pure IDs refused')\n return {'passed':True,'methods':280,'classes':49,'new_executions':1}\n"
         },
         {
-          "offset": 9310,
+          "offset": 10841,
           "current": "def current_restore_read(path):\n if path.resolve(strict=True)!=path:raise ValueError('canonical restore input required')\n fd=os.open(path,os.O_RDONLY|os.O_NOFOLLOW|os.O_NONBLOCK)\n try:\n  before=os.fstat(fd)\n  if not stat.S_ISREG(before.st_mode)or before.st_nlink!=1 or before.st_uid!=os.getuid()or before.st_mode&0o022 or not 0<before.st_size<=1048576:raise ValueError('bounded regular restore input required')\n  raw=bytearray()\n  while len(raw)<before.st_size:\n   part=os.read(fd,before.st_size-len(raw))\n   if not part:raise ValueError('complete restore input required')\n   raw.extend(part)\n  fields=('st_dev','st_ino','st_mode','st_uid','st_gid','st_nlink','st_size','st_mtime_ns','st_ctime_ns')\n  if os.read(fd,1)or any(getattr(before,k)!=getattr(after,k)for after in (os.fstat(fd),path.lstat())for k in fields):raise ValueError('restore input changed')\n  return bytes(raw)\n finally:os.close(fd)\n\ndef current_restore_inputs(code_root,source_root,revision,read_committed):\n # Separate signed-checkout DATA commitment; never alters the 15-source anchor.\n if type(revision)is not str or not re.fullmatch('[a-f0-9]{40}',revision)or revision=='0'*40:raise ValueError('fixed restore revision required')\n if code_root.resolve(strict=True)!=code_root or not source_root.is_absolute()or source_root.resolve()!=source_root or source_root==code_root or source_root.is_relative_to(code_root):raise ValueError('distinct fixed code and staged roots required')\n files={}\n for name in sorted(CURRENT_RESTORE_PATHS):\n  raw=current_restore_read(code_root/name)\n  if raw!=read_committed(name):raise ValueError('restore input differs from exact committed source')\n  pin=digest(raw)\n  if name in CURRENT_RESTORE_ASSETS and pin!=CURRENT_RESTORE_ASSETS[name]:raise ValueError('unreviewed restore asset')\n  files[name]={'bytes':len(raw),'sha256':pin}\n return {'schema':'native-RR-current-restore-inputs-DATA-v2','source_revision':revision,\n  'code_root':str(code_root),'source_root':str(source_root),'files':files,'runtime_authority':False}\n\ndef verify_current_restore_inputs(source_root,revision,commitment,*,code_root,read_committed):\n if type(commitment)is not dict or set(commitment)!={'schema','source_revision','code_root','source_root','files','runtime_authority'}:raise ValueError('closed restore commitment required')\n if commitment['schema']!='native-RR-current-restore-inputs-DATA-v2'or commitment['runtime_authority']is not False or commitment['source_revision']!=revision or type(revision)is not str or not re.fullmatch('[a-f0-9]{40}',revision)or revision=='0'*40:raise ValueError('same restore revision required')\n if code_root.resolve(strict=True)!=code_root or str(code_root)!=commitment['code_root']or source_root.resolve(strict=True)!=source_root or str(source_root)!=commitment['source_root']or source_root==code_root or source_root.is_relative_to(code_root)or (source_root/'.git').exists()or (source_root/'.git').is_symlink():raise ValueError('fixed Git checkout and Gitfree staged source required')\n if type(commitment['files'])is not dict or set(commitment['files'])!=CURRENT_RESTORE_PATHS:raise ValueError('closed restore input paths required')\n for name,row in commitment['files'].items():\n  if type(row)is not dict or set(row)!={'bytes','sha256'}or type(row['bytes'])is not int or not 0<row['bytes']<=1048576 or type(row['sha256'])is not str or not re.fullmatch('[a-f0-9]{64}',row['sha256']):raise ValueError('typed restore input pin required')\n  raw=current_restore_read(source_root/name);code=current_restore_read(code_root/name)\n  if raw!=code or code!=read_committed(name)or (len(raw),digest(raw))!=(row['bytes'],row['sha256'])or name in CURRENT_RESTORE_ASSETS and row['sha256']!=CURRENT_RESTORE_ASSETS[name]:raise ValueError('committed/worktree/staged restore input changed')\n\ndef strict_accept_current_restore_v2(root,receipt,revision,receipt_path,commitment,*,code_root,read_committed):\n verify_current_restore_inputs(root,revision,commitment,code_root=code_root,read_committed=read_committed)  # Before importing new CLI code.\n receipt_raw=current_restore_read(receipt_path);exact(decode(receipt_raw),receipt)\n scripts=root/'scripts/governance';sys.path.insert(0,str(scripts))\n sealed=current_restore_read(root/CURRENT_RESTORE_CLI)\n exact({'bytes':len(sealed),'sha256':digest(sealed)},commitment['files'][CURRENT_RESTORE_CLI])\n gate=types.ModuleType('actual_current_rr_restore_metadata_v2');gate.__file__=str(root/CURRENT_RESTORE_CLI)\n exec(compile(sealed,gate.__file__,'exec'),gate.__dict__)  # Verified CURRENT bytes, never cached bytecode.\n expected=gate.validate(receipt,root=root,source_revision=revision)\n required={'schema':'native-user-RR-current-restore-metadata-v2','profile':'RR-current-restore-metadata-v2','scope':'same-native-User-writer-RR-MDL-current-restore-metadata-only','passed':True,'source_revision':revision,'checks':21,'SQL_obligations':12,'native_children':2,'current_restore_metadata_verified':True,'legacy_reference_validated':True,'legacy_reference_only':True,'raw_v1_accepted':False,'raw_v1_profile_qualified':False,'raw_receipt_modified':False,'Task_physical_schema_verified':False,'Task_empty_tables_verified':False,'Task_config_epoch_verified':False,'independent_Task_schema_before_after_verified':False,'SQL_executed_by_validator':False,'source_owner_issued':False,'production_authority':False}\n if type(expected)is not dict or set(expected)!=set(required)|{'legacy_reference'}:raise ValueError('closed explicit restore metadata v2 scope required')\n exact({k:expected[k]for k in required},required)\n verify_current_restore_inputs(root,revision,commitment,code_root=code_root,read_committed=read_committed)  # Immediately before subprocess CLI.\n if current_restore_read(receipt_path)!=receipt_raw:raise ValueError('raw RR receipt changed')\n cli=subprocess.run([sys.executable,'-B',str(root/CURRENT_RESTORE_CLI),'--receipt',str(receipt_path),'--source-revision',revision,'--source-root',str(root)],capture_output=True)\n verify_current_restore_inputs(root,revision,commitment,code_root=code_root,read_committed=read_committed)  # After CLI; no Python-file gap.\n if current_restore_read(receipt_path)!=receipt_raw:raise ValueError('raw RR receipt changed')\n if cli.returncode!=0 or cli.stderr!=b''or decode(cli.stdout)!=expected:raise ValueError('actual current restore CLI/inprocess mismatch')\n return expected,cli.stdout\n\ndef restore_comparison_DATA(receipt,patches):\n # Fixed old-gate comparison only, never an acceptance or root-cause verdict.\n if type(patches)not in(tuple,list)or len(patches)!=38 or any(type(p)is not str for p in patches):raise ValueError('fixed diagnostic migration profile required')\n restore=receipt.get('source_restore')if type(receipt)is dict else None\n audit=restore.get('patch_audit')if type(restore)is dict else None\n hashes=audit.get('migration_source_hashes')if type(audit)is dict else None\n def keys_equal(actual,wanted):\n  return type(actual)is dict and all(type(k)is str for k in actual)and set(actual)==wanted\n fields={}\n for prefix,actual,expected in (\n  ('',restore,{'app_schema_count':54,'owned_schema_count':55,'quickstart_source_table_count':500,'current_table_count':549,'restore_phase_workers_started':0,'restore_phase_network_endpoints_configured':0}),\n  ('patch_audit.',audit,{'source_patch_count':1575,'applied_patch_count':1575,'migrations_executed':38,'current_patch_ledger_complete':True})):\n  for name,wanted in expected.items():\n   observed=actual.get(name)if type(actual)is dict else None\n   valid=type(observed)is type(wanted)and(type(observed)is bool or -(2**63)<=observed<2**63)\n   fields[prefix+name]={'expected':wanted,'observed':observed if valid else None,'type_valid':valid,'equal':valid and observed==wanted}\n return {'schema':'native-RR-source-restore-comparison-DATA-v1','comparison_DATA_only':True,\n  'qualification':False,'root_cause_proved':False,'fields':fields,\n  'keyset_equal':{\n   'source_restore':keys_equal(restore,{'quickstart_sha256','app_schema_count','owned_schema_count','quickstart_source_table_count','current_table_count','restore_phase_workers_started','restore_phase_network_endpoints_configured','patch_audit'}),\n   'patch_audit':keys_equal(audit,{'source_patch_count','applied_patch_count','pending_patch_keys','current_patch_ledger_complete','migration_source_hashes','migrations_executed'}),\n   'migration_source_hashes':keys_equal(hashes,{'phabricator:'+p for p in patches})}}\n\n",
           "parent": ""
         },
         {
-          "offset": 18026,
+          "offset": 19557,
           "current": " try:\n  expected=gate.validate(receipt,root=root,source_revision=revision)\n  cli=subprocess.run([sys.executable,'-B',str(scripts/'check_native_user_rr_mdl.py'),'--receipt',str(receipt_path),'--source-revision',revision],capture_output=True)\n  if cli.returncode!=0 or cli.stderr!=b''or decode(cli.stdout)!=expected:raise ValueError('actual CLI/inprocess strict acceptance mismatch')\n  return expected,cli.stdout\n except Exception:\n  try:\n   comparison=restore_comparison_DATA(receipt,gate.completion.PATCHES)\n   safe=json.dumps(comparison,sort_keys=True,separators=(',',':'),allow_nan=False)+'\\n'\n   if len(safe.encode())>4096:raise ValueError('bounded comparison required')\n   sys.stderr.write(safe);sys.stderr.flush()\n  except Exception:pass  # Diagnostic failure cannot replace the original strict failure.\n  raise\n",
           "parent": " expected=gate.validate(receipt,root=root,source_revision=revision)\n cli=subprocess.run([sys.executable,'-B',str(scripts/'check_native_user_rr_mdl.py'),'--receipt',str(receipt_path),'--source-revision',revision],capture_output=True)\n if cli.returncode!=0 or cli.stderr!=b''or decode(cli.stdout)!=expected:raise ValueError('actual CLI/inprocess strict acceptance mismatch')\n return expected,cli.stdout\n"
         }
@@ -360,13 +370,13 @@
     },
     "tests/governance/test_native_rr_ci_execution.py": {
       "current_bytes": 21221,
-      "current_sha256": "dcd7fb5f322e24315c6d950e791c351cbedbc5de83936e5f3fedebb3cb8c09a5",
+      "current_sha256": "fc589d0c142ca0f6e9b7aa7eec0e982abd5ab597852c76798b41d178a7fd9e3e",
       "target_bytes": 6348,
       "target_sha256": "42c3bccffac825e267b28f8cf0f1c581280dbba142be2712654a3c8975b44ea5",
       "edits": [
         {
           "offset": 3975,
-          "current": "  ids=e.pure_inventory(ROOT);self.assertEqual(285,len(ids));data={'passed':True,'runtime':'8.5.12','expected_methods':285,'results':[{'id':i,'result':'pass'}for i in ids]};self.assertTrue(e.validate_pure(data,ids)['passed'])\n  for change in ('bool','duplicate','failed','old-count','stale-280'):\n",
+          "current": "  ids=e.pure_inventory(ROOT);self.assertEqual(276,len(ids));data={'passed':True,'runtime':'8.5.12','expected_methods':276,'results':[{'id':i,'result':'pass'}for i in ids]};self.assertTrue(e.validate_pure(data,ids)['passed'])\n  for change in ('bool','duplicate','failed','old-count','stale-280'):\n",
           "parent": "  ids=e.pure_inventory(ROOT);self.assertEqual(280,len(ids));data={'passed':True,'runtime':'8.5.12','expected_methods':280,'results':[{'id':i,'result':'pass'}for i in ids]};self.assertTrue(e.validate_pure(data,ids)['passed'])\n  for change in ('bool','duplicate','failed','old-count'):\n"
         },
         {
@@ -376,7 +386,7 @@
         },
         {
           "offset": 4658,
-          "current": " def test_five_current_media_methods_are_not_omitted_from_real_inventory(self):\n  ids=e.pure_inventory(ROOT)\n  additions={\n   'PhorgeGovernanceMediaExchangeServiceTestCase::testIsolationRowsKeepExactNamesAndKnownNativeValues',\n   'PhorgeGovernanceMediaFileGuardTestCase::testDisabledFileGuardDeniesBeforeInterpretingRouteOrIdentity',\n   'PhorgeGovernanceMediaFileGuardTestCase::testPrivateResponsesDisableCachingAndConstrainActiveContent',\n   'PhorgeGovernanceMediaHTTPProtocolTestCase::testDisabledCandidateEndpointsDenyWithoutCreatingAuthority',\n   'PhorgeGovernanceMediaHTTPProtocolTestCase::testDisabledHTTPPreservesNativeCredentialsAndOmitsBootstrap'}\n  self.assertTrue(additions<=ids)\n  self.assertEqual(additions,e.CURRENT_PURE_ADDITIONS)\n  for removed in additions:\n   data={'passed':True,'runtime':'8.5.12','expected_methods':285,\n         'results':[{'id':i,'result':'pass'}for i in ids if i!=removed]}\n   with self.subTest(removed=removed),self.assertRaises(ValueError):e.validate_pure(data,ids)\n  # The historical280 prefix/success bit cannot replace all current285 IDs.\n  old=ids-additions\n  with self.assertRaises(ValueError):e.validate_pure({'passed':True,'runtime':'8.5.12',\n   'expected_methods':280,'results':[{'id':i,'result':'pass'}for i in old]},ids)\n def test_unchanged_count_cannot_replace_original_or_new_method(self):\n  import re\n  text=(ROOT/'tests/governance/run.php').read_text()\n  classes=re.findall(r\"'(Phorge[A-Za-z0-9_]+TestCase)'\",text.split('$classes = array(',1)[1].split(');',1)[0])\n  with tempfile.TemporaryDirectory()as tmp:\n   root=Path(tmp);runner=root/'tests/governance/run.php';runner.parent.mkdir(parents=True);runner.write_text(text)\n   files={}\n   for cls in classes:\n    original=next((ROOT/'src').rglob(cls+'.php'));target=root/'src'/original.name\n    target.parent.mkdir(exist_ok=True);target.write_text(original.read_text());files[cls]=target\n   self.assertEqual(285,len(e.pure_inventory(root)))\n   for identity in ('PhorgeGovernanceDirectoryReaderTestCase',\n                    'PhorgeGovernanceMediaExchangeServiceTestCase'):\n    target=files[identity];original=target.read_text()\n    method=('testIsolationRowsKeepExactNamesAndKnownNativeValues'if 'MediaExchange'in identity\n            else re.search(r'public\\s+function\\s+(test[A-Za-z0-9_]+)\\s*\\(',original).group(1))\n    target.write_text(original.replace(method,'testUnreviewedReplacement',1))\n    with self.subTest(identity=identity),self.assertRaises(ValueError):e.pure_inventory(root)\n    target.write_text(original)\n",
+          "current": " def test_five_current_media_methods_are_not_omitted_from_real_inventory(self):\n  ids=e.pure_inventory(ROOT)\n  additions={\n   'PhorgeGovernanceMediaExchangeServiceTestCase::testIsolationRowsKeepExactNamesAndKnownNativeValues',\n   'PhorgeGovernanceMediaFileGuardTestCase::testDisabledFileGuardDeniesBeforeInterpretingRouteOrIdentity',\n   'PhorgeGovernanceMediaFileGuardTestCase::testPrivateResponsesDisableCachingAndConstrainActiveContent',\n   'PhorgeGovernanceMediaHTTPProtocolTestCase::testDisabledCandidateEndpointsDenyWithoutCreatingAuthority',\n   'PhorgeGovernanceMediaHTTPProtocolTestCase::testDisabledHTTPPreservesNativeCredentialsAndOmitsBootstrap'}\n  self.assertTrue(additions<=ids)\n  self.assertEqual(additions,e.CURRENT_PURE_ADDITIONS)\n  for removed in additions:\n   data={'passed':True,'runtime':'8.5.12','expected_methods':276,\n         'results':[{'id':i,'result':'pass'}for i in ids if i!=removed]}\n   with self.subTest(removed=removed),self.assertRaises(ValueError):e.validate_pure(data,ids)\n  # The historical280 prefix/success bit cannot replace all current276 IDs.\n  old=ids-additions\n  with self.assertRaises(ValueError):e.validate_pure({'passed':True,'runtime':'8.5.12',\n   'expected_methods':280,'results':[{'id':i,'result':'pass'}for i in old]},ids)\n def test_unchanged_count_cannot_replace_original_or_new_method(self):\n  import re\n  text=(ROOT/'tests/governance/run.php').read_text()\n  classes=re.findall(r\"'(Phorge[A-Za-z0-9_]+TestCase)'\",text.split('$classes = array(',1)[1].split(');',1)[0])\n  with tempfile.TemporaryDirectory()as tmp:\n   root=Path(tmp);runner=root/'tests/governance/run.php';runner.parent.mkdir(parents=True);runner.write_text(text)\n   files={}\n   for cls in classes:\n    original=next((ROOT/'src').rglob(cls+'.php'));target=root/'src'/original.name\n    target.parent.mkdir(exist_ok=True);target.write_text(original.read_text());files[cls]=target\n   self.assertEqual(276,len(e.pure_inventory(root)))\n   for identity in ('PhorgeGovernanceDirectoryReaderTestCase',\n                    'PhorgeGovernanceMediaExchangeServiceTestCase'):\n    target=files[identity];original=target.read_text()\n    method=('testIsolationRowsKeepExactNamesAndKnownNativeValues'if 'MediaExchange'in identity\n            else re.search(r'public\\s+function\\s+(test[A-Za-z0-9_]+)\\s*\\(',original).group(1))\n    target.write_text(original.replace(method,'testUnreviewedReplacement',1))\n    with self.subTest(identity=identity),self.assertRaises(ValueError):e.pure_inventory(root)\n    target.write_text(original)\n",
           "parent": ""
         },
         {
@@ -479,13 +489,13 @@
     },
     "tests/governance/test_native_user_rr_mdl_source.py": {
       "current_bytes": 5412,
-      "current_sha256": "ea92392fdefff7147fe8ddc63a18f6b154e5547877fca66ed335166bb1cb029e",
+      "current_sha256": "8e2c59d5bfbba38b8c9eaa7f5aee4553052fb62ae11c5beb8950a446987ccdfe",
       "target_bytes": 4045,
       "target_sha256": "a43047fd8a130ff2405cb1dc0297194a2ef52a2274334e0023c81c172abf708d",
       "edits": [
         {
           "offset": 720,
-          "current": "  classes,ids=inventory();self.assertEqual(49,len(classes));self.assertEqual(285,len(ids));self.assertEqual(len(ids),len(set(ids)))\n",
+          "current": "  classes,ids=inventory();self.assertEqual(49,len(classes));self.assertEqual(276,len(ids));self.assertEqual(len(ids),len(set(ids)))\n",
           "parent": "  classes,ids=inventory();self.assertEqual(49,len(classes));self.assertEqual(280,len(ids));self.assertEqual(len(ids),len(set(ids)))\n"
         },
         {
@@ -495,7 +505,7 @@
         },
         {
           "offset": 2832,
-          "current": "   'PhorgeRecoveryProjectSourceFactsTestCase::testPrimitiveAndLengthBoundsCannotInvokeSerializationCallbacks'}\n  additions={'PhorgeGovernanceMediaExchangeServiceTestCase::testIsolationRowsKeepExactNamesAndKnownNativeValues',\n   'PhorgeGovernanceMediaFileGuardTestCase::testDisabledFileGuardDeniesBeforeInterpretingRouteOrIdentity',\n   'PhorgeGovernanceMediaFileGuardTestCase::testPrivateResponsesDisableCachingAndConstrainActiveContent',\n   'PhorgeGovernanceMediaHTTPProtocolTestCase::testDisabledCandidateEndpointsDenyWithoutCreatingAuthority',\n   'PhorgeGovernanceMediaHTTPProtocolTestCase::testDisabledHTTPPreservesNativeCredentialsAndOmitsBootstrap'}\n  self.assertEqual(14,len(original_delta));self.assertEqual(5,len(additions));self.assertFalse(original_delta&additions)\n  def require_current(actual):\n   self.assertEqual(285,len(actual));self.assertEqual(len(actual),len(set(actual)))\n   self.assertTrue(old_ids<=set(actual));self.assertEqual(19,len(set(actual)-old_ids))\n   self.assertEqual(original_delta|additions,set(actual)-old_ids)\n  require_current(ids)\n  # Count alone cannot admit a missing/replaced baseline, original14, or new5 ID.\n  for method in ids:\n   missing=[value for value in ids if value!=method]\n   with self.subTest(method=method,mutation='missing'),self.assertRaises(AssertionError):require_current(missing)\n   with self.subTest(method=method,mutation='same-count-replacement'),self.assertRaises(AssertionError):require_current(missing+['Unreviewed::testReplacement'])\n",
+          "current": "   'PhorgeRecoveryProjectSourceFactsTestCase::testPrimitiveAndLengthBoundsCannotInvokeSerializationCallbacks'}\n  additions={'PhorgeGovernanceMediaExchangeServiceTestCase::testIsolationRowsKeepExactNamesAndKnownNativeValues',\n   'PhorgeGovernanceMediaFileGuardTestCase::testDisabledFileGuardDeniesBeforeInterpretingRouteOrIdentity',\n   'PhorgeGovernanceMediaFileGuardTestCase::testPrivateResponsesDisableCachingAndConstrainActiveContent',\n   'PhorgeGovernanceMediaHTTPProtocolTestCase::testDisabledCandidateEndpointsDenyWithoutCreatingAuthority',\n   'PhorgeGovernanceMediaHTTPProtocolTestCase::testDisabledHTTPPreservesNativeCredentialsAndOmitsBootstrap'}\n  self.assertEqual(14,len(original_delta));self.assertEqual(5,len(additions));self.assertFalse(original_delta&additions)\n  def require_current(actual):\n   self.assertEqual(276,len(actual));self.assertEqual(len(actual),len(set(actual)))\n   self.assertTrue(old_ids<=set(actual));self.assertEqual(19,len(set(actual)-old_ids))\n   self.assertEqual(original_delta|additions,set(actual)-old_ids)\n  require_current(ids)\n  # Count alone cannot admit a missing/replaced baseline, original14, or new5 ID.\n  for method in ids:\n   missing=[value for value in ids if value!=method]\n   with self.subTest(method=method,mutation='missing'),self.assertRaises(AssertionError):require_current(missing)\n   with self.subTest(method=method,mutation='same-count-replacement'),self.assertRaises(AssertionError):require_current(missing+['Unreviewed::testReplacement'])\n",
           "parent": "   'PhorgeRecoveryProjectSourceFactsTestCase::testPrimitiveAndLengthBoundsCannotInvokeSerializationCallbacks'},set(ids)-old_ids)\n"
         }
       ]
@@ -1657,8 +1667,8 @@
       ]
     },
     "tests/governance/test_completion.py": {
-      "current_bytes": 12317,
-      "current_sha256": "4c37b8e07c275a9a29733123e3ce2e24a5533d3e974ebb4a673b3d2ff1e0972c",
+      "current_bytes": 12882,
+      "current_sha256": "d31ea1b2b71c8eb401d34555dcde701d02feaaf2b187bc6476acb0ad5cc83441",
       "target_bytes": 12403,
       "target_sha256": "8f6acafcf49fba16c6222a80e56d9659b03c54c2bf595afbe210d37c94e65ecb",
       "edits": [
@@ -1668,17 +1678,22 @@
           "parent": "        self.assertEqual(result['native_shapes'],24)\n        self.assertEqual(result['operation_vocabularies'],9)\n"
         },
         {
-          "offset": 4971,
+          "offset": 4846,
+          "current": "    def test_retired_checks_are_explicit_and_not_current_success_requirements(self):\n        retirement=json.loads((ROOT/'docs/operations/retirement/wiki.json').read_text())\n        retired=set(retirement['retired_completion_checks'])\n        self.assertEqual(len(retired),16)\n        self.assertEqual(125-len(retired),109)\n        self.assertFalse(retired & (gate.REQUIRED_CHECKS | gate.matrix_checks()))\n        matrix=json.loads((ROOT/gate.MATRIX).read_text())\n        self.assertTrue({c for row in matrix['retired_rows'] for c in row['check_ids']} <= retired)\n\n",
+          "parent": ""
+        },
+        {
+          "offset": 5536,
           "current": "        self.assertEqual(len(matrix['rows']),17)\n",
           "parent": "        self.assertEqual(len(matrix['rows']),24)\n"
         },
         {
-          "offset": 6007,
+          "offset": 6572,
           "current": "",
           "parent": "                      'read-view-wiki-private-ancestor-local-allow-actor-query-deny',\n"
         },
         {
-          "offset": 11153,
+          "offset": 11718,
           "current": "            self.assertEqual(json.loads(result.stdout)['native_shapes'],17)\n",
           "parent": "            self.assertEqual(json.loads(result.stdout)['native_shapes'],24)\n"
         }
@@ -1730,6 +1745,104 @@
           "offset": 5741,
           "current": "Task view/edit policy items may now be observed through the exact\n",
           "parent": "Task and Wiki view/edit policy items may now be observed through the exact\n"
+        }
+      ]
+    },
+    "src/applications/almanac/controller/AlmanacBindingEditController.php": {
+      "current_bytes": 4011,
+      "current_sha256": "5c19f7ae517789eb9607dcfd47450453a1b1138836455cd3abc798378fb43b6f",
+      "target_bytes": 3968,
+      "target_sha256": "b0696a535116063c6dffbc9c04adaa2930cdfdd4bec6fd5ef42e4467b11c2566",
+      "edits": [
+        {
+          "offset": 1158,
+          "current": "\n      if (!$service) {\n        return new Aphront404Response();\n      }\n",
+          "parent": ""
+        },
+        {
+          "offset": 3501,
+          "current": "        ->setHeader($title)\n",
+          "parent": "        ->setHeader(pht('Create Binding'))\n"
+        },
+        {
+          "offset": 3676,
+          "current": "        ->setHeader($title)\n",
+          "parent": "        ->setHeader(pht('Create Binding'))\n"
+        }
+      ]
+    },
+    "src/applications/almanac/query/AlmanacDeviceSearchEngine.php": {
+      "current_bytes": 4754,
+      "current_sha256": "eba3e4287ad5612d7c060b9e4054c426ea3baa4b25d61436624e6e4f856c823c",
+      "target_bytes": 4758,
+      "target_sha256": "893581d87cd06ef5c85dc212f663b6ca596decd95dc923be94b7499e1b57d677",
+      "edits": [
+        {
+          "offset": 4542,
+          "current": "          'Use Almanac devices to catalogue physical and virtual hosts '.\n          'and their network interfaces.'))\n",
+          "parent": "          'Use Almanac devices to catalogue your build hosts '.\n          'and their SSH ports your network, and more.'))\n"
+        }
+      ]
+    },
+    "src/applications/almanac/query/AlmanacServiceSearchEngine.php": {
+      "current_bytes": 4089,
+      "current_sha256": "ba13461f0dd5ca0664753c87c144e74b35a67d64f8447f4f774eca4c7561c786",
+      "target_bytes": 4101,
+      "target_sha256": "91bfdb921d45225875f88386eb446cacbfb34437c07d18eaad98abda7b86b4ac",
+      "edits": [
+        {
+          "offset": 3888,
+          "current": "          'Use Almanac services to catalogue services and bind them to '.\n          'device interfaces.'))\n",
+          "parent": "          'Services describe pools of devices, and '.\n          'they are available to Drydock for CI/CD, and more.'))\n"
+        }
+      ]
+    },
+    "src/infrastructure/internationalization/translation/PhabricatorChineseTranslation.php": {
+      "current_bytes": 1211970,
+      "current_sha256": "c8107058d5a0d1f830187067a9f8d6fe48e9b522b3dace4269c114ead70bb075",
+      "target_bytes": 1211627,
+      "target_sha256": "63655fedfcae251c561efac738d70b7617def93f9a72889449b02ce3050a4213",
+      "edits": [
+        {
+          "offset": 986359,
+          "current": "      'Use Almanac services to catalogue services and bind them to device interfaces.' => '\u4f7f\u7528 Almanac \u670d\u52a1\u767b\u8bb0\u670d\u52a1\uff0c\u5e76\u5c06\u5176\u7ed1\u5b9a\u5230\u8bbe\u5907\u63a5\u53e3\u3002',\n      'Use Almanac devices to catalogue physical and virtual hosts and their network interfaces.' => '\u4f7f\u7528 Almanac \u8bbe\u5907\u767b\u8bb0\u7269\u7406\u4e3b\u673a\u3001\u865a\u62df\u4e3b\u673a\u53ca\u5176\u7f51\u7edc\u63a5\u53e3\u3002',\n",
+          "parent": ""
+        }
+      ]
+    },
+    "tests/governance/test_private_mail_native_settings.py": {
+      "current_bytes": 4607,
+      "current_sha256": "5704e30d11af7ebf5749402726b8188975f8174d0325678a1c4bf30ef7134b8a",
+      "target_bytes": 4556,
+      "target_sha256": "d1b4b22de2aa711ac3acfbfbf23303873c60c0af8c231250bd11864853931924",
+      "edits": [
+        {
+          "offset": 2805,
+          "current": "  from task_inverse_test_api_v2 import parent_bytes\n  raw=parent_bytes(ROOT,POLICY);old=subprocess.check_output(['git','-C',str(ROOT),'show','33e707eaf21297b0e626278469c7e9d19cb66a83:'+POLICY])\n",
+          "parent": "  raw=(ROOT/POLICY).read_bytes();old=subprocess.check_output(['git','-C',str(ROOT),'show','33e707eaf21297b0e626278469c7e9d19cb66a83:'+POLICY])\n"
+        }
+      ]
+    },
+    "tests/governance/test_private_notifications.py": {
+      "current_bytes": 9408,
+      "current_sha256": "897f1855f273a1e14c483ead72aa5e8f037c451cd77d098ad9e0110d1ec56d44",
+      "target_bytes": 9414,
+      "target_sha256": "551649d7b166175eaf0c335ceddb6740e8c7bbcffa69dc7f1eebf2aae1aa79b5",
+      "edits": [
+        {
+          "offset": 4660,
+          "current": "                if row.get('purpose_review')=='retired-runtime-removed':\n                    self.assertFalse((ROOT/row['path']).exists());continue\n",
+          "parent": ""
+        },
+        {
+          "offset": 7318,
+          "current": "            data=module.template()\n",
+          "parent": "            data=module.template();data['native']['private_mail_tests']['wiki_content_publication_tests']['render_cleanup']['binary_sha256']=hashlib.sha256(render.read_bytes()).hexdigest()\n"
+        },
+        {
+          "offset": 8636,
+          "current": "                    value=json.loads(result.stdout);self.assertEqual(922,value['native_checks'])\n",
+          "parent": "                    value=json.loads(result.stdout);self.assertEqual(936,value['native_checks'])\n"
         }
       ]
     }

@@ -1,7 +1,7 @@
 {
   "schema": "phorge-application-retirement-v1",
   "application": "Phriction",
-  "status": "implementation-in-progress",
+  "status": "implemented-not-deployed",
   "basis_commit": "d8b19decf2ed49b2739c93b1d4d7666826b87fb9",
   "removed_classes": [
     "PhabricatorPhrictionApplication",
@@ -364,10 +364,29 @@
   ],
   "replacement": "External Wiki; product and migration are out of scope.",
   "remaining_gates": [
-    "Run the real SourceOperation lifecycle with the explicit retirement inventory; DATA-only inventory tests pass.",
-    "Mixed Completion, native SQL and notification fixtures must separate retired Wiki cases from retained coverage.",
-    "Fresh and restored SQL migration tests must pass with no Wiki application classes.",
-    "Route, search, Conduit, task rendering and final review must pass."
+    "Deployment is a separate operation requiring a verified backup and operator review; it is not authorized by this PR."
   ],
-  "deployment_permitted": false
+  "deployment_permitted": false,
+  "merge_gates": [
+    "Full CI on the exact PR head",
+    "All actionable review findings resolved"
+  ],
+  "retired_completion_checks": [
+    "pipeline-real-wiki-root-ancestor-prepared",
+    "pipeline-wiki-content-final-effect-committed",
+    "pipeline-wiki-update-new-version-committed",
+    "pipeline-wiki-records-and-publishing-queued",
+    "pipeline-mapped-wiki-title",
+    "pipeline-mapped-wiki-core:view-policy",
+    "pipeline-mapped-wiki-core:edit-policy",
+    "pipeline-mapped-wiki-space",
+    "pipeline-mapped-wiki-project-edge",
+    "pipeline-mapped-wiki-move-and-subeditor",
+    "pipeline-native-wiki-move-cross-references-persisted",
+    "pipeline-empty-wiki-create-native-validation-rejected",
+    "read-view-real-native-wiki-loader-profile",
+    "read-view-real-native-wiki-view-allow",
+    "read-view-real-native-wiki-loader-profile-owned-writer-routing-restored",
+    "read-view-wiki-private-ancestor-local-allow-actor-query-deny"
+  ]
 }

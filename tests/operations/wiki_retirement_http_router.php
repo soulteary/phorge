@@ -9,6 +9,12 @@ try {
     throw new RuntimeException('fixture_scope');
   }
   $private = getenv('WIKI_RETIREMENT_HTTP_FIXTURE');
+  if (!is_string($private) || is_link($private) || realpath(dirname($private)) !== realpath(sys_get_temp_dir()) ||
+      !preg_match('/\Awiki-http-[a-f0-9]{24}\z/', basename($private)) ||
+      (fileperms($private) & 0777) !== 0700 || is_link($private.'/config.json') ||
+      (fileperms($private.'/config.json') & 0777) !== 0600) {
+    throw new RuntimeException('fixture_private_storage');
+  }
   $config = json_decode(file_get_contents($private.'/config.json'), true);
   if (($_SERVER['HTTP_HOST'] ?? '') !== $config['host'] ||
       ($_SERVER['REQUEST_METHOD'] ?? '') !== 'GET' ||

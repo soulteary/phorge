@@ -1,5 +1,5 @@
 """Typed CURRENT source owner, parent DATA only; never execution approval."""
-import os,stat
+import os,stat,json
 from pathlib import Path
 from contextlib import contextmanager
 import source_operation_snapshot as source
@@ -41,6 +41,15 @@ def src_rows(root):
    raw=parent_in(op,root,path)
    if raw is None:continue
    pin=context.parent_pins[path];mode='120000'if pin['kind']=='symlink'else'100755'if pin['mode']==0o755 else'100644';rows[path]=(mode,raw)
+  # Historical tree comparisons include retired leaves as authenticated DATA,
+  # never as current runtime files or executable source.
+  from task_historical_views_test_api_v2 import retired_source_DATA
+  manifest=json.loads(context.current('docs/operations/retirement/wiki.json'))
+  for row in manifest['removed_files']:
+   path=row['path']
+   if path.startswith('src/'):
+    pin=context.parent_pins[path]
+    rows[path]=('100755'if pin['mode']==0o755 else'100644',retired_source_DATA(context,path))
   yield rows
 def recipe_data(root,op,current):
  root=Path(root);paths=set(current.CURRENT_METADATA)|set(current.description.CURRENT_PINS)|{current.MANIFEST,current.BRIDGE,current.PREPARATION,current.description.LEGACY_REDUCER['path'],'scripts/governance/project_content_grant_ci_source_delta.py'}

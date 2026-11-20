@@ -7,6 +7,14 @@ require $root.'/support/governance/completion/pipeline-gorge.php';
 if (getenv('PHORGE_GOVERNANCE_ISOLATED_TEST') !== '1') {
   throw new RuntimeException('isolated scope required');
 }
+foreach (array('PHABRICATOR_ENV','PHORGE_DEPLOYMENT_CONFIG','PHORGE_CONTROL_PLANE') as $key) {
+  if (getenv($key)) { throw new RuntimeException('deployment selector refused'); }
+}
+foreach (array('local.json','deployment.json','ENVIRONMENT') as $name) {
+  if (file_exists($root.'/conf/local/'.$name)) {
+    throw new RuntimeException('deployment configuration refused');
+  }
+}
 $control = new mysqli('127.0.0.1', getenv('PHORGE_GOVERNANCE_FIXTURE_USER'),
   getenv('PHORGE_GOVERNANCE_FIXTURE_PASSWORD'), '', 3306);
 $fixture = new PhorgeGovernanceCompletionFixture($control, $root, '127.0.0.1', 3306);
@@ -49,7 +57,8 @@ try {
     ->setIsApproved(1)->setIsEmailVerified(1)->save();
   $session = (new PhabricatorAuthSessionEngine())->establishSession(
     PhabricatorAuthSession::TYPE_WEB, $user->getPHID(), false);
-  $task = ManiphestTask::initializeNewTask($user)->setTitle('Retained task smoke')->save();
+  $task = ManiphestTask::initializeNewTask($user)->setTitle('Retained task smoke')
+    ->setOwnerPHID($user->getPHID())->save();
   (new PhabricatorUserEmail())->setUserPHID($user->getPHID())
     ->setAddress('wiki-acceptance@example.invalid')->setIsPrimary(1)->setIsVerified(1)->save();
   $file=PhabricatorFile::newFromFileData('Synthetic retained file',array(
@@ -108,6 +117,13 @@ try {
     if ($status!==$expected || str_contains((string)$body,'isolated_http_fixture_failed')) {
       if (is_file($private.'/failure.json')) { fwrite(STDERR, file_get_contents($private.'/failure.json')."\n"); }
       throw new RuntimeException('HTTP regression '.$path.' status '.$status.' expected '.$expected);
+    }
+    if ((str_starts_with($path,'/T') || $path==='/maniphest/') &&
+        !str_contains((string)$body,'Retained task smoke')) {
+      throw new RuntimeException('authenticated task content missing');
+    }
+    if ($path==='/project/' && !str_contains((string)$body,'Projects')) {
+      throw new RuntimeException('project page content missing');
     }
     $checks[]=$path;
   }

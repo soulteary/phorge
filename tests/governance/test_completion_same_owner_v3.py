@@ -24,6 +24,16 @@ class CompletionSameOwnerPureControls(unittest.TestCase):
  def setUpClass(cls):
   cls.controller=tree(CONTROLLER);cls.consumer=tree(CONSUMER);cls.validator=tree(BASE+'validate.py')
 
+ def test_failure_location_never_exports_messages_or_arguments(self):
+  namespace=selected(self.consumer,{'failure_location'});namespace['ROOT']=ROOT
+  project=namespace['failure_location'];secret='CANARY_PRIVATE_ACCOUNT_TOKEN_SQL'
+  for cls in (RuntimeError,type(secret,(RuntimeError,),{})):
+   try:raise cls(secret)
+   except Exception as error:result=project(error)
+   self.assertEqual(set(result),{'error_type','source_file','source_line'})
+   self.assertNotIn(secret,json.dumps(result))
+   self.assertIn(result['error_type'],('RuntimeError','Exception'))
+
  def test_self_signed_window_has_no_source_authority_route(self):
   text=ast.unparse(self.controller)+ast.unparse(self.consumer)
   self.assertNotIn('producer-window.private.json',text)

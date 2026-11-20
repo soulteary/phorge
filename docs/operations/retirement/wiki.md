@@ -1,6 +1,7 @@
 # Native Wiki retirement
 
-Status: implementation in progress; not approved for release or deployment.
+Status: implemented. Deployment is a separate operation and is not authorized
+by this change. Exact-head CI and review are required before merge.
 
 The native Phriction application is being removed. A separate product will
 provide Wiki functionality. This change does not select that product, migrate
@@ -53,22 +54,15 @@ Local checks completed:
   checks both values of the optional policy flag without sending mail.
 - Modified PHP files passed syntax checks and `git diff --check` passed.
 
-These results do not establish full regression or deployment readiness. Merge
-remains blocked on:
+These local results do not replace exact-head CI. The merge gate requires the
+complete native regression, paired runtime contracts, operations checks and
+resolution of all actionable review findings. Retired cases are not reported as
+passing coverage.
 
-1. Real SourceOperation entry and exit with the explicit retirement inventory.
-   DATA-only tests pass; this does not certify the signed runtime lifecycle.
-   Original hashes remain fixed, and unknown additions, reintroduced Wiki files
-   and unexpected missing files remain rejected.
-2. Updating mixed Completion, native SQL, source-operation and notification
-   fixtures so retained cases execute and retired cases are reported separately.
-   Do not execute archived Wiki code as current-source evidence.
-3. Fresh and restored database validation, including the PHP patches and
-   preservation of documents, attachment references and transaction history.
-4. HTTP routes, search results, old links, historical jobs, task/project editing
-   and final independent review on the exact PR head.
-
-All required CI gates remain in place. No failed or unexecuted gate is waived.
+The strict source inventory retains original hashes and rejects unexpected
+missing files, additions and restored Wiki runtime files. Historical source text
+is available only to isolated static DATA inventory tests. The retirement
+inverse is bidirectional and does not extend key trust or execute old Wiki code.
 
 ## Integration progress
 

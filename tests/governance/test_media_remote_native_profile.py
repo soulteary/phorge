@@ -70,7 +70,10 @@ class CurrentMainIntegration(MediaRemote):
    physical_changed=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'diff','--name-only','5a3d412be4496d1b739d484fc4cd778b79d80f72','HEAD','--','src','resources'],text=True).splitlines()
    task_delta={path for path,pin in context.entries.items()if path.startswith(('src/','resources/'))and pin!=context.parent_pins.get(path)}
    self.assertTrue(task_delta)
-   self.assertEqual(set(physical_changed),set(changed)|task_delta)
+   retired={row['path'] for row in json.loads(context.current('docs/operations/retirement/wiki.json'))['removed_files']}
+   self.assertEqual(len(retired),68)
+   self.assertTrue(all(not(ROOT/path).exists() for path in retired))
+   self.assertEqual(set(physical_changed),set(changed)|task_delta|retired)
    name='src/applications/calendar/notifications/PhabricatorCalendarNotificationEngine.php'
    policy='src/infrastructure/governance/notification/PhorgePrivateMailPolicy.php'
    conduit_delta=operation._modules['recovery_conduit_source_delta']

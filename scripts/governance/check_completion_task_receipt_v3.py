@@ -67,7 +67,7 @@ def validate_DATA_in_operation(operation,root,checkpoint,envelope_path,native_bo
  directory=Path(run_profile['output']);need(directory.is_absolute()and directory.resolve()==directory and not directory.is_relative_to(root))
  need(Path(profile_path)==directory/'schema-profile.private.json'and Path(run_profile_path)==directory.parent/'run-profile.private.json'and Path(native_body_path)==Path(str(directory)+'-native-body.private.json'))
  native_raw=read_private(native_body_path);native=validator.decode(native_raw);need(native==envelope['native_receipt'])
- need(type(native.get('check_count'))is int and native['check_count']==125)
+ need(type(native.get('check_count'))is int and native['check_count']==109)
  database=runtime_pair(validator.decode(read_private(runtime_before)),validator.decode(read_private(runtime_after)),checkpoint,profile)
  binary_adapter=captured(operation,root,'scripts/governance/check_directory_receipt_task_v2.py');checker=binary_adapter.checker_for_operation(operation,root)
  actual_file=checker.file_binary_digest(file_binary,file_sha);actual_taskqueue=checker.file_binary_digest(taskqueue_binary,taskqueue_sha)
@@ -134,6 +134,19 @@ def run_and_accept(root,checkpoint,directory,file_binary,file_sha,taskqueue_bina
  result['driver_executed_actual_producer']=True;result['SQL_executed_by_driver']=True
  return result
 
+def failure_location(error):
+ # Never export exception messages, arguments, locals, environment or SQL.
+ kind=type(error).__name__
+ if kind not in {'ValueError','TypeError','RuntimeError','CompletionProcessExit','FileNotFoundError','PermissionError','TimeoutExpired'}:kind='Exception'
+ location={'error_type':kind,'source_file':None,'source_line':None}
+ trace=error.__traceback__
+ while trace is not None:
+  path=Path(trace.tb_frame.f_code.co_filename)
+  if path.is_absolute() and path.is_relative_to(ROOT) and path.is_file() and path.suffix=='.py':
+   location['source_file']=str(path.relative_to(ROOT));location['source_line']=trace.tb_lineno
+  trace=trace.tb_next
+ return location
+
 if __name__=='__main__':
  p=argparse.ArgumentParser();p.add_argument('--root',default=str(ROOT))
  for n in('expected-checkpoint','directory','file-binary','file-sha','taskqueue-binary','taskqueue-sha','observed-mysql-image'):p.add_argument('--'+n,required=True)
@@ -141,5 +154,5 @@ if __name__=='__main__':
  try:print(json.dumps(run_and_accept(a.root,a.expected_checkpoint,a.directory,a.file_binary,a.file_sha,a.taskqueue_binary,a.taskqueue_sha,a.observed_mysql_image,a.php),sort_keys=True))
  except Exception as error:
   status=error.shell_status()if type(error)is CompletionProcessExit else 1
-  try:print(json.dumps({'completion_v3_accepted':False,'producer_window_proven':False,'consumer_source_exit_verified':False,'actual_process_returncode':error.returncode if type(error)is CompletionProcessExit else None,'secondary_sink_error_count':len(error.sink_errors)if type(error)is CompletionProcessExit else None,'SQL_executed_by_checker':False},sort_keys=True))
+  try:print(json.dumps({'completion_v3_accepted':False,'producer_window_proven':False,'consumer_source_exit_verified':False,'actual_process_returncode':error.returncode if type(error)is CompletionProcessExit else None,'secondary_sink_error_count':len(error.sink_errors)if type(error)is CompletionProcessExit else None,'SQL_executed_by_checker':False,'failure_location':failure_location(error)},sort_keys=True))
   finally:raise SystemExit(status)

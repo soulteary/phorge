@@ -54,7 +54,7 @@ class Controls(unittest.TestCase):
     with self.subTest(change=change),self.assertRaises(ValueError):e.extract_current_archive(raw.getvalue(),root)
     self.assertEqual([],list(root.iterdir()))
  def test_actual_current_pure_inventory_and_typed_outcome(self):
-  ids=e.pure_inventory(ROOT);self.assertEqual(285,len(ids));data={'passed':True,'runtime':'8.5.12','expected_methods':285,'results':[{'id':i,'result':'pass'}for i in ids]};self.assertTrue(e.validate_pure(data,ids)['passed'])
+  ids=e.pure_inventory(ROOT);self.assertEqual(276,len(ids));data={'passed':True,'runtime':'8.5.12','expected_methods':276,'results':[{'id':i,'result':'pass'}for i in ids]};self.assertTrue(e.validate_pure(data,ids)['passed'])
   for change in ('bool','duplicate','failed','old-count','stale-280'):
    bad=copy.deepcopy(data)
    if change=='bool':bad['expected_methods']=True
@@ -74,10 +74,10 @@ class Controls(unittest.TestCase):
   self.assertTrue(additions<=ids)
   self.assertEqual(additions,e.CURRENT_PURE_ADDITIONS)
   for removed in additions:
-   data={'passed':True,'runtime':'8.5.12','expected_methods':285,
+   data={'passed':True,'runtime':'8.5.12','expected_methods':276,
          'results':[{'id':i,'result':'pass'}for i in ids if i!=removed]}
    with self.subTest(removed=removed),self.assertRaises(ValueError):e.validate_pure(data,ids)
-  # The historical280 prefix/success bit cannot replace all current285 IDs.
+  # The historical280 prefix/success bit cannot replace all current276 IDs.
   old=ids-additions
   with self.assertRaises(ValueError):e.validate_pure({'passed':True,'runtime':'8.5.12',
    'expected_methods':280,'results':[{'id':i,'result':'pass'}for i in old]},ids)
@@ -91,7 +91,7 @@ class Controls(unittest.TestCase):
    for cls in classes:
     original=next((ROOT/'src').rglob(cls+'.php'));target=root/'src'/original.name
     target.parent.mkdir(exist_ok=True);target.write_text(original.read_text());files[cls]=target
-   self.assertEqual(285,len(e.pure_inventory(root)))
+   self.assertEqual(276,len(e.pure_inventory(root)))
    for identity in ('PhorgeGovernanceDirectoryReaderTestCase',
                     'PhorgeGovernanceMediaExchangeServiceTestCase'):
     target=files[identity];original=target.read_text()

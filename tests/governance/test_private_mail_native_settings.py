@@ -14,7 +14,8 @@ class NativeSettings(unittest.TestCase):
   self.assertEqual(0,p.returncode,p.stderr);self.assertEqual('',p.stderr)
   self.assertEqual({'query_type':'PhabricatorPeopleQuery','settings_requested':True,'default_settings_not_requested':True,'before':{'type':'PhabricatorDataNotAttachedException','file':'PhabricatorUser.php','line':1393},'after_native_attachment':True,'inline_fallback_enabled':False,'mysqli_disabled':True},json.loads(p.stdout))
  def test_exact_settings_inverse_rejects_missing_duplicate_other_context_or_comment_even_after_repin(self):
-  raw=(ROOT/POLICY).read_bytes();old=subprocess.check_output(['git','-C',str(ROOT),'show','33e707eaf21297b0e626278469c7e9d19cb66a83:'+POLICY])
+  from task_inverse_test_api_v2 import parent_bytes
+  raw=parent_bytes(ROOT,POLICY);old=subprocess.check_output(['git','-C',str(ROOT),'show','33e707eaf21297b0e626278469c7e9d19cb66a83:'+POLICY])
   self.assertEqual(gate.reduce_reviewed_private_mail_settings(raw),old)
   viewer=b"      $viewer=(new PhabricatorPeopleQuery())->setViewer(PhabricatorUser::getOmnipotentUser())\n        ->withPHIDs(array($phid))->needUserSettings(true)->executeOne();"
   security=b"$user=(new PhabricatorPeopleQuery())->setViewer(PhabricatorUser::getOmnipotentUser())->withPHIDs(array($phid))->executeOne();"

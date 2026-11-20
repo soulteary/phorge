@@ -80,6 +80,15 @@ class CompletionReceiptTests(unittest.TestCase):
             with self.subTest(patch=patch):
                 data=valid_template();data.update(patch);self.reject(data)
 
+    def test_retired_checks_are_explicit_and_not_current_success_requirements(self):
+        retirement=json.loads((ROOT/'docs/operations/retirement/wiki.json').read_text())
+        retired=set(retirement['retired_completion_checks'])
+        self.assertEqual(len(retired),16)
+        self.assertEqual(125-len(retired),109)
+        self.assertFalse(retired & (gate.REQUIRED_CHECKS | gate.matrix_checks()))
+        matrix=json.loads((ROOT/gate.MATRIX).read_text())
+        self.assertTrue({c for row in matrix['retired_rows'] for c in row['check_ids']} <= retired)
+
     def test_each_atomic_shape_requires_every_runtime_check(self):
         matrix=json.loads((ROOT/gate.MATRIX).read_text())
         self.assertEqual(len(matrix['rows']),17)

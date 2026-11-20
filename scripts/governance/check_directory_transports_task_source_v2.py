@@ -8,6 +8,15 @@ PARENT='5903d98b14926401f0be49cb0a9d6168026a2642'
 def need(v):
  if v is not True:raise ValueError('Task_directory_source_v2_refused')
 def sha(raw):return hashlib.sha256(raw).hexdigest()
+def parent_DATA(operation,root,relative):
+ context=operation._task_contexts[root]
+ if relative in context.entries:return operation._task_parent_bytes(root/relative)
+ manifest=json.loads(context.current('docs/operations/retirement/wiki.json'))
+ retired={row['path']:row['sha256'] for row in manifest['removed_files']}
+ need(relative in retired and relative in context.parent_pins and not(root/relative).exists())
+ pin=context.parent_pins[relative];need(pin['kind']=='file' and pin['sha256']==retired[relative])
+ raw=subprocess.check_output(['git','--no-replace-objects','-C',str(root),'show',manifest['basis_commit']+':'+relative],timeout=10)
+ need(len(raw)==pin['bytes'] and sha(raw)==pin['sha256']);return raw
 def verify_in_operation(operation,root):
  root=Path(root);source.require_operation(operation,root);source.require_task_operation(operation,root)
  need(operation.code_root==ROOT and source.ROOT==ROOT)
@@ -21,7 +30,7 @@ def verify_in_operation(operation,root):
  need(type(manifest['pins'])is dict and set(manifest['pins'])==checker.SOURCE_FILES and len(manifest['pins'])==76)
  for relative,pin in manifest['pins'].items():
   need(type(relative)is str and not relative.startswith('/')and'..'not in relative.split('/'))
-  parent=operation._task_parent_bytes(root/relative)
+  parent=parent_DATA(operation,root,relative)
   need(type(parent)is bytes and len(parent)==pin['bytes']and sha(parent)==pin['sha256'])
  # Historical Git objects are DATA only. No old module is executed and the
  # actual code/producer roots never switch to a historical checkout.
@@ -34,7 +43,7 @@ def verify_in_operation(operation,root):
   if pin['kind']=='symlink':
    need(mode=='120000'and context.entries[relative]==pin);parent=pin['target'].encode()
   else:
-   need(mode==('100755'if pin['mode']==0o755 else'100644'));parent=operation._task_parent_bytes(root/relative)
+   need(mode==('100755'if pin['mode']==0o755 else'100644'));parent=parent_DATA(operation,root,relative)
   need(hashlib.sha1(b'blob '+str(len(parent)).encode()+b'\0'+parent).hexdigest()==oid)
  need(names=={p for p in context.parent_pins if p.startswith(('src/','resources/'))})
  return {'schema':'native-directory-transports-Task-source-v2','source_only_passed':True,'exact_current_checkpoint':operation._task_expected_checkpoint,'current_signed_leaf_count':len(context.entries),'original_manifest_sha256':sha(actual_manifest),'original76_pins_verified_against_exact_parent_projection':True,'complete_src_resources_parent_tree_verified':True,'parent_git_tree_inventory_sha256':sha(tree),'CURRENT_typed_SourceOperation_issued':True,'source_operation_exit_verified':False,'original_v1_CLI_or_76_test_suite_executed':False,'runtime_SQL_or_business_qualified':False,'SQL_executed':False,'old_manifest_or_pins_modified':False}

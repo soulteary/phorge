@@ -39,6 +39,10 @@ final class AlmanacBindingEditController
           ))
         ->executeOne();
 
+      if (!$service) {
+        return new Aphront404Response();
+      }
+
       $binding = AlmanacBinding::initializeNewBinding($service);
       $is_new = true;
 
@@ -108,12 +112,12 @@ final class AlmanacBindingEditController
     if ($is_new) {
       $crumbs->addTextCrumb(pht('Create Binding'));
       $header = id(new PHUIHeaderView())
-        ->setHeader(pht('Create Binding'))
+        ->setHeader($title)
         ->setHeaderIcon('fa-plus-square');
     } else {
       $crumbs->addTextCrumb(pht('Edit Binding'));
       $header = id(new PHUIHeaderView())
-        ->setHeader(pht('Create Binding'))
+        ->setHeader($title)
         ->setHeaderIcon('fa-pencil');
     }
     $crumbs->setBorder(true);

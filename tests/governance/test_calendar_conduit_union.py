@@ -341,7 +341,16 @@ class CalendarConduitUnion(unittest.TestCase):
             lifecycle_delta = operation._modules['recovery_oauth_client_lifecycle_delta']
             n05_delta = operation._modules['project_description_admission_delta']
             n05_delta.assert_production_cohort(ROOT)
-            (changed, reviewed) = operation.historical_task_inputs(ROOT, previous, changed, {path: (ROOT / path).read_bytes() for path in changed})
+            from task_historical_views_test_api_v2 import retired_source_DATA
+            retirement = json.loads(context.current('docs/operations/retirement/wiki.json'))
+            retired = {row['path'] for row in retirement['removed_files']}
+            self.assertEqual(len(retired), 68)
+            self.assertTrue(retired <= changed)
+            for path in retired:
+                self.assertFalse((ROOT / path).exists())
+                self.assertEqual(retired_source_DATA(context, path), git('show', previous + ':' + path))
+            active = changed - retired
+            (changed, reviewed) = operation.historical_task_inputs(ROOT, previous, active, {path: (ROOT / path).read_bytes() for path in active})
             i18n = reviewed_i18n_sources(ROOT)
             self.assertEqual(changed, set(assessment.SOURCE_INPUTS) | set(code_delta.SOURCE_INPUTS) | set(authorization_delta.PRODUCTION_PATHS) | set(lifecycle_delta.PRODUCTION_PATHS) | set(i18n))
             for path in changed:
