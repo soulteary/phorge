@@ -33,6 +33,8 @@ OPERATIONS = {
     'wiki.content', 'policy.replace', 'project.members', 'object.space',
     'object.relationship', 'account.enable',
 }
+# Removed Wiki identities below are historical data; retired_source verifies
+# their original hashes and absence instead of treating them as live callers.
 EXPECTED_CONSUMERS = {'PROJECT.EDIT.WEB': ('src/applications/project/controller/PhabricatorProjectEditController.php',
                       'PhabricatorProjectEditController::handleRequest'),
  'PROJECT.EDIT.ENGINE': ('src/applications/project/engine/PhabricatorProjectEditEngine.php',

@@ -2,7 +2,7 @@
 import ast,copy,hashlib,types,os,stat
 from pathlib import Path
 import source_operation_snapshot as source
-PINS={'scripts/governance/check_native_organization.py': 'c2c614ab497e6590c13455bd1b495f9f9230c62acd066884b738d460023be300', 'scripts/governance/check_private_notifications.py': '10a41483d1432c2913ff97573a122cfcf0be4d5df2f7231307e4583ac2bd421c', 'scripts/governance/check_completion.py': 'fa9f6c1e360a95822651f3b4af0277cc243e8edac78ad78f1cf924c713c46b1c', 'support/governance/revocation-measurement/consumer.py': 'abf79fb0e64e099e72dd3b6ad50d9d727eb758d33963f47f2923f91b754346a3'}
+PINS={'scripts/governance/check_native_organization.py': 'c2c614ab497e6590c13455bd1b495f9f9230c62acd066884b738d460023be300', 'scripts/governance/check_private_notifications.py': 'fedee90587b21c70b65b29b70b7dc6e2a4307e984dccb029ba8ef8912ac87e8b', 'scripts/governance/check_completion.py': 'fa9f6c1e360a95822651f3b4af0277cc243e8edac78ad78f1cf924c713c46b1c', 'support/governance/revocation-measurement/consumer.py': 'abf79fb0e64e099e72dd3b6ad50d9d727eb758d33963f47f2923f91b754346a3'}
 def need(v):
  if v is not True:raise ValueError('full_native_current_AST_refused')
 class Reads(ast.NodeTransformer):

@@ -19,10 +19,7 @@ final editor classes through Reflection:
   A changed owner adds a native subscriber transaction for the old owner. Full
   `expandTransactions` is intentionally not invoked: it can claim a closing task,
   add author subscriptions and load project information for notifications.
-- Wiki: **single-item** `expandTransaction`, only existing title/body/move-to.
-  Empty existing body adds native deletion; move-to adds destination view/edit
-  policies. Creation, restore/publish validation and final effects remain outside
-  the supported closure. A destination must be the exact native document class.
+
 
 Objects and transaction envelopes are exact native classes. Existing-object ID
 is required, new transaction ID is required, and an existing objectPHID binding
@@ -94,18 +91,9 @@ general production factory or proof of locking through a business write.
 
 ## Batch-4 bounded expansion additions
 
-`observeWikiBatchExpansion()` invokes the exact native Wiki batch prelude on
-an existing document with explicitly attached native `PhrictionContent`. Its
-stored content identity and document binding must match. The native uint32
-version accepts a positive integer or canonical decimal string in 1–4294967295;
-leading zeroes, signs, floats, booleans and overflow are refused. The public
-version summary is normalized to an integer without mutating the input. The prelude records old content in the throwaway editor before the
-native per-item expansion. Tests cover combined move-policy and empty-content
-delete ordering. Returned context includes only version and identity digest;
-attached body text is not exported or modified. Attachment consistency is not
-proof that the provided objects are fresh database rows.
+Wiki observation methods have been retired with the native Wiki application.
 
-Task and Wiki view/edit policy items may now be observed through the exact
+Task view/edit policy items may now be observed through the exact
 local per-item method. The inherited method passes these items through; that
 observation neither validates policy semantics nor grants approval. Project
 observations expose only milestone state and a digest of the editor-local

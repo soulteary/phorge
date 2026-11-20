@@ -28,7 +28,7 @@ class WikiRetirement(unittest.TestCase):
 
     def test_shared_runtime_has_no_reference_to_removed_class_constants(self):
         names = '|'.join(map(re.escape, self.manifest()['removed_classes']))
-        expression = re.compile(r'\b(?:' + names + r')\s*::')
+        expression = re.compile(r'\b(?:' + names + r')\s*::|\b(?:new|extends|implements)\s+(?:' + names + r')\b')
         for source in (ROOT / 'src').rglob('*.php'):
             with self.subTest(path=str(source.relative_to(ROOT))):
                 self.assertIsNone(expression.search(source.read_text()))

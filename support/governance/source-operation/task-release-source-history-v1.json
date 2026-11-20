@@ -1320,8 +1320,8 @@
       ]
     },
     "scripts/governance/check_callers.py": {
-      "current_bytes": 23052,
-      "current_sha256": "514048d43c262369c1ff9013e93da343f721ee93e7017a8895b7e920545b0c1e",
+      "current_bytes": 23207,
+      "current_sha256": "909c2796958c4e5db089d756529e44eb42c7e5ffb56f4bcc8a2cec09078bebf7",
       "target_bytes": 22829,
       "target_sha256": "13afea51b8ac24b37e0533256e0ac728229bde0d0a89f266bd8e85d7679c5fba",
       "edits": [
@@ -1331,22 +1331,27 @@
           "parent": ""
         },
         {
-          "offset": 18242,
+          "offset": 1609,
+          "current": "# Removed Wiki identities below are historical data; retired_source verifies\n# their original hashes and absence instead of treating them as live callers.\n",
+          "parent": ""
+        },
+        {
+          "offset": 18397,
           "current": "        retired = retired_source(root, row.get('path'))\n        path = Path(root)/row['path'] if retired else regular_reference(root, row.get('path'))\n",
           "parent": "        path = regular_reference(root, row.get('path'))\n"
         },
         {
-          "offset": 18826,
+          "offset": 18981,
           "current": "        require(row.get('coverage') == ('retired' if retired else 'partial') and\n",
           "parent": "        require(row.get('coverage') == 'partial' and\n"
         },
         {
-          "offset": 18965,
+          "offset": 19120,
           "current": "                row.get('evidence_status') == ('retired-runtime-removed' if retired else 'static-reference-only'),\n",
           "parent": "                row.get('evidence_status') == 'static-reference-only',\n"
         },
         {
-          "offset": 19140,
+          "offset": 19295,
           "current": "        require(row.get('sha256') == (retired or hashlib.sha256(path.read_bytes()).hexdigest()),\n",
           "parent": "        require(row.get('sha256') == hashlib.sha256(path.read_bytes()).hexdigest(),\n"
         }
@@ -1391,46 +1396,56 @@
       ]
     },
     "scripts/governance/check_contracts.py": {
-      "current_bytes": 12122,
-      "current_sha256": "57a68216092bee8b3c9f7c53e7c493812282c5496137546d141b667ddcd144bb",
+      "current_bytes": 12197,
+      "current_sha256": "143c6ab442848ca37e7862e8795db91a29dfc8df988006efcbda02fbadcb1d98",
       "target_bytes": 11226,
       "target_sha256": "125d5584b717fc399c4710c26aba069ac5fb4bf1a85e385ca5539a99173a4daa",
       "edits": [
         {
-          "offset": 5078,
-          "current": "def retired_source(root, path):\n    \"\"\"Recognize only absent Wiki sources with unchanged historical hashes.\"\"\"\n    if not path.startswith('src/applications/phriction/') or (Path(root)/path).exists():\n        return False\n    root = Path(root)\n    manifest = json.loads((root/'docs/operations/retirement/wiki.json').read_text())\n    parent = json.loads((root/'support/governance/source-operation/task-parent5903.json').read_text())['entries']\n    rows = {row['path']: row['sha256'] for row in manifest['removed_files']}\n    target = root/path\n    valid = (path in rows and path in parent and\n             rows[path] == parent[path]['sha256'] and\n             not target.exists() and not target.is_symlink())\n    return rows[path] if valid else False\n\n\n",
+          "offset": 1462,
+          "current": "# CONTENT.WIKI is a historical ledger identity validated as retired below.\n",
           "parent": ""
         },
         {
-          "offset": 8515,
+          "offset": 5151,
+          "current": "\n\ndef retired_source(root, path):\n    \"\"\"Recognize only absent Wiki sources with unchanged historical hashes.\"\"\"\n    if not path.startswith('src/applications/phriction/') or (Path(root)/path).exists():\n        return False\n    root = Path(root)\n    manifest = json.loads((root/'docs/operations/retirement/wiki.json').read_text())\n    parent = json.loads((root/'support/governance/source-operation/task-parent5903.json').read_text())['entries']\n    rows = {row['path']: row['sha256'] for row in manifest['removed_files']}\n    target = root/path\n    valid = (path in rows and path in parent and\n             rows[path] == parent[path]['sha256'] and\n             not target.exists() and not target.is_symlink())\n    return rows[path] if valid else False\n",
+          "parent": ""
+        },
+        {
+          "offset": 8590,
           "current": "        retired = retired_source(root, path)\n        if not retired:\n            _source_file(Path(root), path)\n",
           "parent": "        _source_file(Path(root), path)\n"
         },
         {
-          "offset": 8828,
+          "offset": 8903,
           "current": "        _require(row.get('evidence_status') == ('retired-runtime-removed' if retired else 'static-reference-only') and\n                 row.get('coverage') == ('retired' if retired else 'partial') and\n",
           "parent": "        _require(row.get('evidence_status') == 'static-reference-only' and\n                 row.get('coverage') == 'partial' and\n"
         }
       ]
     },
     "scripts/governance/check_private_notifications.py": {
-      "current_bytes": 15548,
-      "current_sha256": "10a41483d1432c2913ff97573a122cfcf0be4d5df2f7231307e4583ac2bd421c",
+      "current_bytes": 15626,
+      "current_sha256": "fedee90587b21c70b65b29b70b7dc6e2a4307e984dccb029ba8ef8912ac87e8b",
       "target_bytes": 15155,
       "target_sha256": "5934588782d648bf3c1da43de6fa80f2ab099bc9744218f16bb0d7bd43ff9c12",
       "edits": [
         {
-          "offset": 5878,
+          "offset": 5778,
+          "current": " # This former producer is retained only as a hash-verified retired identity.\n",
+          "parent": ""
+        },
+        {
+          "offset": 5956,
           "current": "                                                                      'retired-runtime-removed'),\n",
           "parent": "                                                                      'business-producer'),\n"
         },
         {
-          "offset": 12028,
+          "offset": 12106,
           "current": "        if path=='src/applications/phriction/editor/PhrictionTransactionEditor.php':\n            require(row['purpose_review']=='retired-runtime-removed' and row['sha256']=='3a3b1e9643a71b48d4123960a7f0f594c2258bfc96e450fe81625a1d26aaa55d' and not (root/path).exists(),'retired producer claim')\n            continue\n",
           "parent": ""
         },
         {
-          "offset": 13741,
+          "offset": 13819,
           "current": "    require(annotated==(set(PRODUCERS)-{'src/applications/phriction/editor/PhrictionTransactionEditor.php'})|{'src/applications/transactions/editor/PhabricatorApplicationTransactionEditor.php'},'unreviewed producer entry')\n",
           "parent": "    require(annotated==set(PRODUCERS)|{'src/applications/transactions/editor/PhabricatorApplicationTransactionEditor.php'},'unreviewed producer entry')\n"
         }
@@ -1679,6 +1694,42 @@
           "offset": 22721,
           "current": "    // Prepared messages predate retirement; this check is independent of the\n    // optional private-mail policy and precedes recipient-only authorization.\n    if (PhorgePrivateMailPolicy::isRetiredWikiMail($this)) {\n      $this->setParam('governance.delivery-quarantined', true)->save();\n      return array('changed' => true);\n    }\n",
           "parent": ""
+        }
+      ]
+    },
+    ".github/data/retired-reference-exceptions.txt": {
+      "current_bytes": 10764,
+      "current_sha256": "6b8166105fffbbe9216974b7fc14266274b2e8503d0146f63ffec0a86dbc637d",
+      "target_bytes": 3854,
+      "target_sha256": "94e6e4607f39cd5e5bc5eb45b9acfbb9ebbb05d04111598f238a9a72b0023853",
+      "edits": [
+        {
+          "offset": 3854,
+          "current": "\n# Wiki retirement: exact historical path/symbol identities in the source and\n# caller ledgers are data. The notification policy uses the former producer\n# name only to reject delivery; the unit cases test rejection of old names.\n# The 2015 SQL patch matches a stored adapter name and does not load its class.\n# No runtime class constant or construction is exempted.\nresources/sql/autopatches/20150701.herald.2.sql:PhrictionDocumentHeraldAdapter\nscripts/governance/check_callers.py:PhrictionCreateConduitAPIMethod\nscripts/governance/check_callers.py:PhrictionDocument\nscripts/governance/check_callers.py:PhrictionDocumentContentTransaction\nscripts/governance/check_callers.py:PhrictionDocumentEditConduitAPIMethod\nscripts/governance/check_callers.py:PhrictionDocumentEditEngine\nscripts/governance/check_callers.py:PhrictionDocumentTitleTransaction\nscripts/governance/check_callers.py:PhrictionEditConduitAPIMethod\nscripts/governance/check_callers.py:PhrictionEditController\nscripts/governance/check_callers.py:PhrictionEditEngineController\nscripts/governance/check_callers.py:PhrictionTransactionEditor\nscripts/governance/check_contracts.py:PhrictionTransactionEditor\nscripts/governance/check_private_notifications.py:PhrictionTransactionEditor\nscripts/governance/task_source_operation_context.py:PhabricatorPhrictionApplication\nscripts/governance/task_source_operation_context.py:PhrictionChangeType\nscripts/governance/task_source_operation_context.py:PhrictionConduitAPIMethod\nscripts/governance/task_source_operation_context.py:PhrictionConstants\nscripts/governance/task_source_operation_context.py:PhrictionContent\nscripts/governance/task_source_operation_context.py:PhrictionContentPHIDType\nscripts/governance/task_source_operation_context.py:PhrictionContentQuery\nscripts/governance/task_source_operation_context.py:PhrictionContentSearchConduitAPIMethod\nscripts/governance/task_source_operation_context.py:PhrictionContentSearchEngine\nscripts/governance/task_source_operation_context.py:PhrictionContentSearchEngineAttachment\nscripts/governance/task_source_operation_context.py:PhrictionController\nscripts/governance/task_source_operation_context.py:PhrictionCreateConduitAPIMethod\nscripts/governance/task_source_operation_context.py:PhrictionDAO\nscripts/governance/task_source_operation_context.py:PhrictionDatasourceEngineExtension\nscripts/governance/task_source_operation_context.py:PhrictionDeleteController\nscripts/governance/task_source_operation_context.py:PhrictionDiffController\nscripts/governance/task_source_operation_context.py:PhrictionDocument\nscripts/governance/task_source_operation_context.py:PhrictionDocumentAuthorHeraldField\nscripts/governance/task_source_operation_context.py:PhrictionDocumentContentHeraldField\nscripts/governance/task_source_operation_context.py:PhrictionDocumentContentTransaction\nscripts/governance/task_source_operation_context.py:PhrictionDocumentController\nscripts/governance/task_source_operation_context.py:PhrictionDocumentDatasource\nscripts/governance/task_source_operation_context.py:PhrictionDocumentDeleteTransaction\nscripts/governance/task_source_operation_context.py:PhrictionDocumentDraftTransaction\nscripts/governance/task_source_operation_context.py:PhrictionDocumentEditConduitAPIMethod\nscripts/governance/task_source_operation_context.py:PhrictionDocumentEditEngine\nscripts/governance/task_source_operation_context.py:PhrictionDocumentEditTransaction\nscripts/governance/task_source_operation_context.py:PhrictionDocumentFerretEngine\nscripts/governance/task_source_operation_context.py:PhrictionDocumentFulltextEngine\nscripts/governance/task_source_operation_context.py:PhrictionDocumentHeraldAdapter\nscripts/governance/task_source_operation_context.py:PhrictionDocumentHeraldField\nscripts/governance/task_source_operation_context.py:PhrictionDocumentHeraldFieldGroup\nscripts/governance/task_source_operation_context.py:PhrictionDocumentMoveAwayTransaction\nscripts/governance/task_source_operation_context.py:PhrictionDocumentMoveToTransaction\nscripts/governance/task_source_operation_context.py:PhrictionDocumentPHIDType\nscripts/governance/task_source_operation_context.py:PhrictionDocumentPathHeraldField\nscripts/governance/task_source_operation_context.py:PhrictionDocumentPolicyCodex\nscripts/governance/task_source_operation_context.py:PhrictionDocumentPublishTransaction\nscripts/governance/task_source_operation_context.py:PhrictionDocumentPublishedHeraldField\nscripts/governance/task_source_operation_context.py:PhrictionDocumentQuery\nscripts/governance/task_source_operation_context.py:PhrictionDocumentSearchConduitAPIMethod\nscripts/governance/task_source_operation_context.py:PhrictionDocumentSearchEngine\nscripts/governance/task_source_operation_context.py:PhrictionDocumentStatus\nscripts/governance/task_source_operation_context.py:PhrictionDocumentTitleHeraldField\nscripts/governance/task_source_operation_context.py:PhrictionDocumentTitleTransaction\nscripts/governance/task_source_operation_context.py:PhrictionDocumentTransactionType\nscripts/governance/task_source_operation_context.py:PhrictionDocumentVersionTransaction\nscripts/governance/task_source_operation_context.py:PhrictionEditConduitAPIMethod\nscripts/governance/task_source_operation_context.py:PhrictionEditController\nscripts/governance/task_source_operation_context.py:PhrictionEditEngineController\nscripts/governance/task_source_operation_context.py:PhrictionHistoryConduitAPIMethod\nscripts/governance/task_source_operation_context.py:PhrictionHistoryController\nscripts/governance/task_source_operation_context.py:PhrictionHovercardEngineExtension\nscripts/governance/task_source_operation_context.py:PhrictionInfoConduitAPIMethod\nscripts/governance/task_source_operation_context.py:PhrictionListController\nscripts/governance/task_source_operation_context.py:PhrictionMarkupPreviewController\nscripts/governance/task_source_operation_context.py:PhrictionMoveController\nscripts/governance/task_source_operation_context.py:PhrictionNewController\nscripts/governance/task_source_operation_context.py:PhrictionPublishController\nscripts/governance/task_source_operation_context.py:PhrictionRemarkupRule\nscripts/governance/task_source_operation_context.py:PhrictionReplyHandler\nscripts/governance/task_source_operation_context.py:PhrictionSchemaSpec\nscripts/governance/task_source_operation_context.py:PhrictionTransaction\nscripts/governance/task_source_operation_context.py:PhrictionTransactionComment\nscripts/governance/task_source_operation_context.py:PhrictionTransactionEditor\nscripts/governance/task_source_operation_context.py:PhrictionTransactionQuery\nsrc/infrastructure/governance/mapping/__tests__/PhorgeGovernanceCapabilityMapTestCase.php:PhrictionDocument\nsrc/infrastructure/governance/mapping/__tests__/PhorgeGovernanceCapabilityMapTestCase.php:PhrictionTransaction\nsrc/infrastructure/governance/notification/PhorgePrivateMailPolicy.php:PhrictionTransactionEditor\n",
+          "parent": ""
+        }
+      ]
+    },
+    "src/infrastructure/governance/observation/README.md": {
+      "current_bytes": 8579,
+      "current_sha256": "46e16107cb1769af58d7afa7e2d25f35c702e8a16c2f51dd78d2436081ef9bc7",
+      "target_bytes": 9647,
+      "target_sha256": "d83dd091cd92ad15bfb993787f71f70b869303dccbdbccbb2cd4890b654b0197",
+      "edits": [
+        {
+          "offset": 1198,
+          "current": "\n",
+          "parent": "- Wiki: **single-item** `expandTransaction`, only existing title/body/move-to.\n  Empty existing body adds native deletion; move-to adds destination view/edit\n  policies. Creation, restore/publish validation and final effects remain outside\n  the supported closure. A destination must be the exact native document class.\n"
+        },
+        {
+          "offset": 5663,
+          "current": "Wiki observation methods have been retired with the native Wiki application.\n",
+          "parent": "`observeWikiBatchExpansion()` invokes the exact native Wiki batch prelude on\nan existing document with explicitly attached native `PhrictionContent`. Its\nstored content identity and document binding must match. The native uint32\nversion accepts a positive integer or canonical decimal string in 1\u20134294967295;\nleading zeroes, signs, floats, booleans and overflow are refused. The public\nversion summary is normalized to an integer without mutating the input. The prelude records old content in the throwaway editor before the\nnative per-item expansion. Tests cover combined move-policy and empty-content\ndelete ordering. Returned context includes only version and identity digest;\nattached body text is not exported or modified. Attachment consistency is not\nproof that the provided objects are fresh database rows.\n"
+        },
+        {
+          "offset": 5741,
+          "current": "Task view/edit policy items may now be observed through the exact\n",
+          "parent": "Task and Wiki view/edit policy items may now be observed through the exact\n"
         }
       ]
     }

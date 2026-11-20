@@ -57,6 +57,7 @@ PRODUCERS={'src/applications/auth/controller/PhabricatorAuthRegisterController.p
                                                        'business-producer'),
  'src/applications/pholio/editor/PholioMockEditor.php': ('PholioMockEditor',
                                                          'business-producer'),
+ # This former producer is retained only as a hash-verified retired identity.
  'src/applications/phriction/editor/PhrictionTransactionEditor.php': ('PhrictionTransactionEditor',
                                                                       'retired-runtime-removed'),
  'src/applications/phurl/editor/PhabricatorPhurlURLEditor.php': ('PhabricatorPhurlURLEditor',
