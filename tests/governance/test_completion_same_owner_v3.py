@@ -24,6 +24,12 @@ class CompletionSameOwnerPureControls(unittest.TestCase):
  def setUpClass(cls):
   cls.controller=tree(CONTROLLER);cls.consumer=tree(CONSUMER);cls.validator=tree(BASE+'validate.py')
 
+ def test_native_php_fatal_errors_use_private_stderr_not_json_stdout(self):
+  source=ast.unparse(function(self.controller,'run_in_operation'))
+  for option in ('log_errors=1','error_log=/dev/stderr','display_errors=0'):
+   self.assertIn(option,source)
+  self.assertIn('stderr=streams[1]',source)
+
  def test_native_failure_location_is_bounded_owned_and_never_exports_message(self):
   ns=selected(self.consumer,{'native_failure_location'});ns['ROOT']=ROOT
   project=ns['native_failure_location'];secret='SYNTHETIC_PRIVATE_SQL_CREDENTIAL'

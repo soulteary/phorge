@@ -85,7 +85,7 @@ def run_in_operation(operation,root,checkpoint,directory,stdout_path,stderr_path
    path=Path(path);need(path.is_absolute()and path.parent.resolve(strict=True)==path.parent and not path.is_relative_to(root))
    fd=os.open(path,os.O_WRONLY|os.O_CREAT|os.O_EXCL|os.O_NOFOLLOW,0o600);streams.append(os.fdopen(fd,'wb'))
   env=dict(os.environ)if environment is None else dict(environment);env['PHORGE_COMPLETION_RUN_PROFILE']=str(directory/'run-profile.private.json')
-  process=subprocess.run([php,'-d','opcache.enable_cli=0','-d','opcache.jit=disable','-d','opcache.jit_buffer_size=0',str(directory/'producer-bound.php')],cwd=root,env=env,stdout=streams[0],stderr=streams[1],timeout=1800)
+  process=subprocess.run([php,'-d','opcache.enable_cli=0','-d','opcache.jit=disable','-d','opcache.jit_buffer_size=0','-d','log_errors=1','-d','error_log=/dev/stderr','-d','display_errors=0',str(directory/'producer-bound.php')],cwd=root,env=env,stdout=streams[0],stderr=streams[1],timeout=1800)
   code=process.returncode
  except BaseException as error:
   primary=error
