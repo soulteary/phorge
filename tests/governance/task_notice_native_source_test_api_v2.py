@@ -163,6 +163,13 @@ class NoticeDATA:
   return types.SimpleNamespace(**namespace)
  def changed_parent_DATA(self,baseline):
   self.require();changed=set(subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'diff','--name-only',baseline,'--','src','resources'],text=True).splitlines())
+  import json
+  from task_historical_views_test_api_v2 import retired_source_DATA
+  retired={row['path']for row in json.loads(self.context.current('docs/operations/retirement/wiki.json'))['removed_files']if row['path'].startswith(('src/','resources/'))}
+  need(retired<=changed)
+  for name in retired:
+   need(retired_source_DATA(self.context,name)==subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'show',baseline+':'+name]))
+  changed-=retired
   raw={name:self.context.current(name)for name in changed}
   changed,parent=self.op.historical_task_inputs(ROOT,baseline,changed,raw)
   return changed

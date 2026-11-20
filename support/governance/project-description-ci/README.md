@@ -10,7 +10,7 @@ profile pins and refuse before native initialization when invoked directly.
 1. Verify committed recipe files and an exact reviewed metadata-recipe lock, the
    current source admission, target `c7e5b9927d5c2fee5d4d9766d613e51ec400d11b`
    / tree `a8294f30cda758d289d142a2949981fb425043aa`, actual loopback-only
-   disposable MySQL 8.4.13 image and PHP 8.5.12 with CLI OPcache/JIT disabled.
+   disposable MySQL 8.4.13 image and PHP 8.5.13 with CLI OPcache/JIT disabled.
 2. Reuse the real metadata recipe's fresh owned namespace, standard native base
    upgrades and two native admin accounts/tokens plus ordinary recipient and
    direct business-team membership. The baseline source is actual

@@ -27,7 +27,7 @@ def inventory(source):
 
 def validate_pure(receipt, ids, expected_count):
     if (type(expected_count) is not int or expected_count != len(ids) or
-            receipt.get('passed') is not True or receipt.get('runtime') != '8.5.12' or
+            receipt.get('passed') is not True or receipt.get('runtime') != '8.5.13' or
             type(receipt.get('expected_methods')) is not int or
             receipt['expected_methods'] != expected_count):
         return False

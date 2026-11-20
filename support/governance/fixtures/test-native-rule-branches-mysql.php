@@ -312,71 +312,9 @@ try {
   } finally {
     native_source_sql($admin,'UPDATE '.$user_table.' SET isDisabled=0 WHERE phid=?',array($ids['executor']));
   }
-  $wiki = (new PhrictionDocument())->loadFromArray(native_source_row($reader,
-    $fixture->table('phriction','phriction_document'),$ids['wiki']));
-  $content = (new PhrictionContent())->loadFromArray(native_source_row($reader,
-    $fixture->table('phriction','phriction_content'),$ids['wiki_content']));
-  $observer = PhorgeGovernanceNativeObservationVerifier::newIsolated();
-  $empty = (new PhrictionTransaction())->setTransactionType(PhrictionDocumentContentTransaction::TRANSACTIONTYPE)->setNewValue('');
-  $missing = $observer->observeWikiBatchExpansion($wiki,array($empty));
-  native_source_check($missing['status'] === 'blocked' && $missing['reason'] === 'unsupported_attached_wiki_content','wiki-missing-content-blocked');
-  $wiki->attachContent($content);
-  $r = $observer->observeWikiBatchExpansion($wiki,array($empty));
-  native_source_check($r['status'] === 'observed-native-local-expansion' && count($r['transactions']) === 2 &&
-    $r['transactions'][1]['content_delete'] === true && $r['editor_context']['old_content_version'] === 1 &&
-    !$r['can_execute'], 'wiki-real-content-empty-batch-expands-delete');
-  // Native Lisk text-protocol hydration differs from mysqli prepared results:
-  // the stored integer version is returned as a canonical decimal string.
-  // Acquire proven SELECT-only ownership before native DAO SQL, then close only
-  // that context. Do not reuse or clear an inherited SQL pool.
-  $orm_context = null;
-  try {
-    $orm_context = PhorgeGovernanceNativeCapabilityContext::newIsolated($wiki);
-    $orm_content = (new PhrictionContent())->loadOneWhere(
-      'phid = %s', $ids['wiki_content']);
-    native_source_check($orm_content instanceof PhrictionContent &&
-      $orm_content->getVersion() === '1' && $content->getVersion() === 1 &&
-      $orm_context->isCurrent(), 'wiki-native-orm-text-version-string-prepared-int-control');
-  } finally {
-    if ($orm_context !== null && !$orm_context->close()) {
-      throw new RuntimeException('Owned native ORM context cleanup failed.');
-    }
-  }
-  native_source_check((new ReflectionProperty(LiskDAO::class, 'connections'))
-      ->getValue() === array(), 'wiki-native-orm-owned-pool-closed');
-  $orm_wiki = clone $wiki;
-  $orm_wiki->attachContent($orm_content);
-  $r = $observer->observeWikiBatchExpansion($orm_wiki,array($empty));
-  native_source_check($r['status'] === 'observed-native-local-expansion' &&
-    count($r['transactions']) === 2 &&
-    $r['transactions'][1]['content_delete'] === true &&
-    $r['editor_context']['old_content_version'] === 1 &&
-    !$r['can_execute'], 'wiki-real-native-orm-content-batch-normalized-version');
-  $move = (new PhrictionTransaction())->setTransactionType(PhrictionDocumentMoveToTransaction::TRANSACTIONTYPE)->setNewValue(clone $wiki);
-  $r = $observer->observeWikiBatchExpansion($wiki,array($move,$empty));
-  $types = array_column($r['transactions'] ?? array(), 'transaction_type');
-  native_source_check($r['status'] === 'observed-native-local-expansion' && $types === array(
-    PhrictionDocumentMoveToTransaction::TRANSACTIONTYPE, PhabricatorTransactions::TYPE_VIEW_POLICY,
-    PhabricatorTransactions::TYPE_EDIT_POLICY, PhrictionDocumentContentTransaction::TRANSACTIONTYPE,
-    PhrictionDocumentDeleteTransaction::TRANSACTIONTYPE), 'wiki-move-empty-real-native-order');
-  $bad = clone $content; $bad->setDocumentPHID(PhorgeGovernanceNativeFixture::phid('WIKI','z'));
-  $wiki->attachContent($bad);
-  $r = $observer->observeWikiBatchExpansion($wiki,array($empty));
-  native_source_check($r['status'] === 'blocked' && $r['reason'] === 'unsupported_attached_wiki_content','wiki-mismatched-content-blocked');
-  $bad = clone $content; $bad->setPHID(PhorgeGovernanceNativeFixture::phid('WRDS','z'));
-  $wiki->attachContent($bad);
-  $r = $observer->observeWikiBatchExpansion($wiki,array($empty));
-  native_source_check($r['status'] === 'blocked' && $r['reason'] === 'unsupported_attached_wiki_content','wiki-stale-content-identity-blocked');
-  $wiki->attachContent($content);
-  $unknown = (new PhrictionTransaction())->setTransactionType('unknown.synthetic')->setNewValue('');
-  $r = $observer->observeWikiBatchExpansion($wiki,array($unknown));
-  native_source_check($r['status'] === 'blocked' && $r['reason'] === 'unsupported_local_closure','wiki-unknown-transaction-blocked');
-  foreach (array(PhabricatorTransactions::TYPE_VIEW_POLICY,PhabricatorTransactions::TYPE_EDIT_POLICY) as $type) {
-    $tx = (new PhrictionTransaction())->setTransactionType($type)->setNewValue('users');
-    $r = $observer->observeWikiLocalExpansion($wiki,array($tx));
-    native_source_check($r['status'] === 'observed-native-local-expansion' &&
-      count($r['transactions']) === 1 && $r['transactions'][0]['transaction_type'] === $type &&
-      !$r['can_execute'] && !$r['risk_complete'], 'wiki-native-policy-passthrough-'.$type);
+  foreach (array(PhabricatorTransactions::TYPE_VIEW_POLICY,
+    PhabricatorTransactions::TYPE_EDIT_POLICY) as $type) {
+    $observer = PhorgeGovernanceNativeObservationVerifier::newIsolated();
     $task = (new ManiphestTask())->loadFromArray(native_source_row($reader,
       $fixture->table('maniphest','maniphest_task'),$ids['task']));
     $tx = (new ManiphestTransaction())->setTransactionType($type)->setNewValue('users');

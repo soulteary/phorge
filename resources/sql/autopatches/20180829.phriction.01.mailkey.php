@@ -1,8 +1,8 @@
 <?php
 
-$document_table = new PhrictionDocument();
-$document_conn = $document_table->establishConnection('w');
-$document_name = $document_table->getTableName();
+$document_table = 'phriction_document';
+$document_conn = $this->getConn('phriction');
+$document_name = $document_table;
 
 $properties_table = new PhabricatorMetaMTAMailProperties();
 $conn = $properties_table->establishConnection('w');

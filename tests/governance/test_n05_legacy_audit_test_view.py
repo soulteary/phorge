@@ -43,7 +43,7 @@ class LegacyView(unittest.TestCase):
         current = self._source_operation._modules['project_description_admission_delta']
         expected_parent_sha = hashlib.sha256(parent).hexdigest()
         self.assertEqual(current.native_pair_parent_DATA(actual, expected_parent_sha), parent)
-        for bad in (parent, actual + b'\n', actual.replace(b'16318f87a017f82c28f3011b362364cf24b73ef8', b'0' * 40)):
+        for bad in (parent, actual + b'\n', actual.replace(b'retired-wiki-mail-refused-policy-on', b'unknown-wiki-mail-refused-policy-on')):
             with self.subTest(pair_input='unknown-or-historical'), self.assertRaises(ValueError):
                 current.native_pair_parent_DATA(bad, expected_parent_sha)
         self.assertNotEqual(actual, old)
@@ -79,7 +79,8 @@ class LegacyView(unittest.TestCase):
     def test_six_whole_sources_equal_real_prior_Git_without_changing_runtime_files(self):
         for path in self._legacy.CLOSED_PATHS:
             raw = (ROOT / path).read_bytes()
-            current = self._legacy.n05._normalize_metadata(path, raw) if path in self._legacy.n05.CURRENT_METADATA else raw
+            parent = self._legacy.parent_data(path)
+            current = self._legacy.n05._normalize_metadata(path, parent) if path in self._legacy.n05.CURRENT_METADATA else parent
             self.assertEqual(current, self._legacy.git_bytes(self._legacy.CURRENT_REVISION, path))
             self.assertEqual(self._legacy.historical_tooling_source(path), self._legacy.git_bytes(self._legacy.PRIOR_REVISION, path))
             self.assertEqual((ROOT / path).read_bytes(), raw)
@@ -116,7 +117,7 @@ class LegacyView(unittest.TestCase):
                 self.assertEqual(raw, self._legacy.git_bytes(self._legacy.n05.TARGET, path))
                 prior = self._legacy.git_bytes(self._legacy.CURRENT_REVISION, path)
             else:
-                prior = raw
+                prior = self._source_operation._task_contexts[ROOT].parent(path)
             self.assertEqual(prior, self._legacy.git_bytes(self._legacy.CURRENT_REVISION, path))
             self.assertEqual(hashlib.sha256(prior).hexdigest(), pin)
         source = ROOT / 'scripts/governance'

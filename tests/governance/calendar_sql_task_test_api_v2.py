@@ -36,6 +36,8 @@ class CalendarCurrent:
    captured=self.context.current(name)
    need(type(captured)is bytes and captured==self.gate.source_reader.read_source_checked(ROOT/name))
    raw=captured
+   if name in {'src/applications/metamta/storage/PhabricatorMetaMTAMail.php','src/infrastructure/governance/notification/PhorgePrivateMailPolicy.php'}:
+    raw=self.context.parent(name)
    if name==DRIVER:
     raw=self.admitted_native_driver_source(ROOT,raw)
     raw=self.gate.conduit_delta.reduce_policy_cleanup_driver(raw)

@@ -9,7 +9,7 @@ REV='a'*40
 def template():
  hashes={'phabricator:'+n:hashlib.sha256((ROOT/'resources/sql/autopatches'/n).read_bytes()).hexdigest()for n in gate.completion.PATCHES}
  return {'batch':'native-recovery-organization-live-metadata-component','passed':True,'scope':'owned-full-native-source-synthetic-accounts',
-  'check_count':15,'checks':sorted(gate.BOOTSTRAP|gate.SQL|gate.CLEANUP),'php_version':'8.5.12',
+  'check_count':15,'checks':sorted(gate.BOOTSTRAP|gate.SQL|gate.CLEANUP),'php_version':'8.5.13',
   'cleanup':{'ownedSchemasRemoved':55,'ownedRuntimeUsersRemoved':2,'readerRemoved':True},
   'worker_cleanup':{'private_directories_removed':0,'owned_processes_stopped':0,'cleanup_failures':0,'private_directories_remaining':0,'live_processes_after_cleanup':0,'workers_registered':0},
   'source_restore':{'quickstart_sha256':hashlib.sha256((ROOT/'resources/sql/quickstart.sql').read_bytes()).hexdigest(),

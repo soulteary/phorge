@@ -748,6 +748,12 @@ final class PhabricatorMetaMTAMail
   }
 
   public function authorizeGorgeDelivery() {
+    // Prepared messages predate retirement; this check is independent of the
+    // optional private-mail policy and precedes recipient-only authorization.
+    if (PhorgePrivateMailPolicy::isRetiredWikiMail($this)) {
+      $this->setParam('governance.delivery-quarantined', true)->save();
+      return array('changed' => true);
+    }
     $snapshot=$this->getParam('gorge.delivery-snapshot');
     if(PhorgePrivateMailPolicy::enabled()){
       // An out-of-order probe must not poison mail which has not been prepared.

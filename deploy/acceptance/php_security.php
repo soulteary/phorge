@@ -1,8 +1,8 @@
 <?php
 // Run inside the actual Phorge acceptance image with its installed INI files.
 if (PHP_MAJOR_VERSION !== 8 || PHP_MINOR_VERSION !== 5 ||
-    version_compare(PHP_VERSION, '8.5.12', '<')) {
-  fwrite(STDERR, "Unsupported PHP runtime; require PHP 8.5.12+ on the 8.5 branch: ".PHP_VERSION."\n");
+    version_compare(PHP_VERSION, '8.5.13', '<')) {
+  fwrite(STDERR, "Unsupported PHP runtime; require PHP 8.5.13+ on the 8.5 branch: ".PHP_VERSION."\n");
   exit(1);
 }
 if (ini_get('opcache.jit') !== 'disable' ||

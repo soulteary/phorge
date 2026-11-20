@@ -48,14 +48,12 @@ final class PhorgeGovernanceNativeObservationVerifier extends Phobject {
       return self::blocked('isolated_scope_required');
     }
     if (!in_array(get_class($object), array(
-      PhabricatorProject::class, ManiphestTask::class,
-      PhrictionDocument::class), true)) {
+      PhabricatorProject::class, ManiphestTask::class), true)) {
       return self::blocked('unsupported_native_object');
     }
     $types = array(
       PhabricatorProject::class => 'PROJ',
       ManiphestTask::class => 'TASK',
-      PhrictionDocument::class => 'WIKI',
     );
     if ($object->getID() === null || !is_string($object->getPHID()) ||
         !preg_match('/\APHID-'.$types[get_class($object)].
@@ -171,51 +169,6 @@ final class PhorgeGovernanceNativeObservationVerifier extends Phobject {
       'expandTransaction', $viewer);
   }
 
-  public function observeWikiLocalExpansion(
-    PhrictionDocument $document,
-    array $transactions) {
-
-    return $this->observeLocal(
-      $document, $transactions, PhrictionDocument::class,
-      PhrictionTransaction::class, PhrictionTransactionEditor::class,
-      'expandTransaction', null);
-  }
-
-  /** Observe the Wiki batch prelude, never validation or final effects. */
-  public function observeWikiBatchExpansion(
-    PhrictionDocument $document,
-    array $transactions) {
-
-    if (!self::hasIsolatedScope()) {
-      return self::blocked('isolated_scope_required');
-    }
-    try {
-      $content = $document->getContent();
-      if (get_class($document) !== PhrictionDocument::class ||
-          get_class($content) !== PhrictionContent::class ||
-          $content->getID() === null ||
-          !is_string($document->getPHID()) ||
-          !preg_match('/\APHID-WIKI-[a-zA-Z0-9]{20}\z/',
-            $document->getPHID()) ||
-          $content->getDocumentPHID() !== $document->getPHID() ||
-          !is_string($content->getPHID()) ||
-          !preg_match('/\APHID-WRDS-[a-zA-Z0-9]{20}\z/',
-            $content->getPHID()) ||
-          $document->getContentPHID() !== $content->getPHID() ||
-          self::nativeContentVersion($content->getVersion()) === null) {
-        return self::blocked('unsupported_attached_wiki_content');
-      }
-      $copy = clone $document;
-      $copy->attachContent(clone $content);
-      return $this->observeLocal(
-        $copy, $transactions, PhrictionDocument::class,
-        PhrictionTransaction::class, PhrictionTransactionEditor::class,
-        'expandTransactions', null);
-    } catch (Throwable $error) {
-      return self::blocked('unsupported_attached_wiki_content');
-    }
-  }
-
   private function observeLocal(
     PhabricatorLiskDAO $object,
     array $transactions,
@@ -257,21 +210,9 @@ final class PhorgeGovernanceNativeObservationVerifier extends Phobject {
         }
         $copy = clone $transaction;
         $value = $transaction->getNewValue();
-        if ($type === PhrictionDocumentMoveToTransaction::TRANSACTIONTYPE &&
-            $expected_object === PhrictionDocument::class) {
-          if (!is_object($value) ||
-              get_class($value) !== PhrictionDocument::class ||
-              $value->getID() === null ||
-              !self::isPolicyValue($value->getViewPolicy()) ||
-              !self::isPolicyValue($value->getEditPolicy())) {
-            return self::blocked('unsupported_move_destination');
-          }
-          $value = clone $value;
-        } else {
-          $value = self::copyValue($value, 0, $budget);
-          if (!self::supportsLocalValue($expected_object, $type, $value)) {
-            return self::blocked('unsupported_local_value');
-          }
+        $value = self::copyValue($value, 0, $budget);
+        if (!self::supportsLocalValue($expected_object, $type, $value)) {
+          return self::blocked('unsupported_local_value');
         }
         $copy->setMetadata($metadata);
         $copy->setNewValue($value);
@@ -303,14 +244,6 @@ final class PhorgeGovernanceNativeObservationVerifier extends Phobject {
           return self::blocked('unexpected_expansion_envelope');
         }
         $value = $expanded->getNewValue();
-        if (is_object($value) &&
-            get_class($value) === PhrictionDocument::class) {
-          $value = array(
-            'object_class' => PhrictionDocument::class,
-            'view_policy' => $value->getViewPolicy(),
-            'edit_policy' => $value->getEditPolicy(),
-          );
-        }
         $value = self::copyValue($value, 0, $budget);
         $summaries[] = array(
           'transaction_type' => $expanded->getTransactionType(),
@@ -346,17 +279,6 @@ final class PhorgeGovernanceNativeObservationVerifier extends Phobject {
           'PhabricatorProjectTransactionEditor::validateAllTransactions';
         $result['pipeline_validation_complete'] = false;
       }
-      if ($expected_object === PhrictionDocument::class &&
-          $method === 'expandTransactions') {
-        $old_content = (new ReflectionMethod(
-          PhrictionTransactionEditor::class, 'getOldContent'))->invoke($editor);
-        $result['editor_context'] = array(
-          'old_content_version' =>
-            self::nativeContentVersion($old_content->getVersion()),
-          'content_identity_digest' => hash('sha256',
-            $old_content->getPHID()),
-        );
-      }
       if ($expected_object === PhabricatorProject::class) {
         $parent = (new ReflectionMethod(
           PhabricatorProjectTransactionEditor::class, 'getParentPHID'))
@@ -391,28 +313,8 @@ final class PhorgeGovernanceNativeObservationVerifier extends Phobject {
           ManiphestTaskTitleTransaction::TRANSACTIONTYPE,
           ManiphestTaskDescriptionTransaction::TRANSACTIONTYPE,
           ManiphestTaskOwnerTransaction::TRANSACTIONTYPE), true);
-      case PhrictionDocument::class:
-        return in_array($type, array(
-          PhabricatorTransactions::TYPE_VIEW_POLICY,
-          PhabricatorTransactions::TYPE_EDIT_POLICY,
-          PhrictionDocumentTitleTransaction::TRANSACTIONTYPE,
-          PhrictionDocumentContentTransaction::TRANSACTIONTYPE,
-          PhrictionDocumentMoveToTransaction::TRANSACTIONTYPE), true);
     }
     return false;
-  }
-
-  private static function nativeContentVersion($value) {
-    // Native uint32 columns can hydrate as canonical decimal strings.
-    if (is_int($value)) {
-      return $value >= 1 && $value <= 4294967295 ? $value : null;
-    }
-    if (!is_string($value) ||
-        !preg_match('/\A[1-9][0-9]{0,9}\z/', $value) ||
-        (strlen($value) === 10 && strcmp($value, '4294967295') > 0)) {
-      return null;
-    }
-    return (int)$value;
   }
 
   private static function isPolicyValue($value) {
@@ -444,7 +346,7 @@ final class PhorgeGovernanceNativeObservationVerifier extends Phobject {
       return $value === null || (is_string($value) &&
         preg_match('/\APHID-USER-[a-zA-Z0-9]{20}\z/', $value));
     }
-    // The remaining task/Wiki title and body cases require text. This is
+    // The remaining task title and body cases require text. This is
     // deliberately only a minimum shape gate, not native value validation.
     return is_string($value);
   }

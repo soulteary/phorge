@@ -27,7 +27,7 @@ def template():
         for p in gate.completion.PATCHES}
     return {'batch': 'native-organization-media-integration', 'passed': True,
         'scope': 'owned-full-native-source-synthetic-accounts', 'checks': sorted(gate.REQUIRED_CHECKS),
-        'check_count': len(gate.REQUIRED_CHECKS), 'php_version': '8.5.12',
+        'check_count': len(gate.REQUIRED_CHECKS), 'php_version': '8.5.13',
         'source_restore': {'quickstart_sha256': hashlib.sha256((ROOT/'resources/sql/quickstart.sql').read_bytes()).hexdigest(),
             'app_schema_count': 54, 'owned_schema_count': 55, 'quickstart_source_table_count': 500,
             'current_table_count': 549, 'restore_phase_workers_started': 0,
@@ -100,7 +100,7 @@ class NativeOrganizationEvidenceTest(unittest.TestCase):
         data = template()
         negative = data['native']['project_execution_tests']['negative_cases']
         negative['nested_unknown'] = actual
-        self.assertEqual(936, validate(data, file_digest='b'*64)['check_count'])
+        self.assertEqual(922, validate(data, file_digest='b'*64)['check_count'])
         self.assertEqual(7, len(actual))
         for key, value in actual.items():
             with self.subTest(field=key):
@@ -394,7 +394,7 @@ class NativeOrganizationEvidenceTest(unittest.TestCase):
             with self.subTest(key=key), self.assertRaises(ValueError): validate(data, file_digest='b'*64)
 
     def test_current_recovery_restore_profile_refuses_old_counts_and_missing_migration(self):
-        self.assertEqual(936, validate(template(), file_digest='b'*64)['check_count'])
+        self.assertEqual(922, validate(template(), file_digest='b'*64)['check_count'])
         for value in (540, True, '543', 544):
             data=template();data['source_restore']['current_table_count']=value
             with self.subTest(table_count=value), self.assertRaises(ValueError):
@@ -466,13 +466,15 @@ class NativeOrganizationEvidenceTest(unittest.TestCase):
             with self.subTest(digest=digest), self.assertRaises(ValueError):
                 validate(template(), file_digest=digest)
 
-    def test_render_input_is_mandatory_and_architecture_digest_must_match(self):
+    def test_render_input_remains_required_but_retired_wiki_is_not_render_proof(self):
         with self.assertRaises(ValueError):gate.validate(template(),file_digest='b'*64,measurement_revision='a'*40)
-        for value in (None,True,'wrong','c'*64):
+        for value in (None,True,'wrong'):
             with self.subTest(value=value),self.assertRaises(ValueError):validate(template(),file_digest='b'*64,render_digest=value)
-        data=template();data['native']['private_mail_tests']['wiki_content_publication_tests']['render_cleanup']['binary_sha256']='c'*64
-        self.assertTrue(validate(data,file_digest='b'*64,render_digest='c'*64)['schema_valid'])
-        data['native']['private_mail_tests']['wiki_content_publication_tests']['render_cleanup']['source_revision']='f'*40
+        # The remaining receipt validates the supplied binary digest format;
+        # retired Wiki content no longer provides a renderer execution claim.
+        self.assertTrue(validate(template(),file_digest='b'*64,render_digest='c'*64)['schema_valid'])
+        data=template()
+        data['native']['private_mail_tests']['wiki_content_publication_tests']['render_cleanup']={'binary_sha256':'c'*64}
         with self.assertRaises(ValueError):validate(data,file_digest='b'*64,render_digest='c'*64)
 
     def test_cli_duplicate_keys_and_non_json_output_fail_safely(self):
@@ -486,29 +488,28 @@ class NativeOrganizationEvidenceTest(unittest.TestCase):
                 self.assertEqual(result.stdout,'')
                 self.assertNotIn('synthetic-private-canary',result.stderr)
 
-    def test_wiki_content_profile_requires_all_checks_and_actual_boundaries(self):
+    def test_retired_wiki_checks_are_replaced_only_by_deny_boundaries(self):
         self.assertEqual(16,len(gate.WIKI_CONTENT_CHECKS))
-        for name in gate.WIKI_CONTENT_CHECKS:
+        self.assertFalse(set(gate.WIKI_CONTENT_CHECKS) & set(gate.REQUIRED_CHECKS))
+        for name in ('retired-wiki-mail-refused-policy-on','retired-wiki-mail-refused-policy-off'):
             data=template();data['checks'].remove(name);data['check_count']-=1
             with self.subTest(name=name),self.assertRaises(ValueError):validate(data,file_digest='b'*64)
-        for key in ('actual_existing_wiki_content_editor','real_before_commit_execute_race_proved','move_mail_claimed','SMTP_proved'):
-            data=template();summary=data['native']['private_mail_tests']['wiki_content_publication_tests'];summary[key]=not summary[key]
-            with self.subTest(key=key),self.assertRaises(ValueError):validate(data,file_digest='b'*64)
-        data=template();data['native']['private_mail_tests']['wiki_content_publication_tests']['private_directories_removed']=4
-        with self.assertRaises(ValueError):validate(data,file_digest='b'*64)
+        for name in gate.WIKI_CONTENT_CHECKS:
+            data=template();data['checks'].append(name);data['check_count']+=1
+            with self.subTest(name=name),self.assertRaises(ValueError):validate(data,file_digest='b'*64)
 
-    def test_wiki_real_renderer_and_sixth_missing_service_worker_are_required(self):
-        for key,value in [('actual_paired55_prose_diff',False),('missing_render_transient_no_mail_proved',False),
-                          ('independent_php_workers_executed',5),('private_directories_removed',5)]:
+    def test_retired_wiki_summary_cannot_claim_runtime_or_renderer_execution(self):
+        expected={'status':'retired-runtime-removed','historical_mail_refused':True}
+        self.assertEqual(template()['native']['private_mail_tests']['wiki_content_publication_tests'],expected)
+        for key,value in [('status','passed'),('historical_mail_refused',False),
+                          ('actual_existing_wiki_content_editor',True),('SMTP_proved',True),
+                          ('actual_paired55_prose_diff',True),('render_cleanup',{})]:
             data=template();data['native']['private_mail_tests']['wiki_content_publication_tests'][key]=value
-            with self.subTest(key=key),self.assertRaises(ValueError):validate(data,file_digest='b'*64)
-        for key,value in [('binary_sha256','0'*64),('process_stopped',False),('private_storage_removed',False)]:
-            data=template();data['native']['private_mail_tests']['wiki_content_publication_tests']['render_cleanup'][key]=value
             with self.subTest(key=key),self.assertRaises(ValueError):validate(data,file_digest='b'*64)
 
     def test_all_successor_checks_are_mandatory(self):
         self.assertEqual(len(gate.NOTIFICATION_BOUNDARY_CHECKS),21)
-        self.assertEqual(len(gate.REQUIRED_CHECKS),936)
+        self.assertEqual(len(gate.REQUIRED_CHECKS),922)
         for name in gate.NOTIFICATION_BOUNDARY_CHECKS:
             data=template();data['checks'].remove(name);data['check_count']-=1
             with self.subTest(name=name),self.assertRaises(ValueError):
@@ -609,7 +610,7 @@ class NativePolicyErrorRouteGateTest(unittest.TestCase):
 
 class NativeMeasurementGateTest(unittest.TestCase):
     def test_missing_producer_checks_or_workers_cannot_pass(self):
-        self.assertEqual(len(gate.REQUIRED_CHECKS),936)
+        self.assertEqual(len(gate.REQUIRED_CHECKS),922)
         for check in gate.MEASUREMENT_CHECKS:
             data=template();data['checks'].remove(check);data['check_count']-=1
             with self.assertRaises(ValueError):validate(data,file_digest='b'*64)
@@ -662,7 +663,7 @@ class NativeTokenMeasurementGateTest(unittest.TestCase):
 class StopBoundaryEvidenceTest(unittest.TestCase):
     def test_only_complete_bound_fixture_obligations_can_satisfy_summary(self):
         self.assertEqual(15,len(gate.STOP_BOUNDARY_CHECKS))
-        self.assertEqual(936,validate(template(),file_digest='b'*64)['check_count'])
+        self.assertEqual(922,validate(template(),file_digest='b'*64)['check_count'])
         for name in gate.STOP_BOUNDARY_CHECKS:
             data=template();data['checks'].remove(name);data['check_count']-=1
             with self.subTest(name=name),self.assertRaises(ValueError):validate(data,file_digest='b'*64)
@@ -693,7 +694,7 @@ class NativeHTTPMeasurementGateTest(unittest.TestCase):
 class RecoveryNativeProducerGateTest(unittest.TestCase):
     def test_selected_producer_checks_and_non_authority_are_mandatory(self):
         self.assertEqual(20,len(gate.RECOVERY_NATIVE_PRODUCER_CHECKS))
-        self.assertEqual(936,validate(template(),file_digest='b'*64)['check_count'])
+        self.assertEqual(922,validate(template(),file_digest='b'*64)['check_count'])
         for name in gate.RECOVERY_NATIVE_PRODUCER_CHECKS:
             value=template();value['checks'].remove(name);value['check_count']-=1
             with self.subTest(name=name),self.assertRaises(ValueError):validate(value,file_digest='b'*64)

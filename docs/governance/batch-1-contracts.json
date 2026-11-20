@@ -383,8 +383,8 @@
       "path": "src/applications/phriction/editor/PhrictionTransactionEditor.php",
       "symbol": "PhrictionTransactionEditor",
       "role": "wiki transaction mapping candidate, hierarchy needs audit",
-      "evidence_status": "static-reference-only",
-      "coverage": "partial",
+      "evidence_status": "retired-runtime-removed",
+      "coverage": "retired",
       "activation_blocked": true
     }
   ],

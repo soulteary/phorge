@@ -140,7 +140,7 @@ def validate(data,root=ROOT,file_digest=None):
         'successful_owned_file_service_startups','cleanup','failure','cleanup_failures','terminal_failure_cleanup_rollbacks',
         'captured_native_output_bytes','captured_native_output_sha256','production_deployment','production_executor',
         'production_optional_features_enabled','native_permission_axes_changed','remaining_blocked'})
-    for k,v in dict(batch='native-directory-transports-v2-restore-progress',passed=True,scope='owned-native-directory-transport-matrix-with-paired-file-and-exact-restore-progress',php_version='8.5.12',
+    for k,v in dict(batch='native-directory-transports-v2-restore-progress',passed=True,scope='owned-native-directory-transport-matrix-with-paired-file-and-exact-restore-progress',php_version='8.5.13',
         optional_source_reader_adapter_exercised=True,isolated_optional_features_enabled=True,worker_cleanup=None,file_service_cleanup=dict(kind='file',binary_sha256=file_digest,process_stopped=True,private_storage_removed=True),
         successful_owned_file_service_startups=1,cleanup={'ownedSchemasRemoved':55,'ownedRuntimeUsersRemoved':2,'readerRemoved':True},failure=None,
         cleanup_failures=[],terminal_failure_cleanup_rollbacks=0,captured_native_output_bytes=0,captured_native_output_sha256=hashlib.sha256(b'').hexdigest(),

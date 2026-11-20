@@ -198,7 +198,7 @@
     {
       "path": "src/applications/phriction/editor/PhrictionTransactionEditor.php",
       "symbol": "PhrictionTransactionEditor",
-      "purpose_review": "business-producer",
+      "purpose_review": "retired-runtime-removed",
       "sha256": "3a3b1e9643a71b48d4123960a7f0f594c2258bfc96e450fe81625a1d26aaa55d",
       "runtime_matrix_complete": false
     },
@@ -255,7 +255,7 @@
   "consumers": [
     {
       "path": "src/applications/metamta/storage/PhabricatorMetaMTAMail.php",
-      "sha256": "56016d144982aa284ac0afc2fd272f65a785af26d85c502782d45fc3cfa07c28"
+      "sha256": "f2340c51cb66a17c841f8d17f5e1ba425d4294a7abfb5d376c2130113c186212"
     },
     {
       "path": "src/applications/metamta/conduit/PhabricatorMailDeliveryConduitAPIMethod.php",
@@ -275,7 +275,7 @@
     },
     {
       "path": "src/infrastructure/governance/notification/PhorgePrivateMailPolicy.php",
-      "sha256": "67112136ba242de5c8ada4b22ee07958722fcf3fb93b34dabf08bc353364a361"
+      "sha256": "22ea72b678bddb26058b8268903c4a1c8a1cc000655a63f0db0377178b4e22d9"
     },
     {
       "path": "src/infrastructure/governance/notification/PhorgePrivateMailConfigOptions.php",

@@ -63,10 +63,10 @@ are maintenance operations, never required to build or run a checkout.
 
 ## Maintenance and PHP versions
 
-The only supported PHP branch is 8.5, with PHP 8.5.12 as the minimum
+The only supported PHP branch is 8.5, with PHP 8.5.13 as the minimum
 security release and the pinned production image. Other minor versions are
 rejected by both the CLI runtime bootstrap and Web startup. CI runs PHP
-8.5.12 only; older compatibility matrices have been removed.
+8.5.13 only; older compatibility matrices have been removed.
 
 OPcache is built into PHP 8.5. Do not install it as a shared extension. JIT
 must remain explicitly disabled (`opcache.jit=disable` and

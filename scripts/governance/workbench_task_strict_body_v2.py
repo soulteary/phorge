@@ -1,7 +1,7 @@
 """Pinned CURRENT Workbench checker; reversible read/restore seams, no SQL issuer."""
 import ast,copy,hashlib,types
 CHECKER='scripts/governance/check_organization_approval_workbench.py'
-CHECKER_SHA='c899d76c4c7876af224adb730b3f7062c70aad4d314af8e40e176332cab67f37'
+CHECKER_SHA='b8c1656aca04aaea858cd8abb104d8b320b4da788a3aa4e980233dc0b0bd07b7'
 SOURCE='support/governance/organization/approval-workbench-cases.php'
 SOURCE_SHA='db166e6faa96d016d9a7e88676ef004090bc7140850b9258a70f89cf6d2f37e6'
 IMPORTS=('import check_completion as completion','import check_native_organization as native','from check_recovery_file_source import read_receipt')

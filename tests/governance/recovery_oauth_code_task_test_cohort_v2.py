@@ -161,6 +161,17 @@ def _normalized_source_tree(operation,root):
         parts=path.split('/')[1:]
         for part in parts[:-1]:cursor=cursor.setdefault(part,{})
         cursor[parts[-1]]=('100755' if target.stat().st_mode&0o111 else '100644',oid)
+    # Restore only exact retired DATA leaves when hashing the historical tree.
+    import json
+    from task_historical_views_test_api_v2 import retired_source_DATA
+    for row in json.loads(context.current('docs/operations/retirement/wiki.json'))['removed_files']:
+        path=row['path']
+        if not path.startswith('src/'):continue
+        raw=retired_source_DATA(context,path)
+        oid=hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).digest()
+        cursor=tree;parts=path.split('/')[1:]
+        for part in parts[:-1]:cursor=cursor.setdefault(part,{})
+        cursor[parts[-1]]=('100755'if context.parent_pins[path]['mode']==0o755 else'100644',oid)
     def node(value):
         body=b''
         for name,entry in sorted(value.items(),key=lambda x:x[0]+('/' if isinstance(x[1],dict)else'')):

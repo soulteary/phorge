@@ -22,7 +22,7 @@ def validate(data,root=ROOT,*,source_revision):
  if type(source_revision)is not str or not re.fullmatch('[a-f0-9]{40}',source_revision):raise ValueError('source revision required')
  completion.fields(data,native.FIELDS,'project source evidence shape refused')
  for key,value in {'batch':'native-project-source-facts','scope':'owned-native-project-source-facts-no-lease',
-  'passed':True,'php_version':'8.5.12','check_count':11,'failure':None,'cleanup_failures':[],
+  'passed':True,'php_version':'8.5.13','check_count':11,'failure':None,'cleanup_failures':[],
   'optional_source_reader_adapter_exercised':True,'isolated_optional_features_enabled':True,
   'file_service_cleanup':None,'successful_owned_file_service_startups':0,'terminal_failure_cleanup_rollbacks':0,
   'production_deployment':False,'production_executor':False,'production_optional_features_enabled':False,

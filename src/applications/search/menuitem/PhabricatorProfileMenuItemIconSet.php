@@ -27,11 +27,6 @@ final class PhabricatorProfileMenuItemIconSet
         'name' => pht('Feed'),
       ),
       array(
-        'key' => 'phriction',
-        'icon' => 'fa-book',
-        'name' => pht('Phriction'),
-      ),
-      array(
         'key' => 'conpherence',
         'icon' => 'fa-comments',
         'name' => pht('Conpherence'),

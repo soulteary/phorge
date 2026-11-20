@@ -32,6 +32,7 @@ EXPECTED_PACKAGES = {
     'N07-A': ('N07-A.APPROVAL-CONTRACT.v1', ['N00']),
 }
 # This is an explicit reviewed path inventory, not a source-code safety check.
+# CONTENT.WIKI is a historical ledger identity validated as retired below.
 EXPECTED_SOURCES = {'PROJECT.EDIT.WEB': 'src/applications/project/controller/PhabricatorProjectEditController.php', 'PROJECT.EDIT.ENGINE': 'src/applications/project/engine/PhabricatorProjectEditEngine.php', 'PROJECT.MEMBER.ADD': 'src/applications/project/controller/PhabricatorProjectMembersAddController.php', 'PROJECT.MEMBER.REMOVE': 'src/applications/project/controller/PhabricatorProjectMembersRemoveController.php', 'PROJECT.MEMBER.EDITOR': 'src/applications/project/editor/PhabricatorProjectTransactionEditor.php', 'PROJECT.MEMBER.INVERSE': 'src/infrastructure/edges/editor/PhabricatorEdgeEditor.php', 'PROJECT.EDIT.CONDUIT': 'src/applications/project/conduit/ProjectEditConduitAPIMethod.php', 'PROJECT.CREATE.CONDUIT': 'src/applications/project/conduit/ProjectCreateConduitAPIMethod.php', 'PROJECT.POLICY.SOURCE': 'src/applications/project/storage/PhabricatorProject.php', 'PROJECT.QUERY.CONSUMER': 'src/applications/project/query/PhabricatorProjectQuery.php', 'POLICY.FILTER': 'src/applications/policy/filter/PhabricatorPolicyFilter.php', 'ACCOUNT.ENABLE.WEB': 'src/applications/people/controller/PhabricatorPeopleDisableController.php', 'ACCOUNT.ENABLE.API': 'src/applications/people/conduit/UserEditConduitAPIMethod.php', 'ACCOUNT.DISABLE.LEGACY_API': 'src/applications/people/conduit/UserDisableConduitAPIMethod.php', 'ACCOUNT.ENABLE.CLI': 'src/applications/people/management/PhabricatorPeopleManagementEnableWorkflow.php', 'ACCOUNT.ENABLE.ENGINE': 'src/applications/people/editor/PhabricatorUserEditEngine.php', 'ACCOUNT.ENABLE.TRANSACTION': 'src/applications/people/xaction/PhabricatorUserDisableTransaction.php', 'ACCOUNT.SESSION': 'src/applications/auth/engine/PhabricatorAuthSessionEngine.php', 'FILE.DATA': 'src/applications/files/controller/PhabricatorFileDataController.php', 'FILE.TRANSFORM': 'src/applications/files/controller/PhabricatorFileTransformController.php', 'FILE.ROUTES': 'src/applications/files/application/PhabricatorFilesApplication.php', 'MAIL.QUEUE': 'src/applications/metamta/PhabricatorMetaMTAWorker.php', 'MAIL.MODEL': 'src/applications/metamta/storage/PhabricatorMetaMTAMail.php', 'MAIL.ENGINE': 'src/applications/metamta/engine/PhabricatorMailEmailEngine.php', 'MAIL.ADAPTER': 'src/applications/metamta/adapter/PhabricatorMailGorgeAdapter.php', 'MAIL.HERALD': 'src/applications/metamta/herald/PhabricatorMailOutboundMailHeraldAdapter.php', 'CONTENT.TASK': 'src/applications/maniphest/editor/ManiphestEditEngine.php', 'CONTENT.WIKI': 'src/applications/phriction/editor/PhrictionTransactionEditor.php'}
 EXPECTED_UNSUPPORTED = {'U%02d' % i for i in range(1, 9)}
 
@@ -62,6 +63,21 @@ def _source_file(root, raw):
     resolved = (root / raw).resolve()
     _require(resolved.is_relative_to(root.resolve()), 'source path escapes root')
     _require(resolved.is_file(), 'missing source file: ' + raw)
+
+
+def retired_source(root, path):
+    """Recognize only absent Wiki sources with unchanged historical hashes."""
+    if not path.startswith('src/applications/phriction/') or (Path(root)/path).exists():
+        return False
+    root = Path(root)
+    manifest = json.loads((root/'docs/operations/retirement/wiki.json').read_text())
+    parent = json.loads((root/'support/governance/source-operation/task-parent5903.json').read_text())['entries']
+    rows = {row['path']: row['sha256'] for row in manifest['removed_files']}
+    target = root/path
+    valid = (path in rows and path in parent and
+             rows[path] == parent[path]['sha256'] and
+             not target.exists() and not target.is_symlink())
+    return rows[path] if valid else False
 
 
 def validate(data, root):
@@ -110,12 +126,14 @@ def validate(data, root):
     for key, path in EXPECTED_SOURCES.items():
         row = sources[key]
         _require(row.get('path') == path, 'source reference drift: ' + key)
-        _source_file(Path(root), path)
+        retired = retired_source(root, path)
+        if not retired:
+            _source_file(Path(root), path)
         _require(isinstance(row.get('symbol'), str) and row['symbol'] and
                  isinstance(row.get('role'), str) and row['role'],
                  'source symbol and role required: ' + key)
-        _require(row.get('evidence_status') == 'static-reference-only' and
-                 row.get('coverage') == 'partial' and
+        _require(row.get('evidence_status') == ('retired-runtime-removed' if retired else 'static-reference-only') and
+                 row.get('coverage') == ('retired' if retired else 'partial') and
                  row.get('activation_blocked') is True,
                  'source references are not behavioral proof: ' + key)
     unsupported = _by_id(data.get('unsupported'), 'unsupported')

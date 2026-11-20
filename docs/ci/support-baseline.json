@@ -17,7 +17,7 @@
     "project-content-grants-focused.yml",
     "project-description-focused.yml"
   ],
-  "productionPHP": "8.5.12",
+  "productionPHP": "8.5.13",
   "productionMySQL": "8.4.13",
   "archivedPHP": [
     "8.3",

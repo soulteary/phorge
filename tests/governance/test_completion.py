@@ -25,7 +25,7 @@ def valid_template():
     checks=sorted(gate.REQUIRED_CHECKS|gate.matrix_checks())
     return {'batch':'native-governance-completion','phase':'all','passed':True,
         'acceptance_scope':'full-current-profile-attempt','checks':checks,'check_count':len(checks),
-        'php_version':'8.5.12','queue_profile':'gorge','successful_owned_service_startups':2,
+        'php_version':'8.5.13','queue_profile':'gorge','successful_owned_service_startups':2,
         'source_restore':{'quickstart_sha256':hashlib.sha256((ROOT/'resources/sql/quickstart.sql').read_bytes()).hexdigest(),
             'app_schema_count':54,'owned_schema_count':55,'quickstart_source_table_count':500,
             'current_table_count':549,'restore_phase_workers_started':0,
@@ -62,10 +62,15 @@ class CompletionReceiptTests(unittest.TestCase):
         with self.assertRaises((ValueError,TypeError,KeyError)):
             gate.validate(data)
 
+    def test_retired_and_prerelease_runtimes_cannot_qualify_current_evidence(self):
+        for version in ('8.5.12', '8.5.11', '8.5.13RC1', '8.5.13-dev', '8.4.99', None, True):
+            data=valid_template();data['php_version']=version
+            with self.subTest(version=version):self.reject(data)
+
     def test_accepts_only_bounded_current_scope(self):
         result=gate.validate(valid_template())
-        self.assertEqual(result['native_shapes'],24)
-        self.assertEqual(result['operation_vocabularies'],9)
+        self.assertEqual(result['native_shapes'],17)
+        self.assertEqual(result['operation_vocabularies'],7)
         self.assertFalse(result['global_completion'])
         self.assertFalse(result['N03_completed'])
         self.assertFalse(result['hosted_ci_or_review_proved'])
@@ -80,9 +85,18 @@ class CompletionReceiptTests(unittest.TestCase):
             with self.subTest(patch=patch):
                 data=valid_template();data.update(patch);self.reject(data)
 
+    def test_retired_checks_are_explicit_and_not_current_success_requirements(self):
+        retirement=json.loads((ROOT/'docs/operations/retirement/wiki.json').read_text())
+        retired=set(retirement['retired_completion_checks'])
+        self.assertEqual(len(retired),16)
+        self.assertEqual(125-len(retired),109)
+        self.assertFalse(retired & (gate.REQUIRED_CHECKS | gate.matrix_checks()))
+        matrix=json.loads((ROOT/gate.MATRIX).read_text())
+        self.assertTrue({c for row in matrix['retired_rows'] for c in row['check_ids']} <= retired)
+
     def test_each_atomic_shape_requires_every_runtime_check(self):
         matrix=json.loads((ROOT/gate.MATRIX).read_text())
-        self.assertEqual(len(matrix['rows']),24)
+        self.assertEqual(len(matrix['rows']),17)
         for row in matrix['rows']:
             for check in row['check_ids']:
                 with self.subTest(shape=row['shape_id'],check=check):
@@ -98,7 +112,6 @@ class CompletionReceiptTests(unittest.TestCase):
                       'completion-create-hidden-transactions-produce-no-mail-outbox',
                       'pipeline-midwrite-object-row-rolled-back',
                       'read-view-pool-drift-blocks-without-closing-caller-owned-connection',
-                      'read-view-wiki-private-ancestor-local-allow-actor-query-deny',
                       'read-view-huge-native-task-row-refused-before-select-fetch']:
             data=valid_template();data['checks'].remove(check);data['check_count']-=1;self.reject(data)
         data=valid_template();data['check_count']+=1;self.reject(data)
@@ -170,7 +183,7 @@ class CompletionReceiptTests(unittest.TestCase):
             result=subprocess.run([sys.executable,'-B',str(ROOT/'scripts/governance/check_completion.py'),
                 '--receipt',str(path)],capture_output=True,text=True)
             self.assertEqual(result.returncode,0)
-            self.assertEqual(json.loads(result.stdout)['native_shapes'],24)
+            self.assertEqual(json.loads(result.stdout)['native_shapes'],17)
 
 
 class NativeStopMigrationCompatibilityTest(unittest.TestCase):

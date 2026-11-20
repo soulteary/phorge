@@ -58,7 +58,7 @@ def preflight(config):
         raise RuntimeError('linux_profile_required')
     source = config['source_root']
     version = subprocess.check_output([config['php'], '-r', 'echo PHP_VERSION;'], text=True)
-    if version != '8.5.12':
+    if version != '8.5.13':
         raise RuntimeError('supported_php_required')
     revision = subprocess.check_output(['git', '-C', source, 'rev-parse', 'HEAD'], text=True).strip()
     dirty = subprocess.check_output(['git', '-C', source, 'status', '--porcelain', '--untracked-files=no'])

@@ -67,7 +67,6 @@ final class RemarkupProcessConduitAPIMethod extends ConduitAPIMethod {
 
   private function getEngineContexts() {
     return array(
-      'phriction' => 'newPhrictionMarkupEngine',
       'maniphest' => 'newManiphestMarkupEngine',
       'differential' => 'newDifferentialMarkupEngine',
       'phame' => 'newPhameMarkupEngine',

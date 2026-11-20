@@ -3,7 +3,7 @@ Focused N05 native SQL recipe (source only)
 The workflow provisions a disposable MySQL 8.4.13 service using immutable image
 `a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7`.
 Only 127.0.0.1:3306 is published. The recipe checks both requested and actual Docker
-port maps, then genuine PHP 8.5.12, default JIT disabled, buffer 0, CLI opcache 0,
+port maps, then genuine PHP 8.5.13, default JIT disabled, buffer 0, CLI opcache 0,
 actual MySQL version and UUID. Bracket observations do not prove whole-window
 identity. CI environment flags select this recipe; they provide no application
 authorization.

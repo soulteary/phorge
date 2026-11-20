@@ -180,7 +180,6 @@ final class PhorgeGovernanceReadSetTestCase extends PhutilTestCase {
   public function testFixedCatalogIncludesNativeAutomaticDependencies() {
     foreach (array(
       array('ManiphestTask', 'task.title', array('task.policy', 'task.owner')),
-      array('PhrictionDocument', 'wiki.content', array('wiki.policy', 'wiki.parent')),
       array('PhabricatorProject', 'project.description',
         array('project.policy', 'project.parent', 'project.member')))
       as $case) {
@@ -194,10 +193,9 @@ final class PhorgeGovernanceReadSetTestCase extends PhutilTestCase {
     }
   }
 
-  public function testTaskAndWikiGroupDependenciesAreNotOmitted() {
+  public function testTaskGroupDependenciesAreNotOmitted() {
     foreach (array(
-      array('object_class' => 'ManiphestTask', 'operation' => 'task.title'),
-      array('object_class' => 'PhrictionDocument', 'operation' => 'wiki.content'))
+      array('object_class' => 'ManiphestTask', 'operation' => 'task.title'))
       as $change) {
       $binding = $this->newBinding($change);
       $sources = $this->newSources($binding);
@@ -213,7 +211,7 @@ final class PhorgeGovernanceReadSetTestCase extends PhutilTestCase {
   }
 
   public function testFixedCatalogAgreesWithCapabilityMapping() {
-    foreach (array('PhabricatorProject', 'ManiphestTask', 'PhrictionDocument') as $class) {
+    foreach (array('PhabricatorProject', 'ManiphestTask') as $class) {
       foreach (PhorgeGovernanceCapabilityMap::getKnownOperations($class)
         as $operation) {
         $expected = PhorgeGovernanceCapabilityMap::getRequiredSourceKinds(

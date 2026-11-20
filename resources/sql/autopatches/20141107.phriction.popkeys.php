@@ -1,14 +1,14 @@
 <?php
 
-$table = new PhrictionDocument();
-$conn_w = $table->establishConnection('w');
+$table = 'phriction_document';
+$conn_w = $this->getConn('phriction');
 
 echo pht('Populating Phriction mailkeys.')."\n";
 
-foreach (new LiskMigrationIterator($table) as $doc) {
-  $id = $doc->getID();
+foreach (new LiskRawMigrationIterator($conn_w, $table) as $doc) {
+  $id = $doc['id'];
 
-  $key = $doc->getMailKey();
+  $key = $doc['mailKey'];
   if ((strlen($key) == 20) && (strpos($key, "\0") === false)) {
     // To be valid, keys must have length 20 and not contain any null bytes.
     // See T6487.
@@ -20,7 +20,7 @@ foreach (new LiskMigrationIterator($table) as $doc) {
     queryfx(
       $conn_w,
       'UPDATE %T SET mailKey = %s WHERE id = %d',
-      $table->getTableName(),
+      $table,
       $mail_key,
       $id);
   }

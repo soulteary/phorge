@@ -52,7 +52,7 @@ try {
  ndphase('native-bootstrap');
  $argv=array($script);$argc=1;require $root.'/scripts/init/init-script.php';require __DIR__.'/cases.php';
  ndphase('runtime-profile');
- qneed(PHP_VERSION==='8.5.12'&&in_array(ini_get('opcache.jit'),array('','0','disable','off'),true)&&(string)ini_get('opcache.jit_buffer_size')==='0'&&(string)ini_get('opcache.enable_cli')==='0');
+ qneed(PHP_VERSION==='8.5.13'&&in_array(ini_get('opcache.jit'),array('','0','disable','off'),true)&&(string)ini_get('opcache.jit_buffer_size')==='0'&&(string)ini_get('opcache.enable_cli')==='0');
  qneed(PhabricatorEnv::getEnvConfig('mysql.host')==='127.0.0.1'&&PhabricatorEnv::getEnvConfig('mysql.port')===$db['host_port']&&PhabricatorEnv::getEnvConfig('load-libraries')===array());
  qneed(PhabricatorEnv::getEnvConfig('governance.organization.enabled')===true&&PhabricatorEnv::getEnvConfig('governance.project-approval.enabled')===true&&PhabricatorEnv::getEnvConfig('governance.project-content-grants.enabled')===true);
  $c=qconnection($p);qneed(queryfx_one($c,'SELECT VERSION() v')['v']==='8.4.13');

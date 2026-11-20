@@ -39,7 +39,7 @@ owned_db_receipt_path/owned_db_receipt_sha256 from the actual Root Docker+SQL
 observation. `isolated_features_authorized=true`, `HTTP_authorized=false`, and
 `worker_delivery_authorized=false` describe this reviewed isolated profile only.
 Native config must bind the actual loopback MySQL endpoint, no cluster/load
-libraries, PHP exactly 8.5.12, JIT disabled/buffer0/CLI0, MySQL exactly 8.4.13.
+libraries, PHP exactly 8.5.13, JIT disabled/buffer0/CLI0, MySQL exactly 8.4.13.
 All three governance flags may be enabled only in this isolated fixture. They
 remain default OFF in the candidate and must remain OFF on deployed services.
 The exact Root-owned profile pin and runtime observation, not caller booleans,
@@ -118,6 +118,6 @@ storage decode, modular dispatch denial and default flags. None is positive SQL.
 Before promotion: independent source review, current signed native source and
 complete inventory/cohort coordination, exact profile/runtime observations,
 actual positive native SQL cases with retained raw private provenance and public
-sanitized results, actual default-off behavior in the packaged PHP8.5.12 runtime,
+sanitized results, actual default-off behavior in the packaged PHP8.5.13 runtime,
 and separate HTTP/worker/mail/feed/search/notification acceptance are mandatory.
 No candidate feature activation is authorized by passing this qualifier.

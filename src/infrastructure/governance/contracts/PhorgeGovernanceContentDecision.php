@@ -11,8 +11,6 @@ final class PhorgeGovernanceContentDecision extends Phobject {
       'project.description' => true,
       'task.title' => true,
       'task.description' => true,
-      'wiki.title' => true,
-      'wiki.content' => true,
     );
     $sensitive = array(
       'policy.replace' => true,

@@ -25,11 +25,21 @@ class TaskStaticInventory(unittest.TestCase):
  def test_fake_owner_refuses_before_source_capture(self):
   with self.assertRaises(ValueError):gate.verify_in_operation(object(),ROOT)
  def test_only_two_exact_current_parent_metadata_deltas(self):
-  # Retain the existing test ID/count; the reviewed closed set now has three.
+  # Retain the existing test ID/count; the exact retirement deltas are explicit below.
   self.assertEqual(set(gate.METADATA_DELTAS),{
    'src/applications/people/governance/auth/PhorgeGovernanceNativeIdentitySource.php',
    'src/infrastructure/governance/execution/PhorgeProjectConfigEpochScope.php',
-   'src/infrastructure/governance/media/PhorgeGovernanceMediaExchangeService.php'})
+   'src/infrastructure/governance/media/PhorgeGovernanceMediaExchangeService.php',
+   'src/infrastructure/governance/native/PhorgeGovernanceNativePolicyCompositionVerifier.php',
+   'src/infrastructure/governance/consistency/PhorgeGovernanceNativeReadView.php',
+   'src/infrastructure/governance/readset/PhorgeGovernanceReadSetValidator.php',
+   'src/infrastructure/governance/notification/PhorgePrivateMailPolicy.php',
+   'src/infrastructure/governance/mapping/PhorgeGovernanceCapabilityMap.php',
+   'src/applications/metamta/storage/PhabricatorMetaMTAMail.php',
+   'src/infrastructure/governance/native/PhorgeGovernanceNativeSourceReader.php',
+   'src/infrastructure/governance/observation/PhorgeGovernanceNativeObservationVerifier.php',
+   'src/infrastructure/governance/native/PhorgeGovernanceNativeRuleHierarchyVerifier.php',
+   'src/infrastructure/governance/contracts/PhorgeGovernanceContentDecision.php'})
   for name,(old,new)in gate.METADATA_DELTAS.items():
    current=(ROOT/name).read_bytes();parent=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'show','5903d98b14926401f0be49cb0a9d6168026a2642:'+name])
    self.assertEqual((gate.sha(parent),gate.sha(current)),(old,new));self.assertEqual(gate._metadata_data(name,current,parent),parent)

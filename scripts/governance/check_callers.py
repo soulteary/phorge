@@ -4,6 +4,7 @@ import hashlib
 import json
 from pathlib import Path
 import re
+from check_contracts import retired_source
 
 BASELINE = '4f36f58a5ed658c7d39bf0a58e67f5be5ca2fb0b'
 SCAN_VERSION = 1
@@ -32,6 +33,8 @@ OPERATIONS = {
     'wiki.content', 'policy.replace', 'project.members', 'object.space',
     'object.relationship', 'account.enable',
 }
+# Removed Wiki identities below are historical data; retired_source verifies
+# their original hashes and absence instead of treating them as live callers.
 EXPECTED_CONSUMERS = {'PROJECT.EDIT.WEB': ('src/applications/project/controller/PhabricatorProjectEditController.php',
                       'PhabricatorProjectEditController::handleRequest'),
  'PROJECT.EDIT.ENGINE': ('src/applications/project/engine/PhabricatorProjectEditEngine.php',
@@ -288,7 +291,8 @@ def validate(data, root, actual_scan):
     require(set(consumers) == set(EXPECTED_CONSUMERS), 'known consumer inventory drift')
     for key, row in consumers.items():
         require((row.get('path'), row.get('symbol')) == EXPECTED_CONSUMERS[key], 'known source/symbol drift: ' + key)
-        path = regular_reference(root, row.get('path'))
+        retired = retired_source(root, row.get('path'))
+        path = Path(root)/row['path'] if retired else regular_reference(root, row.get('path'))
         require(isinstance(row.get('symbol'), str) and row['symbol'],
                 'symbol reference required: ' + key)
         require(isinstance(row.get('entry_kind'), str) and row['entry_kind'],
@@ -296,11 +300,11 @@ def validate(data, root, actual_scan):
         require(set(row.get('operation_ids', [])) <= OPERATIONS and
                 set(row.get('source_ids', [])) <= SOURCE_IDS,
                 'unknown operation/source ID: ' + key)
-        require(row.get('coverage') == 'partial' and
+        require(row.get('coverage') == ('retired' if retired else 'partial') and
                 row.get('activation_blocked') is True and
-                row.get('evidence_status') == 'static-reference-only',
+                row.get('evidence_status') == ('retired-runtime-removed' if retired else 'static-reference-only'),
                 'consumer is not behavioral proof: ' + key)
-        require(row.get('sha256') == hashlib.sha256(path.read_bytes()).hexdigest(),
+        require(row.get('sha256') == (retired or hashlib.sha256(path.read_bytes()).hexdigest()),
                 'reviewed source changed: ' + key)
     links = by_id(data.get('links'), 'link')
     require(set(links) == set(EXPECTED_LINKS), 'known graph inventory drift')

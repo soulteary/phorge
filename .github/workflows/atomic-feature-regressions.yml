@@ -45,7 +45,7 @@ jobs:
         run: |
           python3 -B scripts/ci/core_guard.py plan --event "$CI_EVENT" --sha "$CI_SHA" --pr-head "$CI_PR_HEAD" --called-head "$CI_CALLED_HEAD" >> "$GITHUB_OUTPUT"
   core-boundaries:
-    name: Defaults-OFF and native core boundaries (PHP 8.5.12)
+    name: Defaults-OFF and native core boundaries (PHP 8.5.13)
     needs: ci-plan
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -70,7 +70,7 @@ jobs:
             --expected-head "$CORE_EXPECTED_HEAD" --github-sha "$GITHUB_SHA" --trust-home "$trust_home" --external-proof-tag "source-proof/$CORE_EXPECTED_HEAD"
       - uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.5.12'
+          php-version: '8.5.13'
           ini-values: opcache.jit=disable, opcache.jit_buffer_size=0
           extensions: mysqli, mbstring, curl, gd, zip, dom, xmlreader, xmlwriter
           coverage: none
@@ -99,7 +99,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php: ['8.5.12']
+        php: ['8.5.13']
     services:
       mysql:
         image: mysql:8.4.13@sha256:a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7
@@ -471,7 +471,7 @@ jobs:
           cp "$RUNNER_TEMP/governance-batch-3/native-source.json" "$RUNNER_TEMP/governance-completion/native-source.json"
           cp "$RUNNER_TEMP/governance-batch-4/native-rule-branches.json" "$RUNNER_TEMP/governance-completion/native-rule-branches.json"
           cp "$RUNNER_TEMP/governance-batch-5/native-pipeline-composition.json" "$RUNNER_TEMP/governance-completion/native-pipeline-composition.json"
-          PHORGE_GOVERNANCE_ISOLATED_TEST=1 \
+          if PHORGE_GOVERNANCE_ISOLATED_TEST=1 \
           PHORGE_GOVERNANCE_FIXTURE_DSN='mysql:host=127.0.0.1;port=3306;dbname=governance_fixture_bootstrap;charset=utf8mb4' \
           PHORGE_GOVERNANCE_FIXTURE_USER=root \
           PHORGE_GOVERNANCE_FIXTURE_PASSWORD="$GORGE_TEST_MYSQL_PASSWORD" \
@@ -480,10 +480,37 @@ jobs:
           PHORGE_GOVERNANCE_GORGE_FILE_SHA256="$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" \
           PHORGE_GOVERNANCE_GORGE_TASKQUEUE_BINARY="$RUNNER_TEMP/gorge-taskqueue" \
           PHORGE_GOVERNANCE_GORGE_TASKQUEUE_SHA256="$(sha256sum "$RUNNER_TEMP/gorge-taskqueue" | cut -d ' ' -f1)" \
-          python3 -B scripts/governance/check_completion_task_receipt_v3.py --root "$GITHUB_WORKSPACE" --expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT" --directory "$RUNNER_TEMP/completion-v3-integration-private" --file-binary "$RUNNER_TEMP/gorge-file-storage" --file-sha "$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" --taskqueue-binary "$RUNNER_TEMP/gorge-taskqueue" --taskqueue-sha "$(sha256sum "$RUNNER_TEMP/gorge-taskqueue" | cut -d ' ' -f1)" --observed-mysql-image "$mysql_image" > "$RUNNER_TEMP/completion-v3-result.private.json" 2> "$RUNNER_TEMP/completion-v3-checker.stderr.private"
+          python3 -B scripts/governance/check_completion_task_receipt_v3.py --root "$GITHUB_WORKSPACE" --expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT" --directory "$RUNNER_TEMP/completion-v3-integration-private" --file-binary "$RUNNER_TEMP/gorge-file-storage" --file-sha "$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" --taskqueue-binary "$RUNNER_TEMP/gorge-taskqueue" --taskqueue-sha "$(sha256sum "$RUNNER_TEMP/gorge-taskqueue" | cut -d ' ' -f1)" --observed-mysql-image "$mysql_image" > "$RUNNER_TEMP/completion-v3-result.private.json" 2> "$RUNNER_TEMP/completion-v3-checker.stderr.private"; then
+            :
+          else
+            python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); print(json.dumps({k:d.get(k) for k in ("completion_v3_accepted","actual_process_returncode","failure_location","native_failure_location")}))' "$RUNNER_TEMP/completion-v3-result.private.json"
+            exit 1
+          fi
           python3 -B scripts/governance/project_completion_ci_integration_v3.py --result "$RUNNER_TEMP/completion-v3-result.private.json" --expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT" > "$RUNNER_TEMP/governance-completion/completion.pending.json"
           mv "$RUNNER_TEMP/governance-completion/completion.pending.json" "$RUNNER_TEMP/governance-completion/completion.json"
           cp "$RUNNER_TEMP/governance-completion/completion.json" "$RUNNER_TEMP/governance-completion/full-native.json"
+      - name: Verify Wiki retirement migrations, prepared mail and HTTP routes
+        id: wiki-retirement
+        env:
+          PHORGE_GOVERNANCE_ISOLATED_TEST: '1'
+          PHORGE_GOVERNANCE_FIXTURE_DSN: 'mysql:host=127.0.0.1;port=3306;dbname=governance_fixture_bootstrap;charset=utf8mb4'
+          PHORGE_GOVERNANCE_FIXTURE_USER: root
+          PHORGE_GOVERNANCE_FIXTURE_PASSWORD: ${{ env.GORGE_TEST_MYSQL_PASSWORD }}
+        run: |
+          export PHORGE_GOVERNANCE_GORGE_FILE_BINARY="$RUNNER_TEMP/gorge-file-storage"
+          export PHORGE_GOVERNANCE_GORGE_FILE_SHA256="$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)"
+          export PHORGE_GOVERNANCE_GORGE_TASKQUEUE_BINARY="$RUNNER_TEMP/gorge-taskqueue"
+          export PHORGE_GOVERNANCE_GORGE_TASKQUEUE_SHA256="$(sha256sum "$RUNNER_TEMP/gorge-taskqueue" | cut -d ' ' -f1)"
+          mkdir "$RUNNER_TEMP/wiki-retirement"
+          php tests/operations/wiki_retirement_native.php > "$RUNNER_TEMP/wiki-retirement/native.json"
+          php tests/operations/wiki_retirement_migrations.php > "$RUNNER_TEMP/wiki-retirement/migrations.json"
+          php tests/operations/wiki_retirement_http.php > "$RUNNER_TEMP/wiki-retirement/http.json"
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() && steps.wiki-retirement.outcome != 'skipped' }}
+        with:
+          name: wiki-retirement-php-${{ matrix.php }}
+          path: ${{ runner.temp }}/wiki-retirement
+          if-no-files-found: error
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -1219,7 +1246,7 @@ jobs:
       fail-fast: false
       matrix:
         php:
-        - 8.5.12
+        - 8.5.13
     services:
       mysql:
         image: mysql:8.0
@@ -1528,7 +1555,7 @@ jobs:
       fail-fast: false
       matrix:
         php:
-        - 8.5.12
+        - 8.5.13
     services:
       mysql:
         image: mysql:8.0
@@ -1837,7 +1864,7 @@ jobs:
       fail-fast: false
       matrix:
         php:
-        - 8.5.12
+        - 8.5.13
     services:
       mysql:
         image: mysql:8.0
@@ -2137,7 +2164,7 @@ jobs:
         if-no-files-found: error
         retention-days: 7
   native-packages-gate:
-    name: Native packages (PHP 8.5.12)
+    name: Native packages (PHP 8.5.13)
     outputs:
       qualified_head: ${{ steps.full-qualified.outputs.head }}
     needs:
@@ -2178,19 +2205,19 @@ jobs:
       if: ${{ needs.ci-plan.outputs.mode == 'full' }}
       uses: actions/download-artifact@v4
       with:
-        name: atomic-governance-unit-shard-0-results-php-8.5.12-attempt-${{ github.run_attempt }}
+        name: atomic-governance-unit-shard-0-results-php-8.5.13-attempt-${{ github.run_attempt }}
         path: ${{ runner.temp }}/atomic-unit-gate/shard-0
     - name: Gate / Download same-run shard 1 safe summary
       if: ${{ needs.ci-plan.outputs.mode == 'full' }}
       uses: actions/download-artifact@v4
       with:
-        name: atomic-governance-unit-shard-1-results-php-8.5.12-attempt-${{ github.run_attempt }}
+        name: atomic-governance-unit-shard-1-results-php-8.5.13-attempt-${{ github.run_attempt }}
         path: ${{ runner.temp }}/atomic-unit-gate/shard-1
     - name: Gate / Download same-run tooling safe summary
       if: ${{ needs.ci-plan.outputs.mode == 'full' }}
       uses: actions/download-artifact@v4
       with:
-        name: atomic-governance-unit-shard-2-results-php-8.5.12-attempt-${{ github.run_attempt }}
+        name: atomic-governance-unit-shard-2-results-php-8.5.13-attempt-${{ github.run_attempt }}
         path: ${{ runner.temp }}/atomic-unit-gate/shard-2
     - name: Gate / Verify full discovery and exact disjoint successful union
       if: ${{ needs.ci-plan.outputs.mode == 'full' }}
@@ -2256,7 +2283,7 @@ jobs:
       if: ${{ needs.ci-plan.outputs.mode == 'full' }}
       uses: actions/upload-artifact@v4
       with:
-        name: atomic-governance-unit-union-php-8.5.12-attempt-${{ github.run_attempt }}
+        name: atomic-governance-unit-union-php-8.5.13-attempt-${{ github.run_attempt }}
         path: ${{ runner.temp }}/atomic-unit-gate/union-results.json
         if-no-files-found: error
         retention-days: 7

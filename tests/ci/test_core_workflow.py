@@ -9,7 +9,7 @@ class WorkflowContract(unittest.TestCase):
   for name in ('native-packages','governance-unit-tests-0','governance-unit-tests-1','governance-tooling-tests'):
    self.assertEqual(jobs[name]['needs'],'ci-plan');self.assertEqual(jobs[name]['if'],"${{ needs.ci-plan.outputs.mode == 'full' }}")
  def test_required_context_failclosed_and_union_remains_full(self):
-  gate=self.workflow()['jobs']['native-packages-gate'];self.assertEqual(gate['name'],'Native packages (PHP 8.5.12)');self.assertEqual(gate['if'],'${{ always() }}');self.assertEqual(set(gate['needs']),{'ci-plan','core-boundaries','native-packages','governance-unit-tests-0','governance-unit-tests-1','governance-tooling-tests'})
+  gate=self.workflow()['jobs']['native-packages-gate'];self.assertEqual(gate['name'],'Native packages (PHP 8.5.13)');self.assertEqual(gate['if'],'${{ always() }}');self.assertEqual(set(gate['needs']),{'ci-plan','core-boundaries','native-packages','governance-unit-tests-0','governance-unit-tests-1','governance-tooling-tests'})
   checks=[s for s in gate['steps']if s.get('name','').startswith('Gate /')and 'tier policy'not in s['name']]
   self.assertTrue(checks)
   for step in checks:self.assertEqual(step['if'],"${{ needs.ci-plan.outputs.mode == 'full' }}")

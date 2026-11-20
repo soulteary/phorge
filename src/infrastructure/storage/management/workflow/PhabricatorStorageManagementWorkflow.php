@@ -509,6 +509,13 @@ abstract class PhabricatorStorageManagementWorkflow
   private function findAdjustments(
     PhabricatorStorageManagementAPI $api) {
     list($comp, $expect, $actual) = $this->loadSchemata($api);
+    return $this->planSchemaAdjustments($comp, $expect, $actual);
+  }
+
+  private function planSchemaAdjustments(
+    PhabricatorConfigServerSchema $comp,
+    PhabricatorConfigServerSchema $expect,
+    PhabricatorConfigServerSchema $actual) {
 
     $issue_charset = PhabricatorConfigStorageSchema::ISSUE_CHARSET;
     $issue_collation = PhabricatorConfigStorageSchema::ISSUE_COLLATION;
@@ -535,7 +542,20 @@ abstract class PhabricatorStorageManagementWorkflow
       $actual_database = $actual->getDatabase($database_name);
 
       if (!$expect_database || !$actual_database) {
-        // If there's a real issue here, skip this stuff.
+        // Retired databases have no active specification, but unknown tables
+        // must still reach the CLI error report. Retained tables are untouched.
+        if (!$expect_database && $actual_database &&
+            $database->getIsRetained()) {
+          foreach ($database->getTables() as $table_name => $table) {
+            foreach ($this->findErrors($table) as $issue) {
+              $errors[] = array(
+                'database' => $database_name,
+                'table' => $table_name,
+                'issue' => $issue,
+              );
+            }
+          }
+        }
         continue;
       }
 

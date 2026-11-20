@@ -10,7 +10,7 @@ final class PhorgePrivateMailPolicy extends Phobject {
     return $value;
   }
   public static function classify($producer){
-    if(in_array($producer,array('PhabricatorBadgesEditor','PhabricatorCalendarEventEditor','PhabricatorCalendarNotificationEngine','ConpherenceEditor','PhabricatorCountdownEditor','PhabricatorFileEditor','FileCreateMailReceiver','HeraldRuleEditor','LegalpadDocumentEditor','PhabricatorMacroEditor','ManiphestTransactionEditor','PhameBlogEditor','PhamePostEditor','PholioMockEditor','PhrictionTransactionEditor','PhabricatorPhurlURLEditor','PhorgePolicyNamedPolicyTransactionEditor','PonderAnswerEditor','PonderQuestionEditor','PhabricatorProjectTransactionEditor','PhabricatorSlowvoteEditor'),true)){return 'business';}
+    if(in_array($producer,array('PhabricatorBadgesEditor','PhabricatorCalendarEventEditor','PhabricatorCalendarNotificationEngine','ConpherenceEditor','PhabricatorCountdownEditor','PhabricatorFileEditor','FileCreateMailReceiver','HeraldRuleEditor','LegalpadDocumentEditor','PhabricatorMacroEditor','ManiphestTransactionEditor','PhameBlogEditor','PhamePostEditor','PholioMockEditor','PhabricatorPhurlURLEditor','PhorgePolicyNamedPolicyTransactionEditor','PonderAnswerEditor','PonderQuestionEditor','PhabricatorProjectTransactionEditor','PhabricatorSlowvoteEditor'),true)){return 'business';}
     if(in_array($producer,array('PhabricatorAuthRegisterController','PhabricatorAuthContactNumberTestController','PhabricatorAuthSSHKeyEditor','PhabricatorSMSAuthFactor','PhabricatorAuthInviteWorker','LegalpadDocumentSignController','PhabricatorPeopleEmailLoginMailEngine','PhabricatorPeopleUsernameMailEngine','PhabricatorPeopleWelcomeMailEngine','PhabricatorUserEmail','PhabricatorUserApproveTransaction'),true)){return 'security';}
     if($producer==='PhabricatorMetaMTAReceivedMail'){return 'private-error';}
     return 'unknown';
@@ -27,7 +27,16 @@ final class PhorgePrivateMailPolicy extends Phobject {
     return self::enabled()&&$mail->getMessageType()===PhabricatorMailEmailMessage::MESSAGETYPE&&
       in_array(self::purpose($mail),array('business','private-error','admin-notice','governance-notice'),true);
   }
+  public static function isRetiredWikiMail(PhabricatorMetaMTAMail $mail) {
+    return $mail->getPrivateMailPolicyValue('governance.mail-producer') ===
+      'PhrictionTransactionEditor' ||
+      preg_match('/\APHID-(?:WIKI|WRDS)-/', (string)$mail->getRelatedPHID()) === 1;
+  }
   public static function authorize(PhabricatorMetaMTAMail $mail){
+    // Historical Wiki messages must not outlive the removed application's ACL.
+    if (self::isRetiredWikiMail($mail)) {
+      return false;
+    }
     if($mail->getMessageType()!==PhabricatorMailEmailMessage::MESSAGETYPE||!self::enabled()){return true;}
     if(!self::primarySourceProfile()){return false;}
     $property=new ReflectionProperty(PhabricatorCaches::class,'requestCache');

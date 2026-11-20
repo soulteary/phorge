@@ -12,7 +12,10 @@ def consumers(root):
     tree=ast.parse((root/GATE).read_text());matches=[]
     for node in tree.body:
         if isinstance(node,ast.Assign) and len(node.targets)==1 and ast.unparse(node.targets[0])=="NATIVE['private_mail_tests']['wiki_content_publication_tests']":
-            matches.append(ast.literal_eval(node.value)['render_cleanup']['source_revision'])
+            state=ast.literal_eval(node.value)
+            if state != {'status':'retired-runtime-removed','historical_mail_refused':True}:
+                raise ValueError('Retired Wiki collector must not claim live render coverage')
+            matches.append(expected)
     if matches != [expected]:raise ValueError('Wiki strict collector differs from reviewed test pair')
     return expected
 class CurrentPairConsumers(unittest.TestCase):
@@ -25,7 +28,10 @@ class CurrentPairConsumers(unittest.TestCase):
                 target=root/name;target.parent.mkdir(parents=True,exist_ok=True);target.write_bytes((ROOT/name).read_bytes())
             current=consumers(root)
             for name in (HELPER,GATE):
-                original=(root/name).read_text();(root/name).write_text(original.replace(current,OLD))
+                original=(root/name).read_text()
+                changed=original.replace(current,OLD) if name==HELPER else original.replace('retired-runtime-removed','unverified')
+                self.assertNotEqual(changed,original)
+                (root/name).write_text(changed)
                 with self.subTest(name=name),self.assertRaises(ValueError):consumers(root)
                 (root/name).write_text(original)
     @unittest.skipUnless(shutil.which('php'),'PHP required for actual source guard controls')

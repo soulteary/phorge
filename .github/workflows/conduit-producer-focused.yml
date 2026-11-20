@@ -23,7 +23,7 @@ permissions:
 
 jobs:
   conduit-owner:
-    name: Focused Conduit SQL6 (PHP 8.5.12)
+    name: Focused Conduit SQL6 (PHP 8.5.13)
     runs-on: ubuntu-latest
     timeout-minutes: 30
     defaults:
@@ -66,7 +66,7 @@ jobs:
           echo "HOME=$trust_home" >> "$GITHUB_ENV"
       - uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.5.12'
+          php-version: '8.5.13'
           ini-values: opcache.enable_cli=0, opcache.jit=disable, opcache.jit_buffer_size=0
           extensions: mysqli, mbstring, curl, gd, zip, dom, xmlreader, xmlwriter
           tools: composer:2.11.1
@@ -75,7 +75,7 @@ jobs:
         run: |
           umask 077
           test "$(git rev-parse HEAD)" = "$EXPECTED_SOURCE_CHECKPOINT"
-          php -r 'if (PHP_VERSION !== "8.5.12") { exit(1); }'
+          php -r 'if (PHP_VERSION !== "8.5.13") { exit(1); }'
           mkdir "$RUNNER_TEMP/governance-conduit-focused" "$RUNNER_TEMP/conduit-focused-binary"
           git rev-parse HEAD > "$RUNNER_TEMP/governance-conduit-focused/source-revision.txt"
           git rev-parse 'HEAD^{tree}' > "$RUNNER_TEMP/governance-conduit-focused/source-tree.txt"
@@ -240,12 +240,12 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: success()
         with:
-          name: focused-conduit-owner-php-8.5.12
+          name: focused-conduit-owner-php-8.5.13
           path: ${{ runner.temp }}/governance-conduit-focused
           if-no-files-found: error
       - uses: actions/upload-artifact@v4
         if: failure() && steps.conduit-owner.outputs.diagnostic_owned == 'true'
         with:
-          name: focused-conduit-failure-php-8.5.12
+          name: focused-conduit-failure-php-8.5.13
           path: ${{ runner.temp }}/conduit-focused-failure/diagnostic.json
           if-no-files-found: error

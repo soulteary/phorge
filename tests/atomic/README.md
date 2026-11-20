@@ -135,8 +135,8 @@ methods and 30 HTTP assertions; neither number counts atomic design anchors.
 The earlier provenance run contained 134 methods, before the PHP floor and
 authentication-navigation regressions were added.
 
-PHP 8.5.12 is the sole CI and production baseline. The supported branch is
-8.5 with a security floor of 8.5.12; older and other minor branches are rejected.
+PHP 8.5.13 is the sole CI and production baseline. The supported branch is
+8.5 with a security floor of 8.5.13; older and other minor branches are rejected.
 Set `opcache.jit=disable` and `opcache.jit_buffer_size=0` in CLI and Web INI.
 Selected native packages are still not a substitute for paired deployment,
 backup restoration, actual identity-provider and browser acceptance.

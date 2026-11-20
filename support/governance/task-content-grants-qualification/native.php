@@ -68,7 +68,7 @@ function tqprofile($root,$path){
  return$p;
 }
 function tqconnection(array$p){
- tqneed(PHP_VERSION==='8.5.12'&&ini_get('opcache.jit')==='disable'&&ini_get('opcache.jit_buffer_size')==='0'&&ini_get('opcache.enable_cli')==='0');
+ tqneed(PHP_VERSION==='8.5.13'&&ini_get('opcache.jit')==='disable'&&ini_get('opcache.jit_buffer_size')==='0'&&ini_get('opcache.enable_cli')==='0');
  tqneed(PhabricatorEnv::getEnvConfig('storage.default-namespace')===$p['namespace']&&PhabricatorEnv::getEnvConfig('cluster.databases')===array());
  $c=(new ManiphestTask())->establishConnection('w');tqneed(get_class($c)===AphrontMySQLiDatabaseConnection::class&&!$c->isInsideTransaction());
  $row=queryfx_one($c,'SELECT @@server_uuid uuid,DATABASE() db,VERSION() version');

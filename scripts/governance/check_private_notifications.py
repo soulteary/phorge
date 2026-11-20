@@ -57,8 +57,9 @@ PRODUCERS={'src/applications/auth/controller/PhabricatorAuthRegisterController.p
                                                        'business-producer'),
  'src/applications/pholio/editor/PholioMockEditor.php': ('PholioMockEditor',
                                                          'business-producer'),
+ # This former producer is retained only as a hash-verified retired identity.
  'src/applications/phriction/editor/PhrictionTransactionEditor.php': ('PhrictionTransactionEditor',
-                                                                      'business-producer'),
+                                                                      'retired-runtime-removed'),
  'src/applications/phurl/editor/PhabricatorPhurlURLEditor.php': ('PhabricatorPhurlURLEditor',
                                                                  'business-producer'),
  'src/applications/policy/editor/PhorgePolicyNamedPolicyTransactionEditor.php': ('PhorgePolicyNamedPolicyTransactionEditor',
@@ -106,6 +107,9 @@ def validate(data,root=ROOT):
         require(type(row)is dict and set(row)=={'path','symbol','purpose_review','sha256','runtime_matrix_complete'},'producer shape')
         path=row['path'];require(path in PRODUCERS and path not in seen,'producer identity');seen.add(path)
         require((row['symbol'],row['purpose_review'])==PRODUCERS[path] and row['runtime_matrix_complete']is False,'producer claim')
+        if path=='src/applications/phriction/editor/PhrictionTransactionEditor.php':
+            require(row['purpose_review']=='retired-runtime-removed' and row['sha256']=='3a3b1e9643a71b48d4123960a7f0f594c2258bfc96e450fe81625a1d26aaa55d' and not (root/path).exists(),'retired producer claim')
+            continue
         source=root/path;require(not source.is_symlink() and source.resolve().is_relative_to(root.resolve()) and source.is_file(),'source path')
         raw=source.read_bytes();require(hashlib.sha256(raw).hexdigest()==row['sha256'],'producer source drift')
         require('->setPrivateMailProducer(__CLASS__)'in raw.decode(),'fixed producer provenance')
@@ -119,7 +123,7 @@ def validate(data,root=ROOT):
     require(data['security_flows']==FLOW_STATUS,'security flow scope')
     require(data['unsupported_security']=={'LegalpadDocumentSignController':'unbound-native-signature-refused-full-supported-flow-pending','SMS':'outside-email-policy-scope-no-new-runtime-proof'},'unsupported flow scope')
     annotated={str(p.relative_to(root)) for p in(root/'src').rglob('*.php') if '__tests__'not in p.parts and '->setPrivateMailProducer('in p.read_text()}
-    require(annotated==set(PRODUCERS)|{'src/applications/transactions/editor/PhabricatorApplicationTransactionEditor.php'},'unreviewed producer entry')
+    require(annotated==(set(PRODUCERS)-{'src/applications/phriction/editor/PhrictionTransactionEditor.php'})|{'src/applications/transactions/editor/PhabricatorApplicationTransactionEditor.php'},'unreviewed producer entry')
     return {'passed':True,'scope':'reviewed-private-email-sources-only','producers':len(PRODUCERS),'consumers':len(CONSUMERS),'smtp_proved':False,'all_producers_proved':False,'activation_blocked':True}
 def main():
     parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('--receipt',type=Path);parser.add_argument('--file-binary',type=Path);parser.add_argument('--render-binary',type=Path);parser.add_argument('--measurement-source-revision');args=parser.parse_args()

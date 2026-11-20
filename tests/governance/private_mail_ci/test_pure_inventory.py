@@ -52,7 +52,7 @@ class PureInventoryTests(unittest.TestCase):
 
     def test_same_count_wrong_duplicate_missing_or_failed_ids_refused(self):
         ids = {'Class::testOne', 'Class::testTwo'}
-        good = {'passed': True, 'runtime': '8.5.12', 'expected_methods': 2,
+        good = {'passed': True, 'runtime': '8.5.13', 'expected_methods': 2,
                 'results': [{'id': name, 'result': 'pass'} for name in sorted(ids)]}
         self.assertTrue(validate_pure(good, ids, 2))
         mutations = []

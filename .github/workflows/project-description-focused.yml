@@ -23,7 +23,7 @@ permissions:
 
 jobs:
   native-content-grants:
-    name: Focused native description execution (PHP 8.5.12)
+    name: Focused native description execution (PHP 8.5.13)
     runs-on: ubuntu-latest
     timeout-minutes: 40
     defaults:
@@ -65,7 +65,7 @@ jobs:
           echo "HOME=$trust_home" >> "$GITHUB_ENV"
       - uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.5.12'
+          php-version: '8.5.13'
           ini-values: opcache.enable_cli=0, opcache.jit=disable, opcache.jit_buffer_size=0
           extensions: mysqli, mbstring, curl, gd, zip, dom, xmlreader, xmlwriter
           tools: composer:2.11.1
@@ -74,7 +74,7 @@ jobs:
         run: |
           umask 077
           test "$(git rev-parse HEAD)" = "$EXPECTED_SOURCE_CHECKPOINT"
-          php -r 'if (PHP_VERSION !== "8.5.12" || ini_get("opcache.jit") !== "disable" || ini_get("opcache.jit_buffer_size") !== "0" || ini_get("opcache.enable_cli") !== "0") { exit(1); }'
+          php -r 'if (PHP_VERSION !== "8.5.13" || ini_get("opcache.jit") !== "disable" || ini_get("opcache.jit_buffer_size") !== "0" || ini_get("opcache.enable_cli") !== "0") { exit(1); }'
           python3 -B scripts/governance/check_directory_transports_task_source_v2.py --expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT"
           python3 -m venv "$RUNNER_TEMP/n05-controls-python"
           "$RUNNER_TEMP/n05-controls-python/bin/python" -m pip --disable-pip-version-check install --only-binary=:all: 'PyYAML==6.0.3'
@@ -110,7 +110,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: success()
         with:
-          name: focused-n05-native-description-php-8.5.12
+          name: focused-n05-native-description-php-8.5.13
           path: ${{ runner.temp }}/n05-native-run/public/description-summary.json
           if-no-files-found: error
           retention-days: 7

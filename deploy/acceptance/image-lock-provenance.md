@@ -1,3 +1,20 @@
+# Current PHP security baseline
+
+PHP 8.5.13 supersedes the previous PHP baseline. Current acceptance requires
+8.5.13; older runtime receipts do not qualify this release.
+
+The official `php:8.5.13-apache` multi-platform manifest is pinned as
+`sha256:0a785eab8b7eb4836f9c6093771c8ea15ff8ba7269444f3da70a1d33d15fe664`.
+The Debian dependency snapshot is `20261120T000000Z`. The remaining paired
+component pins are unchanged. Build and runtime qualification are required
+before any deployment.
+
+## Superseded provenance record
+
+The record below is retained as historical audit data only. Its PHP image and
+runtime qualification have been superseded and must not be used for a current
+build or acceptance decision.
+
 # Acceptance image lock platforms
 
 `build-lock.json` pins image **indexes**, which let Docker select the native

@@ -1,17 +1,17 @@
 <?php
 
-$table = new PhrictionContent();
-$conn = $table->establishConnection('w');
+$table = 'phriction_content';
+$conn = $this->getConn('phriction');
 
-foreach (new LiskMigrationIterator($table) as $row) {
-  if (strlen($row->getPHID())) {
+foreach (new LiskRawMigrationIterator($conn, $table) as $row) {
+  if (strlen($row['phid'])) {
     continue;
   }
 
   queryfx(
     $conn,
     'UPDATE %T SET phid = %s WHERE id = %d',
-    $table->getTableName(),
-    $table->generatePHID(),
-    $row->getID());
+    $table,
+    PhabricatorPHID::generateNewPHID('WRDS'),
+    $row['id']);
 }

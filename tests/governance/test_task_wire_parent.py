@@ -529,7 +529,7 @@ class TaskSourceAdmissionControls(unittest.TestCase):
     def test_native_pure_receipt_ids_not_only_count_or_passed_flag(self):
         from pure_inventory import inventory,validate_pure
         ids=inventory(ROOT);rows=[{'id':i,'result':'pass'}for i in sorted(ids)]
-        receipt={'passed':True,'runtime':'8.5.12','expected_methods':len(ids),'results':rows}
+        receipt={'passed':True,'runtime':'8.5.13','expected_methods':len(ids),'results':rows}
         self.assertTrue(validate_pure(receipt,ids,len(ids)))
         for altered in (rows[:-1],rows[:-1]+[rows[0]],rows[:-1]+[{'id':'foreign::test','result':'pass'}]):
             with self.subTest(length=len(altered)):self.assertFalse(validate_pure(receipt|{'results':altered},ids,len(ids)))

@@ -8,7 +8,7 @@ REV='a'*40
 
 def template():
  return dict(batch='native-recovery-policy-range-component',scope='owned-full-native-source-synthetic-accounts',passed=True,
- php_version='8.5.12',check_count=23,checks=sorted(gate.BOOTSTRAP|gate.SQL|gate.CLEANUP),failure=None,cleanup_failures=[],
+ php_version='8.5.13',check_count=23,checks=sorted(gate.BOOTSTRAP|gate.SQL|gate.CLEANUP),failure=None,cleanup_failures=[],
  optional_source_reader_adapter_exercised=True,isolated_optional_features_enabled=True,file_service_cleanup=None,
  successful_owned_file_service_startups=0,terminal_failure_cleanup_rollbacks=0,production_deployment=False,
  production_executor=False,production_optional_features_enabled=False,native_permission_axes_changed=False,

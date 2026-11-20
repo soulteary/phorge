@@ -210,8 +210,6 @@ try {
     array('user', 'phabricator_session', PhabricatorAuthSession::class),
     array('project', 'project', PhabricatorProject::class),
     array('maniphest', 'maniphest_task', ManiphestTask::class),
-    array('phriction', 'phriction_document', PhrictionDocument::class),
-    array('phriction', 'phriction_content', PhrictionContent::class),
     array('policy', 'policy', PhabricatorPolicy::class),
     array('policy', 'policy_namedpolicy', PhorgeNamedPolicy::class),
     array('spaces', 'spaces_namespace', PhabricatorSpacesNamespace::class),
@@ -253,9 +251,6 @@ try {
   $task = (new ManiphestTask())->loadFromArray(
     native_source_row($reader, $fixture->table('maniphest', 'maniphest_task'),
       $ids['task']));
-  $wiki = (new PhrictionDocument())->loadFromArray(
-    native_source_row($reader, $fixture->table('phriction', 'phriction_document'),
-      $ids['wiki']));
   $policy_task = (new ManiphestTask())->loadFromArray(
     native_source_row($reader, $fixture->table('maniphest', 'maniphest_task'),
       $ids['policy_task']));
@@ -285,8 +280,6 @@ try {
     'native-nonowner-noone-policy-denied');
   native_source_capability($observer, $users['approver'], $task, $view, 'deny',
     'native-system-admin-does-not-bypass-object-noone-policy');
-  native_source_capability($observer, $users['actor'], $wiki, $view, 'allow',
-    'native-wiki-users-view-observed');
   native_source_capability($observer, $users['actor'], $policy_task,
     $view, 'allow', 'native-custom-project-rule-sql-member-allowed');
   native_source_capability($observer, $users['outsider'], $policy_task,
@@ -387,7 +380,6 @@ try {
     'select-only-native-source-observation-does-not-write');
   foreach (array(
     array('task.title', ManiphestTask::class, $ids['task']),
-    array('wiki.content', PhrictionDocument::class, $ids['wiki']),
   ) as $case) {
     $observed = $native_reader->capture(native_source_bind(
       $ids, $case[0], $case[1], $case[2]))->getSummary();

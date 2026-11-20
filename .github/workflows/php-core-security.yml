@@ -37,8 +37,8 @@ jobs:
         run: |
           set -euo pipefail
           image="$(sed -n 's/^ARG PHP_BASE_IMAGE=//p' Dockerfile | head -n1)"
-          if [[ ! "$image" =~ ^php:8\.5\.12-apache$ ]]; then
-            echo "::error::Expected the PHP 8.5.12 Apache production baseline, found: $image"
+          if [[ ! "$image" =~ ^php:8\.5\.13-apache$ ]]; then
+            echo "::error::Expected the PHP 8.5.13 Apache production baseline, found: $image"
             exit 1
           fi
           locked_image="$(python3 -c 'import json; print(json.load(open("deploy/acceptance/build-lock.json"))["images"]["php"])')"

@@ -36,7 +36,9 @@ def verify_in_operation(operation,root):
   pin=context.parent_pins[relative]
   if pin['kind']=='symlink':
    need(context.entries[relative]==pin);projected=('symlink',pin['target'],0o777)
-  else:projected=('file',operation._task_parent_bytes(root/relative),pin['mode'])
+  else:
+   from check_directory_transports_task_source_v2 import parent_DATA
+   projected=('file',parent_DATA(operation,root,relative),pin['mode'])
   need(projected==value)
  # Preserve the original no-runtime-diff boundary: approved prepared packages
  # are not silently treated as a clean media source checkout.

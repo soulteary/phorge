@@ -22,7 +22,7 @@ New images must pass the locked PHP security checks on both architectures
 before publication. The exact registry digest must equal this build's digest,
 or the unchanged preflight digest on a retry. Both published architectures are
 then checked again by their independently verified child-manifest digests,
-including PHP 8.5.12 and disabled JIT. Pulling both platforms through one root
+including PHP 8.5.13 and disabled JIT. Pulling both platforms through one root
 index digest can collide in Docker's local reference store; distinct child
 references avoid that collision without weakening platform or source validation.
 The runtime receipt retains the root and both child digests, and signing remains

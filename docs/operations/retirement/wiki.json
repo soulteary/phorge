@@ -1,0 +1,406 @@
+{
+  "schema": "phorge-application-retirement-v1",
+  "application": "Phriction",
+  "status": "implemented-not-deployed",
+  "basis_commit": "d8b19decf2ed49b2739c93b1d4d7666826b87fb9",
+  "removed_classes": [
+    "PhabricatorPhrictionApplication",
+    "PhrictionChangeType",
+    "PhrictionConduitAPIMethod",
+    "PhrictionConstants",
+    "PhrictionContent",
+    "PhrictionContentPHIDType",
+    "PhrictionContentQuery",
+    "PhrictionContentSearchConduitAPIMethod",
+    "PhrictionContentSearchEngine",
+    "PhrictionContentSearchEngineAttachment",
+    "PhrictionController",
+    "PhrictionCreateConduitAPIMethod",
+    "PhrictionDAO",
+    "PhrictionDatasourceEngineExtension",
+    "PhrictionDeleteController",
+    "PhrictionDiffController",
+    "PhrictionDocument",
+    "PhrictionDocumentAuthorHeraldField",
+    "PhrictionDocumentContentHeraldField",
+    "PhrictionDocumentContentTransaction",
+    "PhrictionDocumentController",
+    "PhrictionDocumentDatasource",
+    "PhrictionDocumentDeleteTransaction",
+    "PhrictionDocumentDraftTransaction",
+    "PhrictionDocumentEditConduitAPIMethod",
+    "PhrictionDocumentEditEngine",
+    "PhrictionDocumentEditTransaction",
+    "PhrictionDocumentFerretEngine",
+    "PhrictionDocumentFulltextEngine",
+    "PhrictionDocumentHeraldAdapter",
+    "PhrictionDocumentHeraldField",
+    "PhrictionDocumentHeraldFieldGroup",
+    "PhrictionDocumentMoveAwayTransaction",
+    "PhrictionDocumentMoveToTransaction",
+    "PhrictionDocumentPHIDType",
+    "PhrictionDocumentPathHeraldField",
+    "PhrictionDocumentPolicyCodex",
+    "PhrictionDocumentPublishTransaction",
+    "PhrictionDocumentPublishedHeraldField",
+    "PhrictionDocumentQuery",
+    "PhrictionDocumentSearchConduitAPIMethod",
+    "PhrictionDocumentSearchEngine",
+    "PhrictionDocumentStatus",
+    "PhrictionDocumentTitleHeraldField",
+    "PhrictionDocumentTitleTransaction",
+    "PhrictionDocumentTransactionType",
+    "PhrictionDocumentVersionTransaction",
+    "PhrictionEditConduitAPIMethod",
+    "PhrictionEditController",
+    "PhrictionEditEngineController",
+    "PhrictionHistoryConduitAPIMethod",
+    "PhrictionHistoryController",
+    "PhrictionHovercardEngineExtension",
+    "PhrictionInfoConduitAPIMethod",
+    "PhrictionListController",
+    "PhrictionMarkupPreviewController",
+    "PhrictionMoveController",
+    "PhrictionNewController",
+    "PhrictionPublishController",
+    "PhrictionRemarkupRule",
+    "PhrictionReplyHandler",
+    "PhrictionSchemaSpec",
+    "PhrictionTransaction",
+    "PhrictionTransactionComment",
+    "PhrictionTransactionEditor",
+    "PhrictionTransactionQuery"
+  ],
+  "removed_files": [
+    {
+      "path": "src/applications/phriction/application/PhabricatorPhrictionApplication.php",
+      "sha256": "d65e18e57b7ac8d7dce9156afa5e4e06cef6c1168eca2f571adaff9ef480dbb6"
+    },
+    {
+      "path": "src/applications/phriction/codex/PhrictionDocumentPolicyCodex.php",
+      "sha256": "8ef2b50f3c6d40f13d4b1a802fb3aa8835db6f0bb30c57abdf5a98c04aa74b81"
+    },
+    {
+      "path": "src/applications/phriction/conduit/PhrictionConduitAPIMethod.php",
+      "sha256": "1d8435ed300e2df73a3cb541a9a1961bf71526fab284476385db05e5763efe25"
+    },
+    {
+      "path": "src/applications/phriction/conduit/PhrictionContentSearchConduitAPIMethod.php",
+      "sha256": "e0e3a59adadb5d107e9a85d47e4b8f5fdb6ecffcc96088181e6e288cecbbc5d0"
+    },
+    {
+      "path": "src/applications/phriction/conduit/PhrictionCreateConduitAPIMethod.php",
+      "sha256": "972413ef43be26c74f49dd927e9121fe35077cdf61fbf743490cbcc170ce4422"
+    },
+    {
+      "path": "src/applications/phriction/conduit/PhrictionDocumentEditConduitAPIMethod.php",
+      "sha256": "50fc4b7f50f0bbd8c6992e5f2456db604777fee0608fa98cde78d8a717876c44"
+    },
+    {
+      "path": "src/applications/phriction/conduit/PhrictionDocumentSearchConduitAPIMethod.php",
+      "sha256": "d88d26b1cac8e9c6560b0ffad53cc74f233e51399afd4d68191f1810503298ab"
+    },
+    {
+      "path": "src/applications/phriction/conduit/PhrictionEditConduitAPIMethod.php",
+      "sha256": "fa9f9ca613fd0918696dda29cdf88ca509f9caba0d7d584687091a615fc1d885"
+    },
+    {
+      "path": "src/applications/phriction/conduit/PhrictionHistoryConduitAPIMethod.php",
+      "sha256": "bf4cfbe4a182f80cdf9fbed84632fa1414314942c426706494bc759e47819467"
+    },
+    {
+      "path": "src/applications/phriction/conduit/PhrictionInfoConduitAPIMethod.php",
+      "sha256": "a4e1327c342d188768e7f0b60e31f8f8bc184a879cbd5575cc6b0af5d90e4296"
+    },
+    {
+      "path": "src/applications/phriction/constants/PhrictionChangeType.php",
+      "sha256": "6c5c8f7e801fb47d4b06f9ab5f3c7519a19ff940726f2a83f539416f38da58a6"
+    },
+    {
+      "path": "src/applications/phriction/constants/PhrictionConstants.php",
+      "sha256": "cf11056a61874535daece5aee8137e5064a58c3050354a5f8c2df809b3ad852b"
+    },
+    {
+      "path": "src/applications/phriction/constants/PhrictionDocumentStatus.php",
+      "sha256": "aa8bcd65962677babfab8b436f81188744def39ddca715058b667602593a9794"
+    },
+    {
+      "path": "src/applications/phriction/controller/PhrictionController.php",
+      "sha256": "f8d8c6f6ed0400c1006851059cde28980eba8bf28995d3f4600a68a932d55554"
+    },
+    {
+      "path": "src/applications/phriction/controller/PhrictionDeleteController.php",
+      "sha256": "fcb4aab9cdd33471d81d8ab43e0bd479c8fb5023f5b7ae8f30a8e3de6442d6c8"
+    },
+    {
+      "path": "src/applications/phriction/controller/PhrictionDiffController.php",
+      "sha256": "d2a47453d3bff97e5668c6e0daab11a6f7cb2dae503850517f17604da60ee17e"
+    },
+    {
+      "path": "src/applications/phriction/controller/PhrictionDocumentController.php",
+      "sha256": "088d7526d2072867a789dc6dd05824a4aa422d197f454621597a62383c509c28"
+    },
+    {
+      "path": "src/applications/phriction/controller/PhrictionEditController.php",
+      "sha256": "5528045d1dbb531164597daa5896d0cba8a6659b2f07ad53641ccd320afd44f3"
+    },
+    {
+      "path": "src/applications/phriction/controller/PhrictionEditEngineController.php",
+      "sha256": "b39d6b379015051b4e1c1ba979ab74ccde2881f78e62bf58466828f17d45748b"
+    },
+    {
+      "path": "src/applications/phriction/controller/PhrictionHistoryController.php",
+      "sha256": "cc17d47d50419ee32f90a9053ef5058815d38c76c13b4c5dc5062f2a2955bcb8"
+    },
+    {
+      "path": "src/applications/phriction/controller/PhrictionListController.php",
+      "sha256": "f1f4052e82746ea9916ed2d05f96a22a458ef78e36680baf21f3182a081cadc5"
+    },
+    {
+      "path": "src/applications/phriction/controller/PhrictionMarkupPreviewController.php",
+      "sha256": "bdb1b1671b7340bf70959d1d340b8c651e898af8af7200c860c6e7e639134e9e"
+    },
+    {
+      "path": "src/applications/phriction/controller/PhrictionMoveController.php",
+      "sha256": "2a9cad7455305d9941828d1f1be2ec357afdc7f4d2a59e5e6ebfc7cc60eefe52"
+    },
+    {
+      "path": "src/applications/phriction/controller/PhrictionNewController.php",
+      "sha256": "ba1b46275282529875e1f3a7ad633d389c5d90a70564d5f8d2da8a0fac1a89ef"
+    },
+    {
+      "path": "src/applications/phriction/controller/PhrictionPublishController.php",
+      "sha256": "4e8e5ae21015aca30844a3a374da1e4ba41c56562f87da15bce5bd4be41709e9"
+    },
+    {
+      "path": "src/applications/phriction/editor/PhrictionDocumentEditEngine.php",
+      "sha256": "648f30de31e09cdf1c488f028ebca3686597a1dd62375b32c3b1025740aa7fcb"
+    },
+    {
+      "path": "src/applications/phriction/editor/PhrictionTransactionEditor.php",
+      "sha256": "3a3b1e9643a71b48d4123960a7f0f594c2258bfc96e450fe81625a1d26aaa55d"
+    },
+    {
+      "path": "src/applications/phriction/engineextension/PhrictionContentSearchEngineAttachment.php",
+      "sha256": "01780ac8220d7b1a44cdcbb5751dbcbb2f0065c3d6b3a7d7b5c78402d474dd8d"
+    },
+    {
+      "path": "src/applications/phriction/engineextension/PhrictionDatasourceEngineExtension.php",
+      "sha256": "58f87deae0ad58e3d4eaede27e4de35b94ba8b16ed97df4587f26266391cf842"
+    },
+    {
+      "path": "src/applications/phriction/engineextension/PhrictionHovercardEngineExtension.php",
+      "sha256": "f052f345e6a9a3395f3ca95e86d29caa260dd2a8474a4a278c1896e2486d52d2"
+    },
+    {
+      "path": "src/applications/phriction/herald/PhrictionDocumentAuthorHeraldField.php",
+      "sha256": "8649e9c2c1bc3e989e665e2eb7491e3c840c91be2d917208d1174930084f2ed8"
+    },
+    {
+      "path": "src/applications/phriction/herald/PhrictionDocumentContentHeraldField.php",
+      "sha256": "5c72c8e10a450d08a99d5c96119e8d89cd1ab75515767609f44d028bd0bb4a32"
+    },
+    {
+      "path": "src/applications/phriction/herald/PhrictionDocumentHeraldAdapter.php",
+      "sha256": "f0d12b7deee09135d57ebc0ef9be97f79e7d8e9f24c5d713c706c129e6f71cca"
+    },
+    {
+      "path": "src/applications/phriction/herald/PhrictionDocumentHeraldField.php",
+      "sha256": "4ee034bfb0a34689b68f04d750e94548a69f8b4f2f9ef9f04558201e48640b88"
+    },
+    {
+      "path": "src/applications/phriction/herald/PhrictionDocumentHeraldFieldGroup.php",
+      "sha256": "6df04d229c79069a3ac6aa57df6686802c3e4a5763bf45ef21949dfde0dc7bff"
+    },
+    {
+      "path": "src/applications/phriction/herald/PhrictionDocumentPathHeraldField.php",
+      "sha256": "51505793d89e633cdcd9a666587538c9166507676df8debbe69f5640c81dfcd3"
+    },
+    {
+      "path": "src/applications/phriction/herald/PhrictionDocumentPublishedHeraldField.php",
+      "sha256": "a9fa4c8b8c396eaf0ca968795514dff273ec67b28f1bfd0e096f9640ff0ccac0"
+    },
+    {
+      "path": "src/applications/phriction/herald/PhrictionDocumentTitleHeraldField.php",
+      "sha256": "a8f23645737eb55a994b1d39c70beff4ed47f3396289d49a14eb12b80557ca56"
+    },
+    {
+      "path": "src/applications/phriction/mail/PhrictionReplyHandler.php",
+      "sha256": "3c68694fe494534b3669a96c83618d676e40a8e4204301771794f3062546ace5"
+    },
+    {
+      "path": "src/applications/phriction/markup/PhrictionRemarkupRule.php",
+      "sha256": "40c2da3a01b055534df9785934d8cd4117f959524dfa541b2e76eb6f4ca0c3b5"
+    },
+    {
+      "path": "src/applications/phriction/phid/PhrictionContentPHIDType.php",
+      "sha256": "4cd51c14b3d64d4f79261be603cdf2eab0f319a437e69f44e29c7e1c91af8054"
+    },
+    {
+      "path": "src/applications/phriction/phid/PhrictionDocumentPHIDType.php",
+      "sha256": "0d26fb91b2bbf3aa2ad2a73e708e8bd5337519f6cfb21b22420ac0b16f673b6c"
+    },
+    {
+      "path": "src/applications/phriction/query/PhrictionContentQuery.php",
+      "sha256": "388da3481b58bf29d96ba8e2e67892b087aaea3bba6dfcbac7740b0e4a9e809e"
+    },
+    {
+      "path": "src/applications/phriction/query/PhrictionContentSearchEngine.php",
+      "sha256": "f98aec8a028536e23e2cc0d8b767f29eba334eca49f291ea40c82d2280bdf661"
+    },
+    {
+      "path": "src/applications/phriction/query/PhrictionDocumentQuery.php",
+      "sha256": "66ef01da877e54bc791fe3859923bdd946f77ee579d63df51d43a8477446fcb6"
+    },
+    {
+      "path": "src/applications/phriction/query/PhrictionDocumentSearchEngine.php",
+      "sha256": "6f7af9b8010805a92d03e1fe5c9797af9189f0bbe2b081d8775cef8a0a73655b"
+    },
+    {
+      "path": "src/applications/phriction/query/PhrictionTransactionQuery.php",
+      "sha256": "408574bb28f92fc9e49ff65b9b1f8777434e3c6431f9514c67c46d5046a3dc86"
+    },
+    {
+      "path": "src/applications/phriction/search/PhrictionDocumentFerretEngine.php",
+      "sha256": "32119e4f3d3032efb70a2cfd4f99bb826dab19167e02b4d250a9a17af795b1d4"
+    },
+    {
+      "path": "src/applications/phriction/search/PhrictionDocumentFulltextEngine.php",
+      "sha256": "e7749c96fd91af3c25d49eeefaa1c70acfd7f035e2805d88bacfcc28f6aa35e8"
+    },
+    {
+      "path": "src/applications/phriction/storage/PhrictionContent.php",
+      "sha256": "ebd81ed91b61168b721736172e240093be1e983d48ab37d7784c5bcaf1367541"
+    },
+    {
+      "path": "src/applications/phriction/storage/PhrictionDAO.php",
+      "sha256": "7aeeb87b8a678a63ee5eafbc70ce468d1040641ce6dc64eb8e05552ede04b8dd"
+    },
+    {
+      "path": "src/applications/phriction/storage/PhrictionDocument.php",
+      "sha256": "9dabb6e3dbb73807bdc9a9e1056090f68793e413c052c524dc98f9402b400831"
+    },
+    {
+      "path": "src/applications/phriction/storage/PhrictionSchemaSpec.php",
+      "sha256": "500a4c79ab33ee707f524faed1aab5e697579fe575b1ab79da893822d196e14c"
+    },
+    {
+      "path": "src/applications/phriction/storage/PhrictionTransaction.php",
+      "sha256": "4c30b75846ecf0db5abd4a0501b8db459f51279c5f3d448c5474e5aab9583cd3"
+    },
+    {
+      "path": "src/applications/phriction/storage/PhrictionTransactionComment.php",
+      "sha256": "63490613438dd1cd020249fbd4cc57dd64c879c24cd84bcc68a3db9cd5203f64"
+    },
+    {
+      "path": "src/applications/phriction/typeahead/PhrictionDocumentDatasource.php",
+      "sha256": "e930dc9de458a43010ec86df5238ad3e8aec467d73b241282c7bd2d628e33f03"
+    },
+    {
+      "path": "src/applications/phriction/xaction/PhrictionDocumentContentTransaction.php",
+      "sha256": "97a308b290e3b2264ca2b247718fc1d13084e0d62e126b52c3b07d922183e23c"
+    },
+    {
+      "path": "src/applications/phriction/xaction/PhrictionDocumentDeleteTransaction.php",
+      "sha256": "45f941b2eeedba38a64092fc71f7cf04e05d23df46fc3ff0f4a5934e32cf1021"
+    },
+    {
+      "path": "src/applications/phriction/xaction/PhrictionDocumentDraftTransaction.php",
+      "sha256": "72b8b646cd01dbedd38f284ac70ce0e2bb99f3bcebdcd439a23cd6871b2f32e8"
+    },
+    {
+      "path": "src/applications/phriction/xaction/PhrictionDocumentEditTransaction.php",
+      "sha256": "d02000a40ed4e06a27967dca7a40c602effd06ef06e3a077e73cebbd854b4930"
+    },
+    {
+      "path": "src/applications/phriction/xaction/PhrictionDocumentMoveAwayTransaction.php",
+      "sha256": "500e830f5c840f2bbc56355db87934e244e2bf68e3c4f1977507c36ec4495367"
+    },
+    {
+      "path": "src/applications/phriction/xaction/PhrictionDocumentMoveToTransaction.php",
+      "sha256": "abc85a0e0d7aa57e7038a25b3cf5e56b7a68b2b9b1f07dd3b50a5c9e27ba0cca"
+    },
+    {
+      "path": "src/applications/phriction/xaction/PhrictionDocumentPublishTransaction.php",
+      "sha256": "87eaed67f5a4c2259bef386e888d432894fe394d650ade3c60360aa59dc5012d"
+    },
+    {
+      "path": "src/applications/phriction/xaction/PhrictionDocumentTitleTransaction.php",
+      "sha256": "53c969c3e88c4022c34cefeaf054fdf249a3afa0793ce3bf744353effd221a02"
+    },
+    {
+      "path": "src/applications/phriction/xaction/PhrictionDocumentTransactionType.php",
+      "sha256": "3e2dfdaff507a829da618eac143e3bb43aebceb5cb59bdd927090f24376fefa2"
+    },
+    {
+      "path": "src/applications/phriction/xaction/PhrictionDocumentVersionTransaction.php",
+      "sha256": "2cd5c2347d94f2f12cdddda8d92bbac8b79ef60326328080d13a05c4d1311762"
+    },
+    {
+      "path": "src/docs/user/userguide/phriction.diviner",
+      "sha256": "1444ea5eede9a71b2fb530892461b9b49fd1e343fbe21c16567501296aeed35f"
+    },
+    {
+      "path": "webroot/rsrc/css/application/phriction/phriction-document-css.css",
+      "sha256": "dcead81f2b2c900f68a0159946e3af968472d7935864484bb843320189a470f2"
+    }
+  ],
+  "retired_native_unit_cases": [
+    "PhorgeGovernanceCapabilityMapTestCase::testWikiContentRequiresValueAndExpansionReview",
+    "PhorgeGovernanceNativeObservationTestCase::testCreationWrongEnvelopeAndUnknownBatchBlock",
+    "PhorgeGovernanceNativeObservationTestCase::testWikiBatchMoveAndDeletePreserveNativeOrder",
+    "PhorgeGovernanceNativeObservationTestCase::testWikiBatchNativeCanonicalVersionHydration",
+    "PhorgeGovernanceNativeObservationTestCase::testWikiBatchPreludeUsesAttachedNativeContent",
+    "PhorgeGovernanceNativeObservationTestCase::testWikiBatchRejectsMissingOrMismatchedContent",
+    "PhorgeGovernanceNativeObservationTestCase::testWikiEmptyBodyActuallyExpandsToDelete",
+    "PhorgeGovernanceNativeObservationTestCase::testWikiMoveActuallyAddsDestinationPolicies",
+    "PhorgeGovernanceNativeObservationTestCase::testWikiMoveCannotInjectAnArbitraryObject",
+    "PhorgeGovernanceNativeObservationTestCase::testWikiNonemptyBodyDoesNotClaimPublicationValidated"
+  ],
+  "preserved_data": [
+    "Wiki database tables and rows",
+    "file contents and attachment records",
+    "transaction and audit history",
+    "SQL patch identifiers and ledger"
+  ],
+  "replacement": "External Wiki; product and migration are out of scope.",
+  "remaining_gates": [
+    "Deployment is a separate operation requiring a verified backup and operator review; it is not authorized by this PR."
+  ],
+  "deployment_permitted": false,
+  "merge_gates": [
+    "Full CI on the exact PR head",
+    "All actionable review findings resolved"
+  ],
+  "retired_completion_checks": [
+    "pipeline-real-wiki-root-ancestor-prepared",
+    "pipeline-wiki-content-final-effect-committed",
+    "pipeline-wiki-update-new-version-committed",
+    "pipeline-wiki-records-and-publishing-queued",
+    "pipeline-mapped-wiki-title",
+    "pipeline-mapped-wiki-core:view-policy",
+    "pipeline-mapped-wiki-core:edit-policy",
+    "pipeline-mapped-wiki-space",
+    "pipeline-mapped-wiki-project-edge",
+    "pipeline-mapped-wiki-move-and-subeditor",
+    "pipeline-native-wiki-move-cross-references-persisted",
+    "pipeline-empty-wiki-create-native-validation-rejected",
+    "read-view-real-native-wiki-loader-profile",
+    "read-view-real-native-wiki-view-allow",
+    "read-view-real-native-wiki-loader-profile-owned-writer-routing-restored",
+    "read-view-wiki-private-ancestor-local-allow-actor-query-deny"
+  ],
+  "renamed_native_unit_cases": [
+    {
+      "from": "PhorgeGovernanceNativeObservationTestCase::testTaskAndWikiPolicyItemsAreOnlyLocalPassThrough",
+      "to": "PhorgeGovernanceNativeObservationTestCase::testTaskPolicyItemsAreOnlyLocalPassThrough"
+    },
+    {
+      "from": "PhorgeGovernanceReadSetTestCase::testTaskAndWikiGroupDependenciesAreNotOmitted",
+      "to": "PhorgeGovernanceReadSetTestCase::testTaskGroupDependenciesAreNotOmitted"
+    }
+  ],
+  "added_native_unit_cases": [
+    "PhorgeGovernanceCapabilityMapTestCase::testRetiredWikiCannotAcquireContentOrManagementCapabilities"
+  ]
+}

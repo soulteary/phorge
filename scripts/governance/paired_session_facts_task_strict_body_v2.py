@@ -3,9 +3,9 @@ import ast,copy,hashlib
 from pathlib import Path
 import source_operation_snapshot as source
 PROFILES={
- 'file-parent-policy':('check_recovery_file_parent_policy.py','239b9614af1288b053d369d5a4e62fb127a955a79f66053f281e34e9b1aad786',12),
- 'session-producer-lease':('check_recovery_session_lease.py','4ebb8b5c0257bdaf6480ce8ce1e11ede39a5e6e38a6d1bbba97cbba69b72b814',19),
- 'session-borrowed-owner':('check_recovery_borrowed_session.py','f6252dec35141e12ab64a66dea67176fb9d9ff4cd83e3ea1a18e522f43f77843',30)}
+ 'file-parent-policy':('check_recovery_file_parent_policy.py','b40f322ddf1e0e4983c8d0b3cba595fc5bca6ba5570b08fa7971faf060c0d837',12),
+ 'session-producer-lease':('check_recovery_session_lease.py','5cc7f77056d6bb6d6f0bfc0f7ff89ef6984098c53feecec56ab75a8257334343',19),
+ 'session-borrowed-owner':('check_recovery_borrowed_session.py','4ca5b2c9945e84802fd2ba446228642c69fb033470f63c1bef1229fd9163aa67',30)}
 def need(value):
  if value is not True:raise ValueError('paired_session_CURRENT_strict_body_refused')
 def model(operation,root,role,captured,restore):

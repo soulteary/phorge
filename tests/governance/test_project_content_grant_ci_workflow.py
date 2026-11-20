@@ -37,7 +37,7 @@ class Workflow(GrantSourceCurrentCase):
   checkout=next(s for s in job['steps']if s.get('uses','').startswith('actions/checkout@'));self.assertFalse(checkout['with']['persist-credentials']);self.assertEqual(checkout['with']['fetch-depth'],0)
  def test_default_PHP_configuration_and_fresh_exact_native_worktrees(self):
   steps=self.workflow()['jobs']['native-content-grants']['steps'];setup=next(s for s in steps if s.get('uses','').startswith('shivammathur/setup-php@'))
-  self.assertEqual(setup['with']['php-version'],'8.5.12');ini=setup['with']['ini-values']
+  self.assertEqual(setup['with']['php-version'],'8.5.13');ini=setup['with']['ini-values']
   for expected in ['opcache.enable_cli=0','opcache.jit=disable','opcache.jit_buffer_size=0']:self.assertIn(expected,ini)
   text=WORKFLOW.read_text();self.assertIn('git worktree add --detach "$RUNNER_TEMP/n05-native-baseline" '+ci.BASE,text);self.assertIn('git worktree add --detach "$RUNNER_TEMP/n05-native-target" '+ci.TARGET,text)
   self.assertIn('scripts/runtime/build.php" all',text);self.assertIn('scripts/runtime/verify.php',text);self.assertIn('check_directory_transports_task_source_v2.py --expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT"',text);self.assertIn('--task-source-v2 --expected-current-revision "$EXPECTED_SOURCE_CHECKPOINT"',text)

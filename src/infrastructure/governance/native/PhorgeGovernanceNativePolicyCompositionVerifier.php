@@ -44,7 +44,7 @@ final class PhorgeGovernanceNativePolicyCompositionVerifier extends Phobject {
 
   private static function target(array $binding) {
     $types = array(PhabricatorProject::class => 'PROJ',
-      ManiphestTask::class => 'TASK', PhrictionDocument::class => 'WIKI');
+      ManiphestTask::class => 'TASK');
     $class = $binding['object_class'] ?? null;
     if (!is_string($class) || !isset($types[$class]) ||
         !is_string($binding['target'] ?? null) ||
@@ -239,8 +239,7 @@ final class PhorgeGovernanceNativePolicyCompositionVerifier extends Phobject {
         throw new RuntimeException('native_composition_actor_unproved');
       }
       $queries = array(PhabricatorProject::class => PhabricatorProjectQuery::class,
-        ManiphestTask::class => ManiphestTaskQuery::class,
-        PhrictionDocument::class => PhrictionDocumentQuery::class);
+        ManiphestTask::class => ManiphestTaskQuery::class);
       $class = $queries[$this->binding['object_class']];
       $query = (new $class())->setViewer(PhabricatorUser::getOmnipotentUser())
         ->withPHIDs(array($this->binding['target']))->setLimit(1);

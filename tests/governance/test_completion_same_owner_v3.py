@@ -24,6 +24,36 @@ class CompletionSameOwnerPureControls(unittest.TestCase):
  def setUpClass(cls):
   cls.controller=tree(CONTROLLER);cls.consumer=tree(CONSUMER);cls.validator=tree(BASE+'validate.py')
 
+ def test_native_php_fatal_errors_use_private_stderr_not_json_stdout(self):
+  source=ast.unparse(function(self.controller,'run_in_operation'))
+  for option in ('log_errors=1','error_log=/dev/stderr','display_errors=0'):
+   self.assertIn(option,source)
+  self.assertIn('stderr=streams[1]',source)
+
+ def test_native_failure_location_is_bounded_owned_and_never_exports_message(self):
+  ns=selected(self.consumer,{'native_failure_location'});ns['ROOT']=ROOT
+  project=ns['native_failure_location'];secret='SYNTHETIC_PRIVATE_SQL_CREDENTIAL'
+  with tempfile.TemporaryDirectory()as tmp:
+   directory=Path(tmp).resolve();directory.chmod(0o700);path=directory/'native.stderr.private'
+   raw=f'PHP Fatal error: {secret} in {ROOT}/support/governance/completion/fixture.php on line 123\n'
+   path.write_text(raw);path.chmod(0o600)
+   self.assertEqual(project(directory),{'kind':'php-fatal','source_file':'support/governance/completion/fixture.php','source_line':123})
+   self.assertNotIn(secret,json.dumps(project(directory)))
+   path.chmod(0o644);self.assertIsNone(project(directory));path.chmod(0o600)
+   path.unlink();target=directory/'other';target.write_text(raw);target.chmod(0o600);path.symlink_to(target)
+   self.assertIsNone(project(directory));path.unlink();path.write_bytes(b'x'*262145);path.chmod(0o600)
+   self.assertIsNone(project(directory))
+
+ def test_failure_location_never_exports_messages_or_arguments(self):
+  namespace=selected(self.consumer,{'failure_location'});namespace['ROOT']=ROOT
+  project=namespace['failure_location'];secret='CANARY_PRIVATE_ACCOUNT_TOKEN_SQL'
+  for cls in (RuntimeError,type(secret,(RuntimeError,),{})):
+   try:raise cls(secret)
+   except Exception as error:result=project(error)
+   self.assertEqual(set(result),{'error_type','source_file','source_line'})
+   self.assertNotIn(secret,json.dumps(result))
+   self.assertIn(result['error_type'],('RuntimeError','Exception'))
+
  def test_self_signed_window_has_no_source_authority_route(self):
   text=ast.unparse(self.controller)+ast.unparse(self.consumer)
   self.assertNotIn('producer-window.private.json',text)
@@ -75,7 +105,7 @@ class CompletionSameOwnerPureControls(unittest.TestCase):
   old=old.replace('{"directory-Task-OFF","oauth-authorization-Task-OFF","oauth-client-lifecycle-Task-OFF","conduit-Task-OFF","oauth-access-Task-OFF","oauth-code-Task-OFF","assessment-credential-Task-OFF","api-credential-concurrency-Task-OFF","application-config-facts-Task-OFF","project-source-facts-Task-OFF","spaces-source-facts-Task-OFF","recovery-partial-composition-Task-OFF","task-owner-source-facts-Task-OFF","file-source-facts-Task-OFF","file-parent-policy-Task-OFF","session-producer-lease-Task-OFF","session-borrowed-owner-Task-OFF","organization-approval-workbench-Task-OFF","calendar-reminders-Task-OFF","full-native-Task-OFF"}','{"completion-v3"}').replace("{'directory-Task-OFF','oauth-authorization-Task-OFF','oauth-client-lifecycle-Task-OFF','conduit-Task-OFF','oauth-access-Task-OFF','oauth-code-Task-OFF','assessment-credential-Task-OFF','api-credential-concurrency-Task-OFF','application-config-facts-Task-OFF','project-source-facts-Task-OFF','spaces-source-facts-Task-OFF','recovery-partial-composition-Task-OFF','task-owner-source-facts-Task-OFF','file-source-facts-Task-OFF','file-parent-policy-Task-OFF','session-producer-lease-Task-OFF','session-borrowed-owner-Task-OFF','organization-approval-workbench-Task-OFF','calendar-reminders-Task-OFF','full-native-Task-OFF'}","{'completion-v3'}").replace('expected_mode="directory-Task-OFF"','expected_mode="completion-v3"').replace('"Task-directory-native-envelope-v2"if expected_mode=="directory-Task-OFF"else"Task-native-envelope-v3"','"Completion-Task-envelope-v3"')
   for n in ast.parse(old).body:
    if isinstance(n,ast.FunctionDef):self.assertEqual(ast.dump(n,include_attributes=False),ast.dump(function(self.validator,n.name),include_attributes=False),n.name)
-  self.assertEqual(hashlib.sha256((ROOT/'scripts/governance/check_completion.py').read_bytes()).hexdigest(),'39956a43c26607ac5ebb761ec25f686b2314326511a082f80efe4bf3a2258649')
+  self.assertEqual(hashlib.sha256((ROOT/'scripts/governance/check_completion.py').read_bytes()).hexdigest(),'b412555b95a1f450540474807c044e0c20dd3305b3e17e5635c9812122e08296')
 
  def test_completion_cleanup_is_never_the_focused_projection(self):
   # The generic schema projection and Completion's exact two-socket seam must

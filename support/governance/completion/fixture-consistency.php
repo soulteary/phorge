@@ -42,7 +42,6 @@ function governance_completion_consistency($fixture, callable $check) {
   };
   foreach (array(
     array('project',PhabricatorProject::class,'project.description',array($view,PhabricatorPolicyCapability::CAN_EDIT)),
-    array('wiki',PhrictionDocument::class,'wiki.content',array($view)),
   ) as $family) {
     $family_binding = $binding;
     $family_binding['target']=$ids[$family[0]];
@@ -55,31 +54,6 @@ function governance_completion_consistency($fixture, callable $check) {
         'read-view-real-native-'.$family[0].'-'.$capability.'-allow');
     }
   }
-  $hidden_parent = PhorgeGovernanceNativeFixture::phid('WIKI','x');
-  $open_child = PhorgeGovernanceNativeFixture::phid('WIKI','y');
-  foreach (array(array($hidden_parent,'x','read-view-hidden-parent/',1,'no-one'),
-    array($open_child,'y','read-view-hidden-parent/open-child/',2,'users')) as $wiki_shape) {
-    list($doc_phid,$letter,$slug,$depth,$policy)=$wiki_shape;
-    $content_phid=PhorgeGovernanceNativeFixture::phid('WRDS',$letter);
-    $fixture->seedWikiBoundaryRow('phriction_content',array('phid'=>$content_phid,
-      'documentPHID'=>$doc_phid,'version'=>1,'authorPHID'=>$ids['actor'],
-      'title'=>'Synthetic Wiki boundary','slug'=>$slug,'content'=>'Synthetic boundary content',
-      'description'=>'Synthetic boundary setup'));
-    $fixture->seedWikiBoundaryRow('phriction_document',array('phid'=>$doc_phid,
-      'slug'=>$slug,'depth'=>$depth,'status'=>PhrictionDocumentStatus::STATUS_EXISTS,
-      'viewPolicy'=>$policy,'editPolicy'=>'users','spacePHID'=>$ids['space'],
-      'contentPHID'=>$content_phid,'editedEpoch'=>time(),'maxVersion'=>1));
-  }
-  $wiki_binding=$binding;
-  $wiki_binding['target']=$open_child;
-  $wiki_binding['object_class']=PhrictionDocument::class;
-  $wiki_binding['operation']='wiki.content';
-  $hidden_result=PhorgeGovernanceNativeReadView::observe($wiki_binding,array($view),$reader);
-  $check($hidden_result['status'] === 'observed-native-single-read-view' &&
-    $hidden_result['same_physical_connection'] && $hidden_result['same_consistent_read_view'] &&
-    $hidden_result['observations'][$view]['policy_filter'] === 'allow' &&
-    $hidden_result['actor_query_visibility'] === 'deny' && !$hidden_result['can_execute'],
-    'read-view-wiki-private-ancestor-local-allow-actor-query-deny');
   $scope = null;
   try {
     $scope = PhorgeGovernanceNativeReadView::begin($binding,array($view),$reader);

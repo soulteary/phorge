@@ -108,7 +108,7 @@ def main(argv=None):
   execution.verify_current_restore_inputs(SOURCE,head,restore_inputs,code_root=ROOT,read_committed=restore_committed)
   if any(digest((SOURCE/path).read_bytes())!=pin for path,pin in sources.items()):raise ValueError('staged critical source differs')
   php=Path('/usr/bin/php')
-  if command([str(php),'-r','echo PHP_VERSION;'])!=b'8.5.12':raise ValueError('exact native PHP required')
+  if command([str(php),'-r','echo PHP_VERSION;'])!=b'8.5.13':raise ValueError('exact native PHP required')
   signed_map=command(['git','-C',str(ROOT),'show',head+':src/__phutil_library_map__.php'])
   if(SOURCE/'src/__phutil_library_map__.php').read_bytes()!=signed_map:raise ValueError('staged signed map mismatch')
   command([str(php),'scripts/runtime/build.php','xhpast'],cwd=SOURCE)

@@ -1,7 +1,7 @@
 # Portable private-mail CI candidate (test code only, not yet wire-validated)
 
 The local Linux entry removes the prebuilt Podman pod and private developer
-workspace dependency. It uses CI's actual PHP 8.5.12, Python, existing disposable
+workspace dependency. It uses CI's actual PHP 8.5.13, Python, existing disposable
 MySQL service and explicitly hashed executables. It creates no database server,
 container, public port, production route or fake callback. Native full-schema
 fixtures alone create/drop their random owned databases and scoped users.

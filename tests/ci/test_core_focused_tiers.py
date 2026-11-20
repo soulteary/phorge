@@ -8,6 +8,12 @@ sys.path.insert(0,str(ROOT/'tests/governance'))
 spec=importlib.util.spec_from_file_location('focused_workflows',ROOT/'scripts/ci/focused_workflows.py');m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
 BASE='7b23c47e329f32e4fe083d0efa23fd82d6eefe6f'
 def parse(raw):return yaml.load(raw,Loader=yaml.BaseLoader)
+def security_version(value):
+ # A fixed security-version DATA projection; no other job field may change.
+ if isinstance(value,str):return value.replace('8.5.12','8.5.13').replace('8\\.5\\.12','8\\.5\\.13')
+ if isinstance(value,list):return [security_version(x)for x in value]
+ if isinstance(value,dict):return {k:security_version(v)for k,v in value.items()}
+ return value
 class FocusedInventory(unittest.TestCase):
  def workflow(self,name):return parse((ROOT/'.github/workflows'/name).read_text())
  def baseline(self):return json.loads((ROOT/'docs/ci/support-baseline.json').read_text())
@@ -32,7 +38,7 @@ class FocusedInventory(unittest.TestCase):
       self.assertEqual(admission['run'].count(flag),1)
       self.assertEqual(admission['run'].count(m.PROOF_ENV),1)
       admission['run']=admission['run'].replace(flag,'').replace(m.PROOF_ENV+'\n','')
-    self.assertEqual(current['jobs'],original['jobs'])
+    self.assertEqual(current['jobs'],security_version(original['jobs']))
     for key in set(original)-{'on','jobs'}:self.assertEqual(current[key],original[key])
  def test_all_ten_source_workflows_bind_exact_proof_and_owner_environment(self):
   self.assertEqual(len(m.PROOF_FOCUSED),10)
@@ -123,7 +129,7 @@ class DeclaredSourceInventory(unittest.TestCase):
             'tests/operations/webserver_selfcheck_fixture.php',
             'tests/operations/test_webserver_selfcheck.py'}
   self.assertTrue(reviewed<=module.CI_V2_NEW_PATHS)
-  for rows in [current|{'tests/contract/runtime/unreviewed.php'}]+[current-{p}for p in reviewed]:
+  for rows in [current|{'tests/contract/runtime/unreviewed.php'}]+[current-{p}for p in reviewed]+[current|{p}for p in module.WIKI_RETIRED_PATHS]:
    with self.assertRaises(ValueError):check(rows)
 
 class ReleaseHistoryLiteralData(unittest.TestCase):
@@ -138,9 +144,10 @@ class ReleaseHistoryLiteralData(unittest.TestCase):
   cls.delta=importlib.util.module_from_spec(spec);spec.loader.exec_module(cls.delta)
  def test_all_21_current_payloads_roundtrip_and_original_parent_pins_still_match(self):
   # Retain the original 21 targets and the reviewed caller and self-check inputs.
-  self.assertEqual(len(self.doc['files']),29)
+  self.assertEqual(len(self.doc['files']),29+len(self.scope.WIKI_RETIREMENT_HISTORY_PATHS)+len(self.scope.PHP_SECURITY_HISTORY_PATHS))
   extra={'support/governance/recovery/native-writer-rr-ci-profile.php', 'tests/governance/test_native_rr_ci_anchor.py', 'src/applications/config/check/PhabricatorWebServerSetupCheck.php', 'src/applications/config/check/__tests__/PhabricatorSetupCheckTestCase.php'}
   extra.update(['src/applications/almanac/controller/AlmanacBindingEditController.php', 'src/applications/almanac/query/AlmanacDeviceSearchEngine.php', 'src/applications/almanac/query/AlmanacServiceSearchEngine.php', 'src/infrastructure/internationalization/translation/PhabricatorChineseTranslation.php'])
+  extra |= self.scope.WIKI_RETIREMENT_HISTORY_PATHS | self.scope.PHP_SECURITY_HISTORY_PATHS
   self.assertTrue(extra <= set(self.doc['files']))
   self.assertEqual(hashlib.sha256(json.dumps(sorted(set(self.doc['files'])-extra),separators=(',',':')).encode()).hexdigest(),'2fc0c75cbf1640a24ee30a9c241d2636d555f9b64fa891df2df9cc2bfd1be38c')
   parent=json.loads((ROOT/self.scope.BASELINE).read_bytes())['entries']
@@ -148,6 +155,8 @@ class ReleaseHistoryLiteralData(unittest.TestCase):
    with self.subTest(path=path):
     current=(ROOT/path).read_bytes();target=self.scope.release_history_inverse(path,current,self.doc)
     self.assertEqual(self.scope.release_history_roundtrip(path,target,self.doc),current)
+    if path==self.scope.TASK_PREUPGRADE_FIXTURE:
+     target=self.scope.task_preupgrade_fixture_inverse(path,target,(ROOT/self.scope.TASK_PREUPGRADE_RECIPE).read_bytes())
     restored=self.delta.reduce_selected(path,target);old=parent[path]
     self.assertEqual(len(restored),old['bytes']);self.assertEqual(hashlib.sha256(restored).hexdigest(),old['sha256'])
  def test_entire_existing_parent_payload_loop_has_no_remaining_mismatch(self):
@@ -156,6 +165,13 @@ class ReleaseHistoryLiteralData(unittest.TestCase):
   checked=0
   for path,pin in parent.items():
    if pin['kind']!='file':continue
+   if path in self.scope.WIKI_RETIRED_PATHS:
+    self.assertFalse((ROOT/path).exists())
+    removed=json.loads((ROOT/self.scope.WIKI_RETIREMENT_MANIFEST).read_bytes())['removed_files']
+    hashes={row['path']:row['sha256'] for row in removed}
+    self.assertEqual(hashes[path],pin['sha256'])
+    checked+=1
+    continue
    raw=(ROOT/path).read_bytes()
    if path in ci or path in api:
     entry=(ci if path in ci else api)[path];decoder=zlib.decompressobj()

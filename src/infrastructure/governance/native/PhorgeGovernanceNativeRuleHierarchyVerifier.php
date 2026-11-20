@@ -45,8 +45,7 @@ final class PhorgeGovernanceNativeRuleHierarchyVerifier extends Phobject {
     if (!self::validateRule($rule_class, $value)) {
       return self::result('unsupported_native_rule_or_value');
     }
-    $allowed = array(PhabricatorProject::class, ManiphestTask::class,
-      PhrictionDocument::class);
+    $allowed = array(PhabricatorProject::class, ManiphestTask::class);
     if (!in_array(get_class($object), $allowed, true) ||
         $object->getID() === null ||
         !isset($binding['target'], $binding['object_class'], $binding['actor']) ||

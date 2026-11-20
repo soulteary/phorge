@@ -66,7 +66,7 @@ SEAMS=(
  ("  j.write('terminal.json',canon({'accepted':True","  current_archive_check()\n  j.write('terminal.json',canon({'accepted':True"),
  )
 def adapted_execute(raw):
- need(type(raw)is bytes and hashlib.sha256(raw).hexdigest()=='8d84b9744560fba48aaa4634aa095e53e8f441a1138d39ede280326b67eb4209');text=raw.decode();start=text.index('def execute(');end=text.index('\ndef main():',start);original=text[start:end];body=original
+ need(type(raw)is bytes and hashlib.sha256(raw).hexdigest()=='7ecb21b2beb42ff6469be467ad9924278b3d717661040d6cded817d4350643ec');text=raw.decode();start=text.index('def execute(');end=text.index('\ndef main():',start);original=text[start:end];body=original
  for old,new in SEAMS:need(body.count(old)==1);body=body.replace(old,new,1)
  restored=body
  for old,new in reversed(SEAMS):need(restored.count(new)==1);restored=restored.replace(new,old,1)

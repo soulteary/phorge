@@ -80,7 +80,7 @@ def validate(data, revision, file_digest, root=ROOT):
     exact(data['batch'], 'native-api-credential-concurrency')
     exact(data['scope'], 'owned-native-credential-writer-reader-observation')
     exact(data['passed'], True)
-    exact(data['php_version'], '8.5.12')
+    exact(data['php_version'], '8.5.13')
     exact(data['failure'], None)
     exact(data['cleanup_failures'], [])
     for key in ('production_deployment','production_executor','production_optional_features_enabled','native_permission_axes_changed'):

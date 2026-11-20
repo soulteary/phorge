@@ -49,7 +49,7 @@ final class PhorgeGovernanceContentDecisionTestCase extends PhutilTestCase {
     $context = $this->newContext();
     $context['native_edit_eligible'] = false;
     $result = PhorgeGovernanceContentDecision::evaluate(
-      'content', 'wiki.content', $context);
+      'content', 'task.description', $context);
     $this->assertEqual('eligible-contract-only', $result['status']);
     $result = PhorgeGovernanceContentDecision::evaluate(
       'native-edit', 'policy.replace', $context);

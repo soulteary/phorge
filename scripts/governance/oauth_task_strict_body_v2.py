@@ -4,16 +4,7 @@ explicit source-obligation/restore seams change; all old receipt assertions stay
 """
 import ast,copy,hashlib,re,types,os,stat
 from pathlib import Path
-PINS={
- 'check_completion':'39956a43c26607ac5ebb761ec25f686b2314326511a082f80efe4bf3a2258649',
- 'check_native_organization':'c2c614ab497e6590c13455bd1b495f9f9230c62acd066884b738d460023be300',
- 'check_recovery_partial_composition':'76930e99b57cb3a4488817fa88865f9b8a17df9c2cf8c501367f8779abb3e0ca',
- 'check_recovery_file_parent_policy':'239b9614af1288b053d369d5a4e62fb127a955a79f66053f281e34e9b1aad786',
- 'check_recovery_oauth_authorization_producer_v1':'e3e271c4343815bcbf0a263de9b75428561721e8e42fc1f522a8dd9907d69c5f',
- 'check_recovery_oauth_client_lifecycle':'a5f6e98e1bea0ae6365bd412d8cf3f1cc5313901969cdcf72d616d2957cd4e25',
- 'qualify_oauth_authorization_mysql84':'d24bbde68146aa9972ac7a901048551e7eda56493162dc47294034c6e236303f',
- 'qualify_oauth_client_lifecycle_mysql84':'bccd536fbb401e601380893e73582e255657e476922bf91a0cdf51aa16f772f5',
-}
+PINS={'check_completion': 'b412555b95a1f450540474807c044e0c20dd3305b3e17e5635c9812122e08296', 'check_native_organization': 'c2c614ab497e6590c13455bd1b495f9f9230c62acd066884b738d460023be300', 'check_recovery_partial_composition': '1a06ef08a91bc152ffee0d8810210a1e0536223bda683a4a4dbb2028fdf1660f', 'check_recovery_file_parent_policy': 'b40f322ddf1e0e4983c8d0b3cba595fc5bca6ba5570b08fa7971faf060c0d837', 'check_recovery_oauth_authorization_producer_v1': '4638d5be341fe8fa782ab19eeeeb35232b7d8d265c76b9c775219ebe630c51bf', 'check_recovery_oauth_client_lifecycle': '613cf817bd51b0f32a751de300752d9c71dff64654a0863f809bc73377608bc4', 'qualify_oauth_authorization_mysql84': 'd24bbde68146aa9972ac7a901048551e7eda56493162dc47294034c6e236303f', 'qualify_oauth_client_lifecycle_mysql84': 'bccd536fbb401e601380893e73582e255657e476922bf91a0cdf51aa16f772f5'}
 ROLES={'oauth-authorization':('check_recovery_oauth_authorization_producer_v1','qualify_oauth_authorization_mysql84'),
        'oauth-client-lifecycle':('check_recovery_oauth_client_lifecycle','qualify_oauth_client_lifecycle_mysql84')}
 def need(v):
@@ -27,7 +18,7 @@ def native_pair_parent_DATA(raw,expected_parent_sha):
  try:
   if stamp(os.fstat(fd))!=stamp(before):raise ValueError('current_native_pair_helper_refused')
   helper=os.read(fd,4097)
-  if len(helper)!=before.st_size or stamp(os.fstat(fd))!=stamp(before)or stamp(path.lstat())!=stamp(before)or hashlib.sha256(helper).hexdigest()!='aff2a7fba2bc05b0c6acb0a3e6144a06f69a5ff87f8c88fc7593518ed319e032':raise ValueError('current_native_pair_helper_refused')
+  if len(helper)!=before.st_size or stamp(os.fstat(fd))!=stamp(before)or stamp(path.lstat())!=stamp(before)or hashlib.sha256(helper).hexdigest()!='37e7857d61c35f89129c558e7d952c86d9f98d19ad412d52b9145d92e52beb02':raise ValueError('current_native_pair_helper_refused')
  finally:os.close(fd)
  namespace={'__file__':str(path),'__name__':'CURRENT_native_pair_metadata_DATA'}
  exec(compile(helper,str(path),'exec'),namespace)
