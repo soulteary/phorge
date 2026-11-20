@@ -14,6 +14,23 @@ def security_version(value):
  if isinstance(value,list):return [security_version(x)for x in value]
  if isinstance(value,dict):return {k:security_version(v)for k,v in value.items()}
  return value
+def media_build_step_inverse(step):
+ # Read only two fixed AST string DATA literals; never import the media tests.
+ tree=ast.parse((ROOT/'support/governance/media-session-ci/test_ci.py').read_bytes())
+ pins={'CURRENT_BUILD_BLOCK':(784,'f8479312988839e4fcc813d468b1b82c380c23e7974cfa1ca5b5e377b74f87d1'),
+       'PRIOR_PULL_BLOCK':(764,'0565e85acc03ff56252a5c53b3fcfe217bcbbc31c3090c3447dfd1d4694e286f')}
+ values={}
+ for node in tree.body:
+  if isinstance(node,ast.Assign)and len(node.targets)==1 and isinstance(node.targets[0],ast.Name)and node.targets[0].id in pins:
+   name=node.targets[0].id
+   if name in values or not isinstance(node.value,ast.Constant)or type(node.value.value)is not str:raise ValueError('unreviewed_media_build_literal')
+   raw=node.value.value.encode();size,digest=pins[name]
+   if len(raw)!=size or hashlib.sha256(raw).hexdigest()!=digest:raise ValueError('unreviewed_media_build_literal')
+   values[name]=parse(raw)
+ if set(values)!=set(pins)or any(type(v)is not list or len(v)!=1 for v in values.values()):raise ValueError('unreviewed_media_build_literal')
+ if step!=values['CURRENT_BUILD_BLOCK'][0]:raise ValueError('unreviewed_media_build_step')
+ return copy.deepcopy(values['PRIOR_PULL_BLOCK'][0])
+
 class FocusedInventory(unittest.TestCase):
  def workflow(self,name):return parse((ROOT/'.github/workflows'/name).read_text())
  def baseline(self):return json.loads((ROOT/'docs/ci/support-baseline.json').read_text())
@@ -29,6 +46,10 @@ class FocusedInventory(unittest.TestCase):
     self.assertEqual(set(original['jobs']),set(current['jobs']))
     for job in current['jobs'].values():
      job['steps']=[s for s in job['steps']if s.get('name')!=m.BIND_STEP]
+     if name=='native-media-session-positive-sql.yml':
+      matches=[i for i,step in enumerate(job['steps'])if step.get('name')=='Build current locked PHP runtime and pull fixed MySQL index']
+      self.assertEqual(len(matches),1)
+      index=matches[0];job['steps'][index]=media_build_step_inverse(job['steps'][index])
      if name=='native-rr-owner-build.yml':
       for key,value in {'NATIVE_RR_EXPECTED_HEAD':'${{ inputs.expected_head }}','NATIVE_RR_WORKFLOW_SHA':'${{ github.workflow_sha }}','NATIVE_RR_RELEASE_TAG':'${{ github.event.inputs.release_tag }}'}.items():
        self.assertEqual(job['env'].pop(key),value)
@@ -40,6 +61,22 @@ class FocusedInventory(unittest.TestCase):
       admission['run']=admission['run'].replace(flag,'').replace(m.PROOF_ENV+'\n','')
     self.assertEqual(current['jobs'],security_version(original['jobs']))
     for key in set(original)-{'on','jobs'}:self.assertEqual(current[key],original[key])
+ def test_media_build_continuation_refuses_unknown_step_fields_and_commands(self):
+  workflow=self.workflow('native-media-session-positive-sql.yml')
+  job=next(iter(workflow['jobs'].values()))
+  step=next(s for s in job['steps']if s.get('name')=='Build current locked PHP runtime and pull fixed MySQL index')
+  old=media_build_step_inverse(step)
+  self.assertEqual(old['name'],'Pull only the two fixed public runtime indexes')
+  for mutation in ('name','skip','push','lock','iid','extra'):
+   changed=copy.deepcopy(step)
+   if mutation=='name':changed['name']='unknown'
+   elif mutation=='skip':changed['if']='false'
+   elif mutation=='push':changed['run']+='docker push unknown\n'
+   elif mutation=='lock':changed['run']=changed['run'].replace('--build-root','--unknown-root',1)
+   elif mutation=='iid':changed['run']=changed['run'].replace('"$php_image_id"','latest',1)
+   else:changed['continue-on-error']='true'
+   with self.subTest(mutation=mutation),self.assertRaises(ValueError):media_build_step_inverse(changed)
+
  def test_all_ten_source_workflows_bind_exact_proof_and_owner_environment(self):
   self.assertEqual(len(m.PROOF_FOCUSED),10)
   for name in m.PROOF_FOCUSED:
