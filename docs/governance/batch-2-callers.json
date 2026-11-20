@@ -513,9 +513,9 @@
         "wiki.parent",
         "wiki.policy"
       ],
-      "coverage": "partial",
+      "coverage": "retired",
       "activation_blocked": true,
-      "evidence_status": "static-reference-only",
+      "evidence_status": "retired-runtime-removed",
       "sha256": "5528045d1dbb531164597daa5896d0cba8a6659b2f07ad53641ccd320afd44f3"
     },
     {
@@ -532,9 +532,9 @@
         "wiki.parent",
         "wiki.policy"
       ],
-      "coverage": "partial",
+      "coverage": "retired",
       "activation_blocked": true,
-      "evidence_status": "static-reference-only",
+      "evidence_status": "retired-runtime-removed",
       "sha256": "b39d6b379015051b4e1c1ba979ab74ccde2881f78e62bf58466828f17d45748b"
     },
     {
@@ -553,9 +553,9 @@
         "wiki.parent",
         "wiki.policy"
       ],
-      "coverage": "partial",
+      "coverage": "retired",
       "activation_blocked": true,
-      "evidence_status": "static-reference-only",
+      "evidence_status": "retired-runtime-removed",
       "sha256": "648f30de31e09cdf1c488f028ebca3686597a1dd62375b32c3b1025740aa7fcb"
     },
     {
@@ -577,9 +577,9 @@
         "wiki.parent",
         "wiki.policy"
       ],
-      "coverage": "partial",
+      "coverage": "retired",
       "activation_blocked": true,
-      "evidence_status": "static-reference-only",
+      "evidence_status": "retired-runtime-removed",
       "sha256": "3a3b1e9643a71b48d4123960a7f0f594c2258bfc96e450fe81625a1d26aaa55d"
     },
     {
@@ -598,9 +598,9 @@
         "wiki.parent",
         "wiki.policy"
       ],
-      "coverage": "partial",
+      "coverage": "retired",
       "activation_blocked": true,
-      "evidence_status": "static-reference-only",
+      "evidence_status": "retired-runtime-removed",
       "sha256": "50fc4b7f50f0bbd8c6992e5f2456db604777fee0608fa98cde78d8a717876c44"
     },
     {
@@ -620,9 +620,9 @@
         "wiki.parent",
         "wiki.policy"
       ],
-      "coverage": "partial",
+      "coverage": "retired",
       "activation_blocked": true,
-      "evidence_status": "static-reference-only",
+      "evidence_status": "retired-runtime-removed",
       "sha256": "fa9f9ca613fd0918696dda29cdf88ca509f9caba0d7d584687091a615fc1d885"
     },
     {
@@ -642,9 +642,9 @@
         "wiki.parent",
         "wiki.policy"
       ],
-      "coverage": "partial",
+      "coverage": "retired",
       "activation_blocked": true,
-      "evidence_status": "static-reference-only",
+      "evidence_status": "retired-runtime-removed",
       "sha256": "972413ef43be26c74f49dd927e9121fe35077cdf61fbf743490cbcc170ce4422"
     },
     {
@@ -662,9 +662,9 @@
         "wiki.parent",
         "wiki.policy"
       ],
-      "coverage": "partial",
+      "coverage": "retired",
       "activation_blocked": true,
-      "evidence_status": "static-reference-only",
+      "evidence_status": "retired-runtime-removed",
       "sha256": "53c969c3e88c4022c34cefeaf054fdf249a3afa0793ce3bf744353effd221a02"
     },
     {
@@ -682,9 +682,9 @@
         "wiki.parent",
         "wiki.policy"
       ],
-      "coverage": "partial",
+      "coverage": "retired",
       "activation_blocked": true,
-      "evidence_status": "static-reference-only",
+      "evidence_status": "retired-runtime-removed",
       "sha256": "97a308b290e3b2264ca2b247718fc1d13084e0d62e126b52c3b07d922183e23c"
     },
     {
@@ -970,9 +970,9 @@
         "wiki.parent",
         "wiki.policy"
       ],
-      "coverage": "partial",
+      "coverage": "retired",
       "activation_blocked": true,
-      "evidence_status": "static-reference-only",
+      "evidence_status": "retired-runtime-removed",
       "sha256": "9dabb6e3dbb73807bdc9a9e1056090f68793e413c052c524dc98f9402b400831"
     }
   ],
@@ -1319,8 +1319,8 @@
       "src/__phutil_library_map__.php"
     ],
     "excluded_test_directory": "__tests__",
-    "files_scanned": 4468,
-    "source_snapshot_sha256": "78920fa8608c3293469b03eceffc6b0cdfeb27ec5d979a0afe13e7387f9ed1ff",
+    "files_scanned": 4402,
+    "source_snapshot_sha256": "2a8c5c35c9ecf6af5e3d772ac9e79d0a86c6e2343884efa4704a2c5caeee5924",
     "candidates": [
       {
         "id": "CALL-e71899f6e4e06c5b",
@@ -3640,226 +3640,6 @@
             "pattern": "policy_transaction",
             "lines": [
               29
-            ]
-          }
-        ]
-      },
-      {
-        "id": "CALL-b464ba26655232eb",
-        "path": "src/applications/phriction/conduit/PhrictionCreateConduitAPIMethod.php",
-        "sha256": "972413ef43be26c74f49dd927e9121fe35077cdf61fbf743490cbcc170ce4422",
-        "matches": [
-          {
-            "pattern": "transaction_apply",
-            "lines": [
-              63
-            ]
-          },
-          {
-            "pattern": "wiki_editor",
-            "lines": [
-              56
-            ]
-          }
-        ]
-      },
-      {
-        "id": "CALL-a2ae0c5f66221cd0",
-        "path": "src/applications/phriction/conduit/PhrictionDocumentEditConduitAPIMethod.php",
-        "sha256": "50fc4b7f50f0bbd8c6992e5f2456db604777fee0608fa98cde78d8a717876c44",
-        "matches": [
-          {
-            "pattern": "edit_engine_dispatch",
-            "lines": [
-              10
-            ]
-          },
-          {
-            "pattern": "wiki_editor",
-            "lines": [
-              11
-            ]
-          }
-        ]
-      },
-      {
-        "id": "CALL-a0a3099e675f0c8c",
-        "path": "src/applications/phriction/conduit/PhrictionEditConduitAPIMethod.php",
-        "sha256": "fa9f9ca613fd0918696dda29cdf88ca509f9caba0d7d584687091a615fc1d885",
-        "matches": [
-          {
-            "pattern": "transaction_apply",
-            "lines": [
-              74
-            ]
-          },
-          {
-            "pattern": "wiki_editor",
-            "lines": [
-              67
-            ]
-          }
-        ]
-      },
-      {
-        "id": "CALL-2af1c700b21d2c3b",
-        "path": "src/applications/phriction/controller/PhrictionDeleteController.php",
-        "sha256": "fcb4aab9cdd33471d81d8ab43e0bd479c8fb5023f5b7ae8f30a8e3de6442d6c8",
-        "matches": [
-          {
-            "pattern": "transaction_apply",
-            "lines": [
-              38
-            ]
-          },
-          {
-            "pattern": "wiki_editor",
-            "lines": [
-              33
-            ]
-          }
-        ]
-      },
-      {
-        "id": "CALL-8d237c2a72bab7ed",
-        "path": "src/applications/phriction/controller/PhrictionDocumentController.php",
-        "sha256": "088d7526d2072867a789dc6dd05824a4aa422d197f454621597a62383c509c28",
-        "matches": [
-          {
-            "pattern": "wiki_editor",
-            "lines": [
-              356
-            ]
-          }
-        ]
-      },
-      {
-        "id": "CALL-eb5daa2e2476226d",
-        "path": "src/applications/phriction/controller/PhrictionEditController.php",
-        "sha256": "5528045d1dbb531164597daa5896d0cba8a6659b2f07ad53641ccd320afd44f3",
-        "matches": [
-          {
-            "pattern": "transaction_apply",
-            "lines": [
-              193
-            ]
-          },
-          {
-            "pattern": "wiki_editor",
-            "lines": [
-              184
-            ]
-          },
-          {
-            "pattern": "policy_transaction",
-            "lines": [
-              163,
-              167
-            ]
-          }
-        ]
-      },
-      {
-        "id": "CALL-596cc23abe3f8a6e",
-        "path": "src/applications/phriction/controller/PhrictionEditEngineController.php",
-        "sha256": "b39d6b379015051b4e1c1ba979ab74ccde2881f78e62bf58466828f17d45748b",
-        "matches": [
-          {
-            "pattern": "wiki_editor",
-            "lines": [
-              9
-            ]
-          }
-        ]
-      },
-      {
-        "id": "CALL-acb07f511e9e3219",
-        "path": "src/applications/phriction/controller/PhrictionMoveController.php",
-        "sha256": "2a9cad7455305d9941828d1f1be2ec357afdc7f4d2a59e5e6ebfc7cc60eefe52",
-        "matches": [
-          {
-            "pattern": "transaction_apply",
-            "lines": [
-              87
-            ]
-          },
-          {
-            "pattern": "wiki_editor",
-            "lines": [
-              59
-            ]
-          }
-        ]
-      },
-      {
-        "id": "CALL-9c4976dcfaf01d80",
-        "path": "src/applications/phriction/controller/PhrictionPublishController.php",
-        "sha256": "4e8e5ae21015aca30844a3a374da1e4ba41c56562f87da15bce5bd4be41709e9",
-        "matches": [
-          {
-            "pattern": "transaction_apply",
-            "lines": [
-              60
-            ]
-          },
-          {
-            "pattern": "wiki_editor",
-            "lines": [
-              55
-            ]
-          }
-        ]
-      },
-      {
-        "id": "CALL-ab4b9f2a38a2258b",
-        "path": "src/applications/phriction/editor/PhrictionDocumentEditEngine.php",
-        "sha256": "648f30de31e09cdf1c488f028ebca3686597a1dd62375b32c3b1025740aa7fcb",
-        "matches": [
-          {
-            "pattern": "wiki_editor",
-            "lines": [
-              3
-            ]
-          }
-        ]
-      },
-      {
-        "id": "CALL-397ecc805a038eab",
-        "path": "src/applications/phriction/editor/PhrictionTransactionEditor.php",
-        "sha256": "3a3b1e9643a71b48d4123960a7f0f594c2258bfc96e450fe81625a1d26aaa55d",
-        "matches": [
-          {
-            "pattern": "transaction_apply",
-            "lines": [
-              175
-            ]
-          },
-          {
-            "pattern": "wiki_editor",
-            "lines": [
-              3
-            ]
-          },
-          {
-            "pattern": "policy_transaction",
-            "lines": [
-              90,
-              91,
-              135,
-              138
-            ]
-          }
-        ]
-      },
-      {
-        "id": "CALL-62f4de412a333fa7",
-        "path": "src/applications/phriction/storage/PhrictionDocument.php",
-        "sha256": "9dabb6e3dbb73807bdc9a9e1056090f68793e413c052c524dc98f9402b400831",
-        "matches": [
-          {
-            "pattern": "wiki_editor",
-            "lines": [
-              227
             ]
           }
         ]
@@ -6712,106 +6492,6 @@
       "disposition": "unsupported",
       "activation_blocked": true,
       "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
-    },
-    {
-      "id": "CALL-b464ba26655232eb",
-      "consumer_ids": [
-        "WIKI.CREATE.CONDUIT.LEGACY"
-      ],
-      "disposition": "mapped-static-only",
-      "activation_blocked": true,
-      "reason": "Source explicitly included in manually associated partial graph; no runtime proof."
-    },
-    {
-      "id": "CALL-a2ae0c5f66221cd0",
-      "consumer_ids": [
-        "WIKI.EDIT.CONDUIT"
-      ],
-      "disposition": "mapped-static-only",
-      "activation_blocked": true,
-      "reason": "Source explicitly included in manually associated partial graph; no runtime proof."
-    },
-    {
-      "id": "CALL-a0a3099e675f0c8c",
-      "consumer_ids": [
-        "WIKI.EDIT.CONDUIT.LEGACY"
-      ],
-      "disposition": "mapped-static-only",
-      "activation_blocked": true,
-      "reason": "Source explicitly included in manually associated partial graph; no runtime proof."
-    },
-    {
-      "id": "CALL-2af1c700b21d2c3b",
-      "consumer_ids": [],
-      "disposition": "unsupported",
-      "activation_blocked": true,
-      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
-    },
-    {
-      "id": "CALL-8d237c2a72bab7ed",
-      "consumer_ids": [],
-      "disposition": "unsupported",
-      "activation_blocked": true,
-      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
-    },
-    {
-      "id": "CALL-eb5daa2e2476226d",
-      "consumer_ids": [
-        "WIKI.EDIT.WEB.LEGACY"
-      ],
-      "disposition": "mapped-static-only",
-      "activation_blocked": true,
-      "reason": "Source explicitly included in manually associated partial graph; no runtime proof."
-    },
-    {
-      "id": "CALL-596cc23abe3f8a6e",
-      "consumer_ids": [
-        "WIKI.COMMENT.ENGINE"
-      ],
-      "disposition": "mapped-static-only",
-      "activation_blocked": true,
-      "reason": "Source explicitly included in manually associated partial graph; no runtime proof."
-    },
-    {
-      "id": "CALL-acb07f511e9e3219",
-      "consumer_ids": [],
-      "disposition": "unsupported",
-      "activation_blocked": true,
-      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
-    },
-    {
-      "id": "CALL-9c4976dcfaf01d80",
-      "consumer_ids": [],
-      "disposition": "unsupported",
-      "activation_blocked": true,
-      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
-    },
-    {
-      "id": "CALL-ab4b9f2a38a2258b",
-      "consumer_ids": [
-        "WIKI.EDIT.ENGINE"
-      ],
-      "disposition": "mapped-static-only",
-      "activation_blocked": true,
-      "reason": "Source explicitly included in manually associated partial graph; no runtime proof."
-    },
-    {
-      "id": "CALL-397ecc805a038eab",
-      "consumer_ids": [
-        "WIKI.EDIT.EDITOR"
-      ],
-      "disposition": "mapped-static-only",
-      "activation_blocked": true,
-      "reason": "Source explicitly included in manually associated partial graph; no runtime proof."
-    },
-    {
-      "id": "CALL-62f4de412a333fa7",
-      "consumer_ids": [
-        "WIKI.POLICY.SOURCE"
-      ],
-      "disposition": "mapped-static-only",
-      "activation_blocked": true,
-      "reason": "Source explicitly included in manually associated partial graph; no runtime proof."
     },
     {
       "id": "CALL-82a6b49f1fee6a00",

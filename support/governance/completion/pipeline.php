@@ -72,11 +72,6 @@ function governance_completion_pipeline($fixture, callable $check) {
       ->withPHIDs(array($phid))->needSubscriberPHIDs(true)->needProjectPHIDs(true)
       ->executeOne();
   };
-  $reload_wiki = static function($phid) {
-    return (new PhrictionDocumentQuery())->needContent(true)
-      ->setViewer(PhabricatorUser::getOmnipotentUser())
-      ->withPHIDs(array($phid))->executeOne();
-  };
   $source = PhabricatorContentSource::newForSource('console', array());
   $edit = static function($object, $actor, array $transactions) use ($source) {
     return $object->getApplicationTransactionEditor()->setActor($actor)
@@ -231,43 +226,6 @@ function governance_completion_pipeline($fixture, callable $check) {
     ->withTransactionTypes(array(PhabricatorTransactions::TYPE_FILE))->execute();
   $check((bool)$file_transactions, 'pipeline-support-native-file-transaction-record');
 
-  // The full quickstart has no Wiki root document. Native child creation
-  // requires a real editable ancestor; create it through the same editor.
-  $wiki_root = (new PhrictionDocumentQuery())->needContent(true)
-    ->setViewer(PhabricatorUser::getOmnipotentUser())
-    ->withSlugs(array('/'))->executeOne();
-  if (!$wiki_root) {
-    $wiki_root = PhrictionDocument::initializeNewDocument($actor, '/')
-      ->setSpacePHID($space->getPHID());
-    $edit($wiki_root, $actor, array((new PhrictionTransaction())
-      ->setTransactionType(PhrictionDocumentTitleTransaction::TRANSACTIONTYPE)
-      ->setNewValue('Synthetic Pipeline Wiki Root'), (new PhrictionTransaction())
-      ->setTransactionType(PhrictionDocumentContentTransaction::TRANSACTIONTYPE)
-      ->setNewValue('Synthetic parent document')));
-  }
-  $check($wiki_root->getID() !== null,
-    'pipeline-real-wiki-root-ancestor-prepared');
-
-  $wiki = PhrictionDocument::initializeNewDocument($actor, 'synthetic-pipeline/')
-    ->setSpacePHID($space->getPHID());
-  $edit($wiki, $actor, array((new PhrictionTransaction())
-    ->setTransactionType(PhrictionDocumentTitleTransaction::TRANSACTIONTYPE)
-    ->setNewValue('Synthetic Pipeline Wiki'), (new PhrictionTransaction())
-    ->setTransactionType(PhrictionDocumentContentTransaction::TRANSACTIONTYPE)
-    ->setNewValue('Synthetic pipeline wiki body')));
-  $wiki = $reload_wiki($wiki->getPHID());
-  $check($wiki && $wiki->getContent()->getContent() ===
-    'Synthetic pipeline wiki body', 'pipeline-wiki-content-final-effect-committed');
-  $version = (int)$wiki->getContent()->getVersion();
-  $edit($wiki, $actor, array((new PhrictionTransaction())
-    ->setTransactionType(PhrictionDocumentContentTransaction::TRANSACTIONTYPE)
-    ->setNewValue('Synthetic pipeline wiki next body')));
-  $wiki = $reload_wiki($wiki->getPHID());
-  $check($wiki->getContent()->getContent() === 'Synthetic pipeline wiki next body' &&
-    (int)$wiki->getContent()->getVersion() > $version,
-    'pipeline-wiki-update-new-version-committed');
-  $check($tx_count('phriction', new PhrictionTransaction(), $wiki->getPHID()) > 0 &&
-    $queue($wiki->getPHID()) > 0, 'pipeline-wiki-records-and-publishing-queued');
   $check($count('herald', 'herald_transcript') > $herald_before,
     'pipeline-real-no-rule-herald-transcripts');
 
@@ -307,13 +265,6 @@ function governance_completion_pipeline($fixture, callable $check) {
     ->setNewValue('Synthetic mapped task title')));
   $check($reload_task($task->getPHID())->getTitle() === 'Synthetic mapped task title',
     'pipeline-mapped-task-title');
-  $edit($wiki, $actor, array((new PhrictionTransaction())
-    ->setTransactionType(PhrictionDocumentTitleTransaction::TRANSACTIONTYPE)
-    ->setNewValue('Synthetic mapped wiki title')));
-  $wiki = $reload_wiki($wiki->getPHID());
-  $check($wiki->getContent()->getTitle() === 'Synthetic mapped wiki title',
-    'pipeline-mapped-wiki-title');
-
   $other_space = PhabricatorSpacesNamespace::initializeNewNamespace($actor)
     ->setNamespaceName('Synthetic Pipeline Other')
     ->setViewPolicy(PhabricatorPolicies::POLICY_USER)->save();
@@ -325,8 +276,7 @@ function governance_completion_pipeline($fixture, callable $check) {
     'pipeline-new-space-visible-after-native-request-boundary');
   foreach (array(array('project', $reload_project($project->getPHID()),
       new PhabricatorProjectTransaction(), $reload_project),
-    array('task', $reload_task($task->getPHID()), new ManiphestTransaction(), $reload_task),
-    array('wiki', $wiki, new PhrictionTransaction(), $reload_wiki)) as $spec) {
+    array('task', $reload_task($task->getPHID()), new ManiphestTransaction(), $reload_task)) as $spec) {
     list($family, $object, $template, $reload) = $spec;
     foreach (array(PhabricatorTransactions::TYPE_VIEW_POLICY,
       PhabricatorTransactions::TYPE_EDIT_POLICY) as $type) {
@@ -367,8 +317,7 @@ function governance_completion_pipeline($fixture, callable $check) {
     $check(in_array($users['nextowner']->getPHID(), $members, true) === $add,
       'pipeline-mapped-project-member-'.($add ? 'add' : 'remove'));
   }
-  foreach (array(array('task', $reload_task($task->getPHID()), new ManiphestTransaction()),
-    array('wiki', $reload_wiki($wiki->getPHID()), new PhrictionTransaction())) as $spec) {
+  foreach (array(array('task', $reload_task($task->getPHID()), new ManiphestTransaction())) as $spec) {
     list($family, $object, $template) = $spec;
     $edit($object, $actor, array($template
       ->setTransactionType(PhabricatorTransactions::TYPE_EDGE)
@@ -401,35 +350,6 @@ function governance_completion_pipeline($fixture, callable $check) {
     ->withTransactionTypes(array(ManiphestTaskColumnTransaction::TRANSACTIONTYPE))
     ->execute();
   $check((bool)$column_records, 'pipeline-native-column-move-record-not-noop');
-  $source_wiki = $reload_wiki($wiki->getPHID());
-  $source_body_before_move = $source_wiki->getContent()->getContent();
-  $source_title_before_move = $source_wiki->getContent()->getTitle();
-  $destination_wiki = PhrictionDocument::initializeNewDocument($actor,
-    'synthetic-pipeline-moved/')->setSpacePHID($other_space->getPHID());
-  // Mirror PhrictionMoveController's dedicated move contract. Only this
-  // operation permits missing generic fields; source content comes from move.
-  $destination_wiki->getApplicationTransactionEditor()->setActor($actor)
-    ->setContentSource($source)->setIsSilent(false)->setContinueOnNoEffect(true)
-    ->setContinueOnMissingFields(true)
-    ->applyTransactions($destination_wiki, array((new PhrictionTransaction())
-      ->setTransactionType(PhrictionDocumentMoveToTransaction::TRANSACTIONTYPE)
-      ->setNewValue($source_wiki)));
-  $moved = $reload_wiki($destination_wiki->getPHID());
-  $source_after_move = $reload_wiki($source_wiki->getPHID());
-  $check($moved->getPHID() !== $source_after_move->getPHID() &&
-    $moved->getContent()->getContent() === $source_body_before_move &&
-    $moved->getContent()->getTitle() === $source_title_before_move &&
-    $source_after_move->getStatus() === PhrictionDocumentStatus::STATUS_MOVED &&
-    $source_after_move->getContent()->getContent() === '',
-    'pipeline-mapped-wiki-move-and-subeditor');
-  $check((int)$moved->getContent()->getChangeType() ===
-      PhrictionChangeType::CHANGE_MOVE_HERE &&
-    (int)$moved->getContent()->getChangeRef() === (int)$source_after_move->getID() &&
-    (int)$source_after_move->getContent()->getChangeType() ===
-      PhrictionChangeType::CHANGE_MOVE_AWAY &&
-    (int)$source_after_move->getContent()->getChangeRef() === (int)$moved->getID(),
-    'pipeline-native-wiki-move-cross-references-persisted');
-
   // A real SQL failure occurs after native object save but before external/
   // final effects. The native editor must rollback its open SQL transaction.
   $task = $reload_task($task->getPHID());
@@ -486,20 +406,6 @@ function governance_completion_pipeline($fixture, callable $check) {
   $check($tx_count('maniphest', new ManiphestTransaction(), $task->getPHID()) ===
     $records && $queue($task->getPHID()) === $queued,
     'pipeline-validation-no-record-or-publishing');
-
-  $wiki_count = $count('phriction', (new PhrictionDocument())->getTableName());
-  $failed = false;
-  try {
-    $empty_wiki = PhrictionDocument::initializeNewDocument($actor,
-      'synthetic-invalid-empty/')->setSpacePHID($space->getPHID());
-    $edit($empty_wiki, $actor, array((new PhrictionTransaction())
-      ->setTransactionType(PhrictionDocumentContentTransaction::TRANSACTIONTYPE)
-      ->setNewValue('')));
-  } catch (PhabricatorApplicationTransactionValidationException $error) {
-    $failed = true;
-  }
-  $check($failed && $count('phriction', (new PhrictionDocument())->getTableName()) ===
-    $wiki_count, 'pipeline-empty-wiki-create-native-validation-rejected');
 
   $legacy = PhorgeGovernanceCapabilityMap::classify(PhabricatorProject::class,
     PhabricatorProjectTransaction::class,

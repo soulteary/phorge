@@ -1277,6 +1277,387 @@
           "parent": "    // As a special case, skip \"[[ / ]]\" so that Phriction picks it up as a\n    // link to the Phriction root. It is more useful to be able to use this\n    // syntax to link to the root document than the home page of the install.\n    if ($uri == '/') {\n      $is_uri = false;\n    }\n\n"
         }
       ]
+    },
+    "docs/governance/batch-1-contracts.json": {
+      "current_bytes": 14717,
+      "current_sha256": "a2a221bd52a621b220c094a69184fa1d63dbceabad327a8fb02a7e9e11951f7f",
+      "target_bytes": 14715,
+      "target_sha256": "80b863a9ce3db99c0705902001215946dd51a9e6ca1cff7833bf5a0c47e93b46",
+      "edits": [
+        {
+          "offset": 12880,
+          "current": "      \"evidence_status\": \"retired-runtime-removed\",\n      \"coverage\": \"retired\",\n",
+          "parent": "      \"evidence_status\": \"static-reference-only\",\n      \"coverage\": \"partial\",\n"
+        }
+      ]
+    },
+    "docs/governance/private-notification-producers.json": {
+      "current_bytes": 16775,
+      "current_sha256": "744a2fdcc74734dd8de6a80d495d4fdc4f762b30d27fe547b67e7b332064d383",
+      "target_bytes": 16769,
+      "target_sha256": "ab493d356f6d90bab23c0c4bf7e72400171b80b25eec4c482e653068776c8ee1",
+      "edits": [
+        {
+          "offset": 9034,
+          "current": "      \"purpose_review\": \"retired-runtime-removed\",\n",
+          "parent": "      \"purpose_review\": \"business-producer\",\n"
+        },
+        {
+          "offset": 12453,
+          "current": "      \"sha256\": \"abf416c6dc464e65bb50d64853113c4c74440519d62bce1925d76c2d6a213894\"\n",
+          "parent": "      \"sha256\": \"67112136ba242de5c8ada4b22ee07958722fcf3fb93b34dabf08bc353364a361\"\n"
+        }
+      ]
+    },
+    "scripts/governance/check_callers.py": {
+      "current_bytes": 23052,
+      "current_sha256": "514048d43c262369c1ff9013e93da343f721ee93e7017a8895b7e920545b0c1e",
+      "target_bytes": 22829,
+      "target_sha256": "13afea51b8ac24b37e0533256e0ac728229bde0d0a89f266bd8e85d7679c5fba",
+      "edits": [
+        {
+          "offset": 157,
+          "current": "from check_contracts import retired_source\n",
+          "parent": ""
+        },
+        {
+          "offset": 18242,
+          "current": "        retired = retired_source(root, row.get('path'))\n        path = Path(root)/row['path'] if retired else regular_reference(root, row.get('path'))\n",
+          "parent": "        path = regular_reference(root, row.get('path'))\n"
+        },
+        {
+          "offset": 18826,
+          "current": "        require(row.get('coverage') == ('retired' if retired else 'partial') and\n",
+          "parent": "        require(row.get('coverage') == 'partial' and\n"
+        },
+        {
+          "offset": 18965,
+          "current": "                row.get('evidence_status') == ('retired-runtime-removed' if retired else 'static-reference-only'),\n",
+          "parent": "                row.get('evidence_status') == 'static-reference-only',\n"
+        },
+        {
+          "offset": 19140,
+          "current": "        require(row.get('sha256') == (retired or hashlib.sha256(path.read_bytes()).hexdigest()),\n",
+          "parent": "        require(row.get('sha256') == hashlib.sha256(path.read_bytes()).hexdigest(),\n"
+        }
+      ]
+    },
+    "scripts/governance/check_completion.py": {
+      "current_bytes": 16735,
+      "current_sha256": "fa9f6c1e360a95822651f3b4af0277cc243e8edac78ad78f1cf924c713c46b1c",
+      "target_bytes": 16475,
+      "target_sha256": "39956a43c26607ac5ebb761ec25f686b2314326511a082f80efe4bf3a2258649",
+      "edits": [
+        {
+          "offset": 286,
+          "current": "OPS = {'project.description', 'task.title', 'task.description', 'policy.replace', 'project.members', 'object.space',\n",
+          "parent": "OPS = {'project.description', 'task.title', 'task.description', 'wiki.title',\n       'wiki.content', 'policy.replace', 'project.members', 'object.space',\n"
+        },
+        {
+          "offset": 2656,
+          "current": "",
+          "parent": " 'pipeline-native-wiki-move-cross-references-persisted',\n"
+        },
+        {
+          "offset": 2959,
+          "current": "",
+          "parent": " 'pipeline-empty-wiki-create-native-validation-rejected',\n"
+        },
+        {
+          "offset": 4376,
+          "current": "",
+          "parent": " 'read-view-real-native-wiki-loader-profile',\n 'read-view-wiki-private-ancestor-local-allow-actor-query-deny',\n"
+        },
+        {
+          "offset": 7574,
+          "current": "    require(type(rows) is list and len(rows) == 17, 'Native shape matrix count refused.')\n    exact(data.get('shape_count'), 17, 'Native shape count refused.')\n    exact(data.get('operation_count'), 7, 'Native operation count refused.')\n    retired = data.get('retired_rows')\n    require(type(retired) is list and len(retired) == 7, 'Retired Wiki shapes must remain recorded.')\n    exact({row['shape_id'] for row in retired}, {'MAP.WIKI.TITLE','MAP.WIKI.CONTENT','MAP.WIKI.POLICY.VIEW','MAP.WIKI.POLICY.EDIT','MAP.WIKI.SPACE','MAP.WIKI.MOVE','MAP.WIKI.PROJECT.EDGE'}, 'Retired Wiki shape inventory drift.')\n    require(all(row.get('status') == 'retired-runtime-removed' for row in retired), 'Retired shape must not claim runtime coverage.')\n",
+          "parent": "    require(type(rows) is list and len(rows) == 24, 'Native shape matrix count refused.')\n    exact(data.get('shape_count'), 24, 'Native shape count refused.')\n    exact(data.get('operation_count'), 9, 'Native operation count refused.')\n"
+        },
+        {
+          "offset": 15577,
+          "current": "        'native_shapes':17,'retired_shapes':7,'operation_vocabularies':7,'phase':'all','gorge_profile_accepted':True,\n",
+          "parent": "        'native_shapes':24,'operation_vocabularies':9,'phase':'all','gorge_profile_accepted':True,\n"
+        }
+      ]
+    },
+    "scripts/governance/check_contracts.py": {
+      "current_bytes": 12122,
+      "current_sha256": "57a68216092bee8b3c9f7c53e7c493812282c5496137546d141b667ddcd144bb",
+      "target_bytes": 11226,
+      "target_sha256": "125d5584b717fc399c4710c26aba069ac5fb4bf1a85e385ca5539a99173a4daa",
+      "edits": [
+        {
+          "offset": 5078,
+          "current": "def retired_source(root, path):\n    \"\"\"Recognize only absent Wiki sources with unchanged historical hashes.\"\"\"\n    if not path.startswith('src/applications/phriction/') or (Path(root)/path).exists():\n        return False\n    root = Path(root)\n    manifest = json.loads((root/'docs/operations/retirement/wiki.json').read_text())\n    parent = json.loads((root/'support/governance/source-operation/task-parent5903.json').read_text())['entries']\n    rows = {row['path']: row['sha256'] for row in manifest['removed_files']}\n    target = root/path\n    valid = (path in rows and path in parent and\n             rows[path] == parent[path]['sha256'] and\n             not target.exists() and not target.is_symlink())\n    return rows[path] if valid else False\n\n\n",
+          "parent": ""
+        },
+        {
+          "offset": 8515,
+          "current": "        retired = retired_source(root, path)\n        if not retired:\n            _source_file(Path(root), path)\n",
+          "parent": "        _source_file(Path(root), path)\n"
+        },
+        {
+          "offset": 8828,
+          "current": "        _require(row.get('evidence_status') == ('retired-runtime-removed' if retired else 'static-reference-only') and\n                 row.get('coverage') == ('retired' if retired else 'partial') and\n",
+          "parent": "        _require(row.get('evidence_status') == 'static-reference-only' and\n                 row.get('coverage') == 'partial' and\n"
+        }
+      ]
+    },
+    "scripts/governance/check_private_notifications.py": {
+      "current_bytes": 15548,
+      "current_sha256": "10a41483d1432c2913ff97573a122cfcf0be4d5df2f7231307e4583ac2bd421c",
+      "target_bytes": 15155,
+      "target_sha256": "5934588782d648bf3c1da43de6fa80f2ab099bc9744218f16bb0d7bd43ff9c12",
+      "edits": [
+        {
+          "offset": 5878,
+          "current": "                                                                      'retired-runtime-removed'),\n",
+          "parent": "                                                                      'business-producer'),\n"
+        },
+        {
+          "offset": 12028,
+          "current": "        if path=='src/applications/phriction/editor/PhrictionTransactionEditor.php':\n            require(row['purpose_review']=='retired-runtime-removed' and row['sha256']=='3a3b1e9643a71b48d4123960a7f0f594c2258bfc96e450fe81625a1d26aaa55d' and not (root/path).exists(),'retired producer claim')\n            continue\n",
+          "parent": ""
+        },
+        {
+          "offset": 13741,
+          "current": "    require(annotated==(set(PRODUCERS)-{'src/applications/phriction/editor/PhrictionTransactionEditor.php'})|{'src/applications/transactions/editor/PhabricatorApplicationTransactionEditor.php'},'unreviewed producer entry')\n",
+          "parent": "    require(annotated==set(PRODUCERS)|{'src/applications/transactions/editor/PhabricatorApplicationTransactionEditor.php'},'unreviewed producer entry')\n"
+        }
+      ]
+    },
+    "support/governance/completion/fixture-consistency.php": {
+      "current_bytes": 12300,
+      "current_sha256": "11c658527d49b725c3f8917c6964e6dfb5686a5a4453681f6babae0ea6a3e9f1",
+      "target_bytes": 14111,
+      "target_sha256": "637b9cde77c2cbb584986a5c5addfe5c3b98b4824c45a50971572a4bcf18ab32",
+      "edits": [
+        {
+          "offset": 2575,
+          "current": "",
+          "parent": "    array('wiki',PhrictionDocument::class,'wiki.content',array($view)),\n"
+        },
+        {
+          "offset": 3170,
+          "current": "",
+          "parent": "  $hidden_parent = PhorgeGovernanceNativeFixture::phid('WIKI','x');\n  $open_child = PhorgeGovernanceNativeFixture::phid('WIKI','y');\n  foreach (array(array($hidden_parent,'x','read-view-hidden-parent/',1,'no-one'),\n    array($open_child,'y','read-view-hidden-parent/open-child/',2,'users')) as $wiki_shape) {\n    list($doc_phid,$letter,$slug,$depth,$policy)=$wiki_shape;\n    $content_phid=PhorgeGovernanceNativeFixture::phid('WRDS',$letter);\n    $fixture->seedWikiBoundaryRow('phriction_content',array('phid'=>$content_phid,\n      'documentPHID'=>$doc_phid,'version'=>1,'authorPHID'=>$ids['actor'],\n      'title'=>'Synthetic Wiki boundary','slug'=>$slug,'content'=>'Synthetic boundary content',\n      'description'=>'Synthetic boundary setup'));\n    $fixture->seedWikiBoundaryRow('phriction_document',array('phid'=>$doc_phid,\n      'slug'=>$slug,'depth'=>$depth,'status'=>PhrictionDocumentStatus::STATUS_EXISTS,\n      'viewPolicy'=>$policy,'editPolicy'=>'users','spacePHID'=>$ids['space'],\n      'contentPHID'=>$content_phid,'editedEpoch'=>time(),'maxVersion'=>1));\n  }\n  $wiki_binding=$binding;\n  $wiki_binding['target']=$open_child;\n  $wiki_binding['object_class']=PhrictionDocument::class;\n  $wiki_binding['operation']='wiki.content';\n  $hidden_result=PhorgeGovernanceNativeReadView::observe($wiki_binding,array($view),$reader);\n  $check($hidden_result['status'] === 'observed-native-single-read-view' &&\n    $hidden_result['same_physical_connection'] && $hidden_result['same_consistent_read_view'] &&\n    $hidden_result['observations'][$view]['policy_filter'] === 'allow' &&\n    $hidden_result['actor_query_visibility'] === 'deny' && !$hidden_result['can_execute'],\n    'read-view-wiki-private-ancestor-local-allow-actor-query-deny');\n"
+        }
+      ]
+    },
+    "support/governance/completion/pipeline-matrix.json": {
+      "current_bytes": 8210,
+      "current_sha256": "80a1b22959df561f0e230e5bc515597b90a889b3f7f53a9bb502c3fd087a8126",
+      "target_bytes": 8287,
+      "target_sha256": "f781b74a0f916609138dcd1727655dd4849330711a31c67ccb98cf3c3d7e62ad",
+      "edits": [
+        {
+          "offset": 2,
+          "current": "  \"scope\": \"N05 retained project/task native product cut; Wiki shapes retired; no new role or production executor\",\n  \"shape_count\": 17,\n  \"operation_count\": 7,\n",
+          "parent": "  \"scope\": \"N05 existing fixed native product cut; create NAME only setup; no new role or production executor\",\n  \"shape_count\": 24,\n  \"operation_count\": 9,\n"
+        },
+        {
+          "offset": 972,
+          "current": "",
+          "parent": "      ],\n      \"status\": \"implemented-requires-matching-runtime-receipt\",\n      \"evidence_boundary\": \"real-native-pipeline-writable-owned\"\n    },\n    {\n      \"shape_id\": \"MAP.WIKI.TITLE\",\n      \"operation\": \"wiki.title\",\n      \"check_ids\": [\n        \"pipeline-mapped-wiki-title\"\n      ],\n      \"status\": \"implemented-requires-matching-runtime-receipt\",\n      \"evidence_boundary\": \"real-native-pipeline-writable-owned\"\n    },\n    {\n      \"shape_id\": \"MAP.WIKI.CONTENT\",\n      \"operation\": \"wiki.content\",\n      \"check_ids\": [\n        \"pipeline-wiki-update-new-version-committed\"\n"
+        },
+        {
+          "offset": 3205,
+          "current": "",
+          "parent": "      \"shape_id\": \"MAP.WIKI.POLICY.VIEW\",\n      \"operation\": \"policy.replace\",\n      \"check_ids\": [\n        \"pipeline-mapped-wiki-core:view-policy\"\n      ],\n      \"status\": \"implemented-requires-matching-runtime-receipt\",\n      \"evidence_boundary\": \"real-native-pipeline-writable-owned\"\n    },\n    {\n      \"shape_id\": \"MAP.WIKI.POLICY.EDIT\",\n      \"operation\": \"policy.replace\",\n      \"check_ids\": [\n        \"pipeline-mapped-wiki-core:edit-policy\"\n      ],\n      \"status\": \"implemented-requires-matching-runtime-receipt\",\n      \"evidence_boundary\": \"real-native-pipeline-writable-owned\"\n    },\n    {\n      \"shape_id\": \"MAP.WIKI.SPACE\",\n      \"operation\": \"object.space\",\n      \"check_ids\": [\n        \"pipeline-mapped-wiki-space\"\n      ],\n      \"status\": \"implemented-requires-matching-runtime-receipt\",\n      \"evidence_boundary\": \"real-native-pipeline-writable-owned\"\n    },\n    {\n"
+        },
+        {
+          "offset": 5153,
+          "current": "",
+          "parent": "      \"shape_id\": \"MAP.WIKI.MOVE\",\n      \"operation\": \"object.relationship\",\n      \"check_ids\": [\n        \"pipeline-mapped-wiki-move-and-subeditor\"\n      ],\n      \"status\": \"implemented-requires-matching-runtime-receipt\",\n      \"evidence_boundary\": \"real-native-pipeline-writable-owned\"\n    },\n    {\n"
+        },
+        {
+          "offset": 5303,
+          "current": "",
+          "parent": "      ],\n      \"status\": \"implemented-requires-matching-runtime-receipt\",\n      \"evidence_boundary\": \"real-native-pipeline-writable-owned\"\n    },\n    {\n      \"shape_id\": \"MAP.WIKI.PROJECT.EDGE\",\n      \"operation\": \"object.relationship\",\n      \"check_ids\": [\n        \"pipeline-mapped-wiki-project-edge\"\n"
+        },
+        {
+          "offset": 6224,
+          "current": "  ],\n  \"retired_rows\": [\n    {\n      \"shape_id\": \"MAP.WIKI.TITLE\",\n      \"operation\": \"wiki.title\",\n      \"check_ids\": [\n        \"pipeline-mapped-wiki-title\"\n      ],\n      \"status\": \"retired-runtime-removed\",\n      \"evidence_boundary\": \"historical-design-only-not-current-runtime\"\n    },\n    {\n      \"shape_id\": \"MAP.WIKI.CONTENT\",\n      \"operation\": \"wiki.content\",\n      \"check_ids\": [\n        \"pipeline-wiki-update-new-version-committed\"\n      ],\n      \"status\": \"retired-runtime-removed\",\n      \"evidence_boundary\": \"historical-design-only-not-current-runtime\"\n    },\n    {\n      \"shape_id\": \"MAP.WIKI.POLICY.VIEW\",\n      \"operation\": \"policy.replace\",\n      \"check_ids\": [\n        \"pipeline-mapped-wiki-core:view-policy\"\n      ],\n      \"status\": \"retired-runtime-removed\",\n      \"evidence_boundary\": \"historical-design-only-not-current-runtime\"\n    },\n    {\n      \"shape_id\": \"MAP.WIKI.POLICY.EDIT\",\n      \"operation\": \"policy.replace\",\n      \"check_ids\": [\n        \"pipeline-mapped-wiki-core:edit-policy\"\n      ],\n      \"status\": \"retired-runtime-removed\",\n      \"evidence_boundary\": \"historical-design-only-not-current-runtime\"\n    },\n    {\n      \"shape_id\": \"MAP.WIKI.SPACE\",\n      \"operation\": \"object.space\",\n      \"check_ids\": [\n        \"pipeline-mapped-wiki-space\"\n      ],\n      \"status\": \"retired-runtime-removed\",\n      \"evidence_boundary\": \"historical-design-only-not-current-runtime\"\n    },\n    {\n      \"shape_id\": \"MAP.WIKI.MOVE\",\n      \"operation\": \"object.relationship\",\n      \"check_ids\": [\n        \"pipeline-mapped-wiki-move-and-subeditor\"\n      ],\n      \"status\": \"retired-runtime-removed\",\n      \"evidence_boundary\": \"historical-design-only-not-current-runtime\"\n    },\n    {\n      \"shape_id\": \"MAP.WIKI.PROJECT.EDGE\",\n      \"operation\": \"object.relationship\",\n      \"check_ids\": [\n        \"pipeline-mapped-wiki-project-edge\"\n      ],\n      \"status\": \"retired-runtime-removed\",\n      \"evidence_boundary\": \"historical-design-only-not-current-runtime\"\n    }\n",
+          "parent": ""
+        }
+      ]
+    },
+    "support/governance/completion/pipeline.php": {
+      "current_bytes": 22569,
+      "current_sha256": "8db85e0e25d242d77638c4aee433e90d3d566e54f1a18121259f1b221544167d",
+      "target_bytes": 27966,
+      "target_sha256": "4bfa74447ad39bd9c5a0f89cc85a80ee5836a781377082cb9439b3e716da531d",
+      "edits": [
+        {
+          "offset": 3337,
+          "current": "",
+          "parent": "  };\n  $reload_wiki = static function($phid) {\n    return (new PhrictionDocumentQuery())->needContent(true)\n      ->setViewer(PhabricatorUser::getOmnipotentUser())\n      ->withPHIDs(array($phid))->executeOne();\n"
+        },
+        {
+          "offset": 12056,
+          "current": "",
+          "parent": "  // The full quickstart has no Wiki root document. Native child creation\n  // requires a real editable ancestor; create it through the same editor.\n  $wiki_root = (new PhrictionDocumentQuery())->needContent(true)\n    ->setViewer(PhabricatorUser::getOmnipotentUser())\n    ->withSlugs(array('/'))->executeOne();\n  if (!$wiki_root) {\n    $wiki_root = PhrictionDocument::initializeNewDocument($actor, '/')\n      ->setSpacePHID($space->getPHID());\n    $edit($wiki_root, $actor, array((new PhrictionTransaction())\n      ->setTransactionType(PhrictionDocumentTitleTransaction::TRANSACTIONTYPE)\n      ->setNewValue('Synthetic Pipeline Wiki Root'), (new PhrictionTransaction())\n      ->setTransactionType(PhrictionDocumentContentTransaction::TRANSACTIONTYPE)\n      ->setNewValue('Synthetic parent document')));\n  }\n  $check($wiki_root->getID() !== null,\n    'pipeline-real-wiki-root-ancestor-prepared');\n\n  $wiki = PhrictionDocument::initializeNewDocument($actor, 'synthetic-pipeline/')\n    ->setSpacePHID($space->getPHID());\n  $edit($wiki, $actor, array((new PhrictionTransaction())\n    ->setTransactionType(PhrictionDocumentTitleTransaction::TRANSACTIONTYPE)\n    ->setNewValue('Synthetic Pipeline Wiki'), (new PhrictionTransaction())\n    ->setTransactionType(PhrictionDocumentContentTransaction::TRANSACTIONTYPE)\n    ->setNewValue('Synthetic pipeline wiki body')));\n  $wiki = $reload_wiki($wiki->getPHID());\n  $check($wiki && $wiki->getContent()->getContent() ===\n    'Synthetic pipeline wiki body', 'pipeline-wiki-content-final-effect-committed');\n  $version = (int)$wiki->getContent()->getVersion();\n  $edit($wiki, $actor, array((new PhrictionTransaction())\n    ->setTransactionType(PhrictionDocumentContentTransaction::TRANSACTIONTYPE)\n    ->setNewValue('Synthetic pipeline wiki next body')));\n  $wiki = $reload_wiki($wiki->getPHID());\n  $check($wiki->getContent()->getContent() === 'Synthetic pipeline wiki next body' &&\n    (int)$wiki->getContent()->getVersion() > $version,\n    'pipeline-wiki-update-new-version-committed');\n  $check($tx_count('phriction', new PhrictionTransaction(), $wiki->getPHID()) > 0 &&\n    $queue($wiki->getPHID()) > 0, 'pipeline-wiki-records-and-publishing-queued');\n"
+        },
+        {
+          "offset": 14310,
+          "current": "",
+          "parent": "  $edit($wiki, $actor, array((new PhrictionTransaction())\n    ->setTransactionType(PhrictionDocumentTitleTransaction::TRANSACTIONTYPE)\n    ->setNewValue('Synthetic mapped wiki title')));\n  $wiki = $reload_wiki($wiki->getPHID());\n  $check($wiki->getContent()->getTitle() === 'Synthetic mapped wiki title',\n    'pipeline-mapped-wiki-title');\n\n"
+        },
+        {
+          "offset": 15032,
+          "current": "    array('task', $reload_task($task->getPHID()), new ManiphestTransaction(), $reload_task)) as $spec) {\n",
+          "parent": "    array('task', $reload_task($task->getPHID()), new ManiphestTransaction(), $reload_task),\n    array('wiki', $wiki, new PhrictionTransaction(), $reload_wiki)) as $spec) {\n"
+        },
+        {
+          "offset": 17197,
+          "current": "  foreach (array(array('task', $reload_task($task->getPHID()), new ManiphestTransaction())) as $spec) {\n",
+          "parent": "  foreach (array(array('task', $reload_task($task->getPHID()), new ManiphestTransaction()),\n    array('wiki', $reload_wiki($wiki->getPHID()), new PhrictionTransaction())) as $spec) {\n"
+        },
+        {
+          "offset": 19196,
+          "current": "",
+          "parent": "  $source_wiki = $reload_wiki($wiki->getPHID());\n  $source_body_before_move = $source_wiki->getContent()->getContent();\n  $source_title_before_move = $source_wiki->getContent()->getTitle();\n  $destination_wiki = PhrictionDocument::initializeNewDocument($actor,\n    'synthetic-pipeline-moved/')->setSpacePHID($other_space->getPHID());\n  // Mirror PhrictionMoveController's dedicated move contract. Only this\n  // operation permits missing generic fields; source content comes from move.\n  $destination_wiki->getApplicationTransactionEditor()->setActor($actor)\n    ->setContentSource($source)->setIsSilent(false)->setContinueOnNoEffect(true)\n    ->setContinueOnMissingFields(true)\n    ->applyTransactions($destination_wiki, array((new PhrictionTransaction())\n      ->setTransactionType(PhrictionDocumentMoveToTransaction::TRANSACTIONTYPE)\n      ->setNewValue($source_wiki)));\n  $moved = $reload_wiki($destination_wiki->getPHID());\n  $source_after_move = $reload_wiki($source_wiki->getPHID());\n  $check($moved->getPHID() !== $source_after_move->getPHID() &&\n    $moved->getContent()->getContent() === $source_body_before_move &&\n    $moved->getContent()->getTitle() === $source_title_before_move &&\n    $source_after_move->getStatus() === PhrictionDocumentStatus::STATUS_MOVED &&\n    $source_after_move->getContent()->getContent() === '',\n    'pipeline-mapped-wiki-move-and-subeditor');\n  $check((int)$moved->getContent()->getChangeType() ===\n      PhrictionChangeType::CHANGE_MOVE_HERE &&\n    (int)$moved->getContent()->getChangeRef() === (int)$source_after_move->getID() &&\n    (int)$source_after_move->getContent()->getChangeType() ===\n      PhrictionChangeType::CHANGE_MOVE_AWAY &&\n    (int)$source_after_move->getContent()->getChangeRef() === (int)$moved->getID(),\n    'pipeline-native-wiki-move-cross-references-persisted');\n\n"
+        },
+        {
+          "offset": 21751,
+          "current": "",
+          "parent": "  $wiki_count = $count('phriction', (new PhrictionDocument())->getTableName());\n  $failed = false;\n  try {\n    $empty_wiki = PhrictionDocument::initializeNewDocument($actor,\n      'synthetic-invalid-empty/')->setSpacePHID($space->getPHID());\n    $edit($empty_wiki, $actor, array((new PhrictionTransaction())\n      ->setTransactionType(PhrictionDocumentContentTransaction::TRANSACTIONTYPE)\n      ->setNewValue('')));\n  } catch (PhabricatorApplicationTransactionValidationException $error) {\n    $failed = true;\n  }\n  $check($failed && $count('phriction', (new PhrictionDocument())->getTableName()) ===\n    $wiki_count, 'pipeline-empty-wiki-create-native-validation-rejected');\n\n"
+        }
+      ]
+    },
+    "support/governance/fixtures/PhorgeGovernanceNativeFixture.php": {
+      "current_bytes": 17204,
+      "current_sha256": "6e51c2328f0d2475f9d652029b7fdacc2d07e30d7a21fb17d826767c63409d37",
+      "target_bytes": 17233,
+      "target_sha256": "98da6da4dc3a6b0c0bec65c41310c3cd10c2db0bee2cbbcd6a77088298020a9e",
+      "edits": [
+        {
+          "offset": 10166,
+          "current": "    $ids['wiki_content'] = self::phid('WRDS', 'a');\n",
+          "parent": "    $ids['wiki_content'] = self::phid(PhrictionContentPHIDType::TYPECONST, 'a');\n"
+        }
+      ]
+    },
+    "support/governance/fixtures/test-native-pipeline-composition-mysql.php": {
+      "current_bytes": 27853,
+      "current_sha256": "b760921e6b98a689ea734821a37d59bf3f4ffc8b48b0680059d68764a34220ba",
+      "target_bytes": 27904,
+      "target_sha256": "957fb038e4f555b082f35608be53bf09e0496bf5e925bc21023e27fa114bbd38",
+      "edits": [
+        {
+          "offset": 3002,
+          "current": "    ManiphestTask::class), true)) {\n",
+          "parent": "    ManiphestTask::class, PhrictionDocument::class, PhrictionContent::class), true)) {\n"
+        }
+      ]
+    },
+    "support/governance/fixtures/test-native-rule-branches-mysql.php": {
+      "current_bytes": 19055,
+      "current_sha256": "a1de81a4b5784487c90489696ea8dbf93006905392e9b394068e7a9d1f9c0e43",
+      "target_bytes": 23706,
+      "target_sha256": "d845261491c24857beb0eaf792f0757f76366156aace3ccdcebf4736274f8f26",
+      "edits": [
+        {
+          "offset": 16231,
+          "current": "  foreach (array(PhabricatorTransactions::TYPE_VIEW_POLICY,\n    PhabricatorTransactions::TYPE_EDIT_POLICY) as $type) {\n    $observer = PhorgeGovernanceNativeObservationVerifier::newIsolated();\n",
+          "parent": "  $wiki = (new PhrictionDocument())->loadFromArray(native_source_row($reader,\n    $fixture->table('phriction','phriction_document'),$ids['wiki']));\n  $content = (new PhrictionContent())->loadFromArray(native_source_row($reader,\n    $fixture->table('phriction','phriction_content'),$ids['wiki_content']));\n  $observer = PhorgeGovernanceNativeObservationVerifier::newIsolated();\n  $empty = (new PhrictionTransaction())->setTransactionType(PhrictionDocumentContentTransaction::TRANSACTIONTYPE)->setNewValue('');\n  $missing = $observer->observeWikiBatchExpansion($wiki,array($empty));\n  native_source_check($missing['status'] === 'blocked' && $missing['reason'] === 'unsupported_attached_wiki_content','wiki-missing-content-blocked');\n  $wiki->attachContent($content);\n  $r = $observer->observeWikiBatchExpansion($wiki,array($empty));\n  native_source_check($r['status'] === 'observed-native-local-expansion' && count($r['transactions']) === 2 &&\n    $r['transactions'][1]['content_delete'] === true && $r['editor_context']['old_content_version'] === 1 &&\n    !$r['can_execute'], 'wiki-real-content-empty-batch-expands-delete');\n  // Native Lisk text-protocol hydration differs from mysqli prepared results:\n  // the stored integer version is returned as a canonical decimal string.\n  // Acquire proven SELECT-only ownership before native DAO SQL, then close only\n  // that context. Do not reuse or clear an inherited SQL pool.\n  $orm_context = null;\n  try {\n    $orm_context = PhorgeGovernanceNativeCapabilityContext::newIsolated($wiki);\n    $orm_content = (new PhrictionContent())->loadOneWhere(\n      'phid = %s', $ids['wiki_content']);\n    native_source_check($orm_content instanceof PhrictionContent &&\n      $orm_content->getVersion() === '1' && $content->getVersion() === 1 &&\n      $orm_context->isCurrent(), 'wiki-native-orm-text-version-string-prepared-int-control');\n  } finally {\n    if ($orm_context !== null && !$orm_context->close()) {\n      throw new RuntimeException('Owned native ORM context cleanup failed.');\n    }\n  }\n  native_source_check((new ReflectionProperty(LiskDAO::class, 'connections'))\n      ->getValue() === array(), 'wiki-native-orm-owned-pool-closed');\n  $orm_wiki = clone $wiki;\n  $orm_wiki->attachContent($orm_content);\n  $r = $observer->observeWikiBatchExpansion($orm_wiki,array($empty));\n  native_source_check($r['status'] === 'observed-native-local-expansion' &&\n    count($r['transactions']) === 2 &&\n    $r['transactions'][1]['content_delete'] === true &&\n    $r['editor_context']['old_content_version'] === 1 &&\n    !$r['can_execute'], 'wiki-real-native-orm-content-batch-normalized-version');\n  $move = (new PhrictionTransaction())->setTransactionType(PhrictionDocumentMoveToTransaction::TRANSACTIONTYPE)->setNewValue(clone $wiki);\n  $r = $observer->observeWikiBatchExpansion($wiki,array($move,$empty));\n  $types = array_column($r['transactions'] ?? array(), 'transaction_type');\n  native_source_check($r['status'] === 'observed-native-local-expansion' && $types === array(\n    PhrictionDocumentMoveToTransaction::TRANSACTIONTYPE, PhabricatorTransactions::TYPE_VIEW_POLICY,\n    PhabricatorTransactions::TYPE_EDIT_POLICY, PhrictionDocumentContentTransaction::TRANSACTIONTYPE,\n    PhrictionDocumentDeleteTransaction::TRANSACTIONTYPE), 'wiki-move-empty-real-native-order');\n  $bad = clone $content; $bad->setDocumentPHID(PhorgeGovernanceNativeFixture::phid('WIKI','z'));\n  $wiki->attachContent($bad);\n  $r = $observer->observeWikiBatchExpansion($wiki,array($empty));\n  native_source_check($r['status'] === 'blocked' && $r['reason'] === 'unsupported_attached_wiki_content','wiki-mismatched-content-blocked');\n  $bad = clone $content; $bad->setPHID(PhorgeGovernanceNativeFixture::phid('WRDS','z'));\n  $wiki->attachContent($bad);\n  $r = $observer->observeWikiBatchExpansion($wiki,array($empty));\n  native_source_check($r['status'] === 'blocked' && $r['reason'] === 'unsupported_attached_wiki_content','wiki-stale-content-identity-blocked');\n  $wiki->attachContent($content);\n  $unknown = (new PhrictionTransaction())->setTransactionType('unknown.synthetic')->setNewValue('');\n  $r = $observer->observeWikiBatchExpansion($wiki,array($unknown));\n  native_source_check($r['status'] === 'blocked' && $r['reason'] === 'unsupported_local_closure','wiki-unknown-transaction-blocked');\n  foreach (array(PhabricatorTransactions::TYPE_VIEW_POLICY,PhabricatorTransactions::TYPE_EDIT_POLICY) as $type) {\n    $tx = (new PhrictionTransaction())->setTransactionType($type)->setNewValue('users');\n    $r = $observer->observeWikiLocalExpansion($wiki,array($tx));\n    native_source_check($r['status'] === 'observed-native-local-expansion' &&\n      count($r['transactions']) === 1 && $r['transactions'][0]['transaction_type'] === $type &&\n      !$r['can_execute'] && !$r['risk_complete'], 'wiki-native-policy-passthrough-'.$type);\n"
+        }
+      ]
+    },
+    "support/governance/fixtures/test-native-source-mysql.php": {
+      "current_bytes": 26933,
+      "current_sha256": "670a39208055de60c9a82a3b5e4274997d918a2db6e7c58ce64572341b27db23",
+      "target_bytes": 27417,
+      "target_sha256": "4e5c192cc8382d2e70f7751e5b81a49fb7d7bc4c447d857dd90dafba2129bdda",
+      "edits": [
+        {
+          "offset": 8936,
+          "current": "",
+          "parent": "    array('phriction', 'phriction_document', PhrictionDocument::class),\n    array('phriction', 'phriction_content', PhrictionContent::class),\n"
+        },
+        {
+          "offset": 11136,
+          "current": "",
+          "parent": "  $wiki = (new PhrictionDocument())->loadFromArray(\n    native_source_row($reader, $fixture->table('phriction', 'phriction_document'),\n      $ids['wiki']));\n"
+        },
+        {
+          "offset": 12917,
+          "current": "",
+          "parent": "  native_source_capability($observer, $users['actor'], $wiki, $view, 'allow',\n    'native-wiki-users-view-observed');\n"
+        },
+        {
+          "offset": 17887,
+          "current": "",
+          "parent": "    array('wiki.content', PhrictionDocument::class, $ids['wiki']),\n"
+        }
+      ]
+    },
+    "support/governance/fixtures/test-readset-mysql.php": {
+      "current_bytes": 15850,
+      "current_sha256": "2d37a5f962f83cf8148109ed8c6b75fd4f8ad528331bc4bfe69bd500ccd785be",
+      "target_bytes": 15929,
+      "target_sha256": "c9ca1277563b902a5ebcca349ceea9c82d0556029ccb02d6729908f05b5fc2e9",
+      "edits": [
+        {
+          "offset": 12408,
+          "current": "    array('binding-task', 'ManiphestTask', 'task.title', 'task.policy'))\n",
+          "parent": "    array('binding-task', 'ManiphestTask', 'task.title', 'task.policy'),\n    array('binding-wiki', 'PhrictionDocument', 'wiki.content', 'wiki.policy'))\n"
+        }
+      ]
+    },
+    "support/governance/notification/native-cases.php": {
+      "current_bytes": 13397,
+      "current_sha256": "2fc134c8e2016aab926bce6a6d958c19e5310922c9fdd3444ad0767f89356d68",
+      "target_bytes": 12912,
+      "target_sha256": "ce0866134d7f7cd73a7124f758c5286016b82f1b3fbeee1095662f6bc5e9716f",
+      "edits": [
+        {
+          "offset": 11617,
+          "current": "    $wiki_content=array('status'=>'retired-runtime-removed','historical_mail_refused'=>true);\n    foreach (array(false,true) as $enabled) {\n      $retired_scope=PhabricatorEnv::beginScopedEnv()\n        ->overrideEnvConfig('governance.private-mail.enabled',$enabled);\n      try {\n        $retired=(new PhabricatorMetaMTAMail())\n          ->setPrivateMailProducer('PhrictionTransactionEditor')\n          ->setRelatedPHID('PHID-WIKI-aaaaaaaaaaaaaaaaaaaa');\n        $check(!PhorgePrivateMailPolicy::authorize($retired),\n          'retired-wiki-mail-refused-policy-'.($enabled?'on':'off'));\n      } finally { unset($retired_scope); }\n    }\n",
+          "parent": "    require_once __DIR__.'/wiki-content-publication-cases.php';\n    $wiki_content=governance_private_mail_wiki_content_cases($fixture,$check,$queue);\n"
+        }
+      ]
+    },
+    "tests/contract/runtime/products.php": {
+      "current_bytes": 16439,
+      "current_sha256": "200f753701c0284260f64b516d27c1e02475803001aad3e00f108cc8f8ae7176",
+      "target_bytes": 16439,
+      "target_sha256": "1e77853b4254da93667ba1b95ebc95cec1f25bac1a133ecdb119d1837cf84278",
+      "edits": [
+        {
+          "offset": 10164,
+          "current": "  $markup = PhabricatorMarkupEngine::newManiphestMarkupEngine();\n",
+          "parent": "  $markup = PhabricatorMarkupEngine::newPhrictionMarkupEngine();\n"
+        }
+      ]
+    },
+    "tests/governance/test_completion.py": {
+      "current_bytes": 12317,
+      "current_sha256": "4c37b8e07c275a9a29733123e3ce2e24a5533d3e974ebb4a673b3d2ff1e0972c",
+      "target_bytes": 12403,
+      "target_sha256": "8f6acafcf49fba16c6222a80e56d9659b03c54c2bf595afbe210d37c94e65ecb",
+      "edits": [
+        {
+          "offset": 3929,
+          "current": "        self.assertEqual(result['native_shapes'],17)\n        self.assertEqual(result['operation_vocabularies'],7)\n",
+          "parent": "        self.assertEqual(result['native_shapes'],24)\n        self.assertEqual(result['operation_vocabularies'],9)\n"
+        },
+        {
+          "offset": 4971,
+          "current": "        self.assertEqual(len(matrix['rows']),17)\n",
+          "parent": "        self.assertEqual(len(matrix['rows']),24)\n"
+        },
+        {
+          "offset": 6007,
+          "current": "",
+          "parent": "                      'read-view-wiki-private-ancestor-local-allow-actor-query-deny',\n"
+        },
+        {
+          "offset": 11153,
+          "current": "            self.assertEqual(json.loads(result.stdout)['native_shapes'],17)\n",
+          "parent": "            self.assertEqual(json.loads(result.stdout)['native_shapes'],24)\n"
+        }
+      ]
     }
   }
 }

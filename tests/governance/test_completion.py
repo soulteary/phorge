@@ -64,8 +64,8 @@ class CompletionReceiptTests(unittest.TestCase):
 
     def test_accepts_only_bounded_current_scope(self):
         result=gate.validate(valid_template())
-        self.assertEqual(result['native_shapes'],24)
-        self.assertEqual(result['operation_vocabularies'],9)
+        self.assertEqual(result['native_shapes'],17)
+        self.assertEqual(result['operation_vocabularies'],7)
         self.assertFalse(result['global_completion'])
         self.assertFalse(result['N03_completed'])
         self.assertFalse(result['hosted_ci_or_review_proved'])
@@ -82,7 +82,7 @@ class CompletionReceiptTests(unittest.TestCase):
 
     def test_each_atomic_shape_requires_every_runtime_check(self):
         matrix=json.loads((ROOT/gate.MATRIX).read_text())
-        self.assertEqual(len(matrix['rows']),24)
+        self.assertEqual(len(matrix['rows']),17)
         for row in matrix['rows']:
             for check in row['check_ids']:
                 with self.subTest(shape=row['shape_id'],check=check):
@@ -98,7 +98,6 @@ class CompletionReceiptTests(unittest.TestCase):
                       'completion-create-hidden-transactions-produce-no-mail-outbox',
                       'pipeline-midwrite-object-row-rolled-back',
                       'read-view-pool-drift-blocks-without-closing-caller-owned-connection',
-                      'read-view-wiki-private-ancestor-local-allow-actor-query-deny',
                       'read-view-huge-native-task-row-refused-before-select-fetch']:
             data=valid_template();data['checks'].remove(check);data['check_count']-=1;self.reject(data)
         data=valid_template();data['check_count']+=1;self.reject(data)
@@ -170,7 +169,7 @@ class CompletionReceiptTests(unittest.TestCase):
             result=subprocess.run([sys.executable,'-B',str(ROOT/'scripts/governance/check_completion.py'),
                 '--receipt',str(path)],capture_output=True,text=True)
             self.assertEqual(result.returncode,0)
-            self.assertEqual(json.loads(result.stdout)['native_shapes'],24)
+            self.assertEqual(json.loads(result.stdout)['native_shapes'],17)
 
 
 class NativeStopMigrationCompatibilityTest(unittest.TestCase):

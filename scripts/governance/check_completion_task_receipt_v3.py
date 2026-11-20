@@ -4,7 +4,7 @@ from pathlib import Path
 import source_operation_snapshot as source
 ROOT=Path(__file__).resolve().parents[2]
 BASE='support/governance/completion-task-v3/'
-COMPLETION_SHA='39956a43c26607ac5ebb761ec25f686b2314326511a082f80efe4bf3a2258649'
+COMPLETION_SHA='fa9f6c1e360a95822651f3b4af0277cc243e8edac78ad78f1cf924c713c46b1c'
 IMAGE='mysql:8.4.13@sha256:a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7'
 class CompletionProcessExit(Exception):
  def __init__(self,returncode,sink_errors=()):

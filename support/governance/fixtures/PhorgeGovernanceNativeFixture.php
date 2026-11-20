@@ -229,7 +229,7 @@ final class PhorgeGovernanceNativeFixture {
       'properties' => '{}', 'subtype' => 'default',
     ));
     $ids['wiki'] = self::phid('WIKI', 'a');
-    $ids['wiki_content'] = self::phid(PhrictionContentPHIDType::TYPECONST, 'a');
+    $ids['wiki_content'] = self::phid('WRDS', 'a');
     $this->seed('phriction', 'phriction_content', array(
       'id' => 1, 'version' => 1, 'authorPHID' => $ids['actor'],
       'title' => 'Synthetic wiki', 'slug' => 'synthetic/',

@@ -1,7 +1,7 @@
 """OAuthAccess CURRENT literal body adaptation; no source admission or SQL."""
 import ast,copy,hashlib,re,types,os,stat
 from pathlib import Path
-PINS={'check_completion': '39956a43c26607ac5ebb761ec25f686b2314326511a082f80efe4bf3a2258649', 'check_native_organization': 'c2c614ab497e6590c13455bd1b495f9f9230c62acd066884b738d460023be300', 'check_recovery_partial_composition': '76930e99b57cb3a4488817fa88865f9b8a17df9c2cf8c501367f8779abb3e0ca', 'check_recovery_oauth_access_producer_v3': 'aeae15549c413899f594432b63ff4a4a4a636701942c92cb1a560209ca45acdd'}
+PINS={'check_completion': 'fa9f6c1e360a95822651f3b4af0277cc243e8edac78ad78f1cf924c713c46b1c', 'check_native_organization': 'c2c614ab497e6590c13455bd1b495f9f9230c62acd066884b738d460023be300', 'check_recovery_partial_composition': '76930e99b57cb3a4488817fa88865f9b8a17df9c2cf8c501367f8779abb3e0ca', 'check_recovery_oauth_access_producer_v3': 'aeae15549c413899f594432b63ff4a4a4a636701942c92cb1a560209ca45acdd'}
 IMAGE='mysql:8.4.13@sha256:a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7'
 def need(v):
  if v is not True:raise ValueError('Task_OAuthAccess_body_refused')

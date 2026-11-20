@@ -198,7 +198,7 @@
     {
       "path": "src/applications/phriction/editor/PhrictionTransactionEditor.php",
       "symbol": "PhrictionTransactionEditor",
-      "purpose_review": "business-producer",
+      "purpose_review": "retired-runtime-removed",
       "sha256": "3a3b1e9643a71b48d4123960a7f0f594c2258bfc96e450fe81625a1d26aaa55d",
       "runtime_matrix_complete": false
     },
@@ -275,7 +275,7 @@
     },
     {
       "path": "src/infrastructure/governance/notification/PhorgePrivateMailPolicy.php",
-      "sha256": "67112136ba242de5c8ada4b22ee07958722fcf3fb93b34dabf08bc353364a361"
+      "sha256": "abf416c6dc464e65bb50d64853113c4c74440519d62bce1925d76c2d6a213894"
     },
     {
       "path": "src/infrastructure/governance/notification/PhorgePrivateMailConfigOptions.php",

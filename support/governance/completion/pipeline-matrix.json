@@ -1,7 +1,7 @@
 {
-  "scope": "N05 existing fixed native product cut; create NAME only setup; no new role or production executor",
-  "shape_count": 24,
-  "operation_count": 9,
+  "scope": "N05 retained project/task native product cut; Wiki shapes retired; no new role or production executor",
+  "shape_count": 17,
+  "operation_count": 7,
   "status": "implemented-requires-matching-runtime-receipt",
   "rows": [
     {
@@ -27,24 +27,6 @@
       "operation": "task.description",
       "check_ids": [
         "pipeline-mapped-task-description"
-      ],
-      "status": "implemented-requires-matching-runtime-receipt",
-      "evidence_boundary": "real-native-pipeline-writable-owned"
-    },
-    {
-      "shape_id": "MAP.WIKI.TITLE",
-      "operation": "wiki.title",
-      "check_ids": [
-        "pipeline-mapped-wiki-title"
-      ],
-      "status": "implemented-requires-matching-runtime-receipt",
-      "evidence_boundary": "real-native-pipeline-writable-owned"
-    },
-    {
-      "shape_id": "MAP.WIKI.CONTENT",
-      "operation": "wiki.content",
-      "check_ids": [
-        "pipeline-wiki-update-new-version-committed"
       ],
       "status": "implemented-requires-matching-runtime-receipt",
       "evidence_boundary": "real-native-pipeline-writable-owned"
@@ -113,33 +95,6 @@
       "evidence_boundary": "real-native-pipeline-writable-owned"
     },
     {
-      "shape_id": "MAP.WIKI.POLICY.VIEW",
-      "operation": "policy.replace",
-      "check_ids": [
-        "pipeline-mapped-wiki-core:view-policy"
-      ],
-      "status": "implemented-requires-matching-runtime-receipt",
-      "evidence_boundary": "real-native-pipeline-writable-owned"
-    },
-    {
-      "shape_id": "MAP.WIKI.POLICY.EDIT",
-      "operation": "policy.replace",
-      "check_ids": [
-        "pipeline-mapped-wiki-core:edit-policy"
-      ],
-      "status": "implemented-requires-matching-runtime-receipt",
-      "evidence_boundary": "real-native-pipeline-writable-owned"
-    },
-    {
-      "shape_id": "MAP.WIKI.SPACE",
-      "operation": "object.space",
-      "check_ids": [
-        "pipeline-mapped-wiki-space"
-      ],
-      "status": "implemented-requires-matching-runtime-receipt",
-      "evidence_boundary": "real-native-pipeline-writable-owned"
-    },
-    {
       "shape_id": "MAP.PROJECT.MEMBERS",
       "operation": "project.members",
       "check_ids": [
@@ -192,28 +147,10 @@
       "evidence_boundary": "real-native-pipeline-writable-owned"
     },
     {
-      "shape_id": "MAP.WIKI.MOVE",
-      "operation": "object.relationship",
-      "check_ids": [
-        "pipeline-mapped-wiki-move-and-subeditor"
-      ],
-      "status": "implemented-requires-matching-runtime-receipt",
-      "evidence_boundary": "real-native-pipeline-writable-owned"
-    },
-    {
       "shape_id": "MAP.TASK.PROJECT.EDGE",
       "operation": "object.relationship",
       "check_ids": [
         "pipeline-mapped-task-project-edge"
-      ],
-      "status": "implemented-requires-matching-runtime-receipt",
-      "evidence_boundary": "real-native-pipeline-writable-owned"
-    },
-    {
-      "shape_id": "MAP.WIKI.PROJECT.EDGE",
-      "operation": "object.relationship",
-      "check_ids": [
-        "pipeline-mapped-wiki-project-edge"
       ],
       "status": "implemented-requires-matching-runtime-receipt",
       "evidence_boundary": "real-native-pipeline-writable-owned"
@@ -233,5 +170,70 @@
     "Arbitrary third-party extension/Herald action sets and external services not enabled.",
     "Actual Gorge file and queue/outbox service receipts are required separately; external delivery workers are not executed.",
     "Sampled/read-view evidence does not grant future business-write authorization."
+  ],
+  "retired_rows": [
+    {
+      "shape_id": "MAP.WIKI.TITLE",
+      "operation": "wiki.title",
+      "check_ids": [
+        "pipeline-mapped-wiki-title"
+      ],
+      "status": "retired-runtime-removed",
+      "evidence_boundary": "historical-design-only-not-current-runtime"
+    },
+    {
+      "shape_id": "MAP.WIKI.CONTENT",
+      "operation": "wiki.content",
+      "check_ids": [
+        "pipeline-wiki-update-new-version-committed"
+      ],
+      "status": "retired-runtime-removed",
+      "evidence_boundary": "historical-design-only-not-current-runtime"
+    },
+    {
+      "shape_id": "MAP.WIKI.POLICY.VIEW",
+      "operation": "policy.replace",
+      "check_ids": [
+        "pipeline-mapped-wiki-core:view-policy"
+      ],
+      "status": "retired-runtime-removed",
+      "evidence_boundary": "historical-design-only-not-current-runtime"
+    },
+    {
+      "shape_id": "MAP.WIKI.POLICY.EDIT",
+      "operation": "policy.replace",
+      "check_ids": [
+        "pipeline-mapped-wiki-core:edit-policy"
+      ],
+      "status": "retired-runtime-removed",
+      "evidence_boundary": "historical-design-only-not-current-runtime"
+    },
+    {
+      "shape_id": "MAP.WIKI.SPACE",
+      "operation": "object.space",
+      "check_ids": [
+        "pipeline-mapped-wiki-space"
+      ],
+      "status": "retired-runtime-removed",
+      "evidence_boundary": "historical-design-only-not-current-runtime"
+    },
+    {
+      "shape_id": "MAP.WIKI.MOVE",
+      "operation": "object.relationship",
+      "check_ids": [
+        "pipeline-mapped-wiki-move-and-subeditor"
+      ],
+      "status": "retired-runtime-removed",
+      "evidence_boundary": "historical-design-only-not-current-runtime"
+    },
+    {
+      "shape_id": "MAP.WIKI.PROJECT.EDGE",
+      "operation": "object.relationship",
+      "check_ids": [
+        "pipeline-mapped-wiki-project-edge"
+      ],
+      "status": "retired-runtime-removed",
+      "evidence_boundary": "historical-design-only-not-current-runtime"
+    }
   ]
 }

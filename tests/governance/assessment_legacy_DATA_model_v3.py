@@ -203,7 +203,7 @@ def legacy_DATA_labels(fixture):
   need(sha(context.current(helper))==models['project_content_grant_source_delta'].MEDIA_SOURCE_DELTA_SHA)
   # The one newly reachable CURRENT loader stays byte-pinned by its unchanged
   # body; its helper is also part of this genuine S capture, never E authority.
-  need(sha(context.current('scripts/governance/current_native_pair_metadata_v1.py'))=='aff2a7fba2bc05b0c6acb0a3e6144a06f69a5ff87f8c88fc7593518ed319e032')
+  need(sha(context.current('scripts/governance/current_native_pair_metadata_v1.py'))=='08def5167c217549ec2307bff8f001c5a6585ce5cabe36a32828227df82e0750')
   for name,model in models.items():
    need(not any(isinstance(v,types.ModuleType)and v.__name__=='source_operation_snapshot'for v in model.__dict__.values()))
   seals={name:{key:id(value)for key,value in module.__dict__.items()}for name,module in models.items()}

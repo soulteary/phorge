@@ -265,7 +265,7 @@ try {
       '<button>保存更改</button>',
     'Chinese translated HTML changed.');
 
-  $markup = PhabricatorMarkupEngine::newPhrictionMarkupEngine();
+  $markup = PhabricatorMarkupEngine::newManiphestMarkupEngine();
   $markup->setConfig('viewer', $viewer);
   $html = (string)$markup->markupText(
     "= 文档标题 =\n\n**中文内容** [[https://example.test/|文档链接]]".

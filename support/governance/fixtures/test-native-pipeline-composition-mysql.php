@@ -93,7 +93,7 @@ function native_source_bind($ids, $operation, $object_class, $target) {
 
 function native_pipeline_orm($class, $phid) {
   if (!in_array($class, array(PhabricatorUser::class, PhabricatorProject::class,
-    ManiphestTask::class, PhrictionDocument::class, PhrictionContent::class), true)) {
+    ManiphestTask::class), true)) {
     throw new LogicException('Unsupported fixed fixture model.');
   }
   $template = new $class();

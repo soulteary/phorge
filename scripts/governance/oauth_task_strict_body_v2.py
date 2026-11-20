@@ -5,7 +5,7 @@ explicit source-obligation/restore seams change; all old receipt assertions stay
 import ast,copy,hashlib,re,types,os,stat
 from pathlib import Path
 PINS={
- 'check_completion':'39956a43c26607ac5ebb761ec25f686b2314326511a082f80efe4bf3a2258649',
+ 'check_completion':'fa9f6c1e360a95822651f3b4af0277cc243e8edac78ad78f1cf924c713c46b1c',
  'check_native_organization':'c2c614ab497e6590c13455bd1b495f9f9230c62acd066884b738d460023be300',
  'check_recovery_partial_composition':'76930e99b57cb3a4488817fa88865f9b8a17df9c2cf8c501367f8779abb3e0ca',
  'check_recovery_file_parent_policy':'239b9614af1288b053d369d5a4e62fb127a955a79f66053f281e34e9b1aad786',

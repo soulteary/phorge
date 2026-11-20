@@ -282,8 +282,7 @@ try {
     'UPDATE readset_source SET revision = ? WHERE source_role = ?',
     array('v1', 'actor.org.membership'));
   foreach (array(
-    array('binding-task', 'ManiphestTask', 'task.title', 'task.policy'),
-    array('binding-wiki', 'PhrictionDocument', 'wiki.content', 'wiki.policy'))
+    array('binding-task', 'ManiphestTask', 'task.title', 'task.policy'))
     as $case) {
     $family_binding = $binding;
     $family_binding['operation_id'] = $case[0];

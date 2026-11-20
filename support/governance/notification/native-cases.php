@@ -138,8 +138,18 @@ function governance_private_mail_native_cases($fixture,callable $check){
     $legalpad=governance_private_mail_legalpad_cases($fixture,$check);
     require_once __DIR__.'/business-gorge-publication-cases.php';
     $business_gorge=governance_private_mail_business_gorge_cases($fixture,$check,$queue);
-    require_once __DIR__.'/wiki-content-publication-cases.php';
-    $wiki_content=governance_private_mail_wiki_content_cases($fixture,$check,$queue);
+    $wiki_content=array('status'=>'retired-runtime-removed','historical_mail_refused'=>true);
+    foreach (array(false,true) as $enabled) {
+      $retired_scope=PhabricatorEnv::beginScopedEnv()
+        ->overrideEnvConfig('governance.private-mail.enabled',$enabled);
+      try {
+        $retired=(new PhabricatorMetaMTAMail())
+          ->setPrivateMailProducer('PhrictionTransactionEditor')
+          ->setRelatedPHID('PHID-WIKI-aaaaaaaaaaaaaaaaaaaa');
+        $check(!PhorgePrivateMailPolicy::authorize($retired),
+          'retired-wiki-mail-refused-policy-'.($enabled?'on':'off'));
+      } finally { unset($retired_scope); }
+    }
     require_once __DIR__.'/business-publication-cases.php';
     $business=governance_private_mail_business_publication_cases($fixture,$check,$queue);
     require_once __DIR__.'/governance-notice-cases.php';

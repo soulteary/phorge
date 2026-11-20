@@ -8,8 +8,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 MATRIX = 'support/governance/completion/pipeline-matrix.json'
-OPS = {'project.description', 'task.title', 'task.description', 'wiki.title',
-       'wiki.content', 'policy.replace', 'project.members', 'object.space',
+OPS = {'project.description', 'task.title', 'task.description', 'policy.replace', 'project.members', 'object.space',
        'object.relationship'}
 PATCHES = '''20260907.herald.01.requeststatuskey.sql
 20260911.differential.01.appemail.php
@@ -65,14 +64,12 @@ REQUIRED_CHECKS = {
  'pipeline-support-native-file-transaction-record',
  'pipeline-real-no-rule-herald-transcripts',
  'pipeline-customfield-old-value-loaded-from-native-storage',
- 'pipeline-native-wiki-move-cross-references-persisted',
  'pipeline-injected-record-write-failure-observed',
  'pipeline-midwrite-object-row-rolled-back',
  'pipeline-midwrite-transaction-records-rolled-back',
  'pipeline-midwrite-no-publishing-enqueued',
  'pipeline-invalid-task-validation-rejects-unchanged-row',
  'pipeline-validation-no-record-or-publishing',
- 'pipeline-empty-wiki-create-native-validation-rejected',
  'pipeline-fixed-native-library-profile-unchanged',
  'pipeline-current-gorge-file-bytes-roundtrip',
  'completion-real-gorge-file-ready-loopback',
@@ -98,8 +95,6 @@ REQUIRED_CHECKS = {
  'read-view-real-native-project-loader-profile',
  'read-view-real-native-project-view-allow',
  'read-view-real-native-project-edit-allow',
- 'read-view-real-native-wiki-loader-profile',
- 'read-view-wiki-private-ancestor-local-allow-actor-query-deny',
  'read-view-a-to-b-observes-snapshot-a',
  'read-view-fresh-snapshot-observes-committed-b',
  'read-view-a-b-a-remains-consistent-not-execution-freshness',
@@ -177,9 +172,13 @@ def service(value, kind):
 def matrix_checks(root=ROOT):
     data = json.loads((Path(root)/MATRIX).read_text())
     rows = data.get('rows')
-    require(type(rows) is list and len(rows) == 24, 'Native shape matrix count refused.')
-    exact(data.get('shape_count'), 24, 'Native shape count refused.')
-    exact(data.get('operation_count'), 9, 'Native operation count refused.')
+    require(type(rows) is list and len(rows) == 17, 'Native shape matrix count refused.')
+    exact(data.get('shape_count'), 17, 'Native shape count refused.')
+    exact(data.get('operation_count'), 7, 'Native operation count refused.')
+    retired = data.get('retired_rows')
+    require(type(retired) is list and len(retired) == 7, 'Retired Wiki shapes must remain recorded.')
+    exact({row['shape_id'] for row in retired}, {'MAP.WIKI.TITLE','MAP.WIKI.CONTENT','MAP.WIKI.POLICY.VIEW','MAP.WIKI.POLICY.EDIT','MAP.WIKI.SPACE','MAP.WIKI.MOVE','MAP.WIKI.PROJECT.EDGE'}, 'Retired Wiki shape inventory drift.')
+    require(all(row.get('status') == 'retired-runtime-removed' for row in retired), 'Retired shape must not claim runtime coverage.')
     ids, operations, checks = set(), set(), set()
     for row in rows:
         require(type(row) is dict and type(row.get('shape_id')) is str and
@@ -283,7 +282,7 @@ def validate(data, root=ROOT):
     require(type(data['captured_native_output_bytes']) is int and data['captured_native_output_bytes'] >= 0 and
             digest(data['captured_native_output_sha256']), 'Captured output summary refused.')
     return {'schema_valid':True,'accepted_scope':'fixed-native-N05-N07-integration',
-        'native_shapes':24,'operation_vocabularies':9,'phase':'all','gorge_profile_accepted':True,
+        'native_shapes':17,'retired_shapes':7,'operation_vocabularies':7,'phase':'all','gorge_profile_accepted':True,
         'can_execute':False,'global_completion':False,'N03_completed':False,
         'remaining_blocked':['N03 organization/appointment sources and optional governance writer',
             'Future business-write authorization and execution freshness',

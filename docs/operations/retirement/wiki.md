@@ -69,3 +69,21 @@ remains blocked on:
    and final independent review on the exact PR head.
 
 All required CI gates remain in place. No failed or unexecuted gate is waived.
+
+## Integration progress
+
+The current retirement implementation has additionally passed:
+
+- the complete pure native governance suite (276 methods, PHP 8.5.12);
+- 81 native-source and 43 native-policy SQL checks;
+- 27 read-set and 66 native-pipeline SQL checks;
+- 109 retained Completion checks using the pinned Gorge file and queue services;
+- six real HTTP requests with a native synthetic session: three retired paths
+  return 404, and task detail, task list and project list return 200;
+- persisted historical Wiki mail quarantine with the private-mail policy off
+  and on, retaining the original stored delivery snapshot;
+- all seven historical PHP migration patches against synthetic nonempty tables,
+  preserving two documents, two content rows and two mail-property records.
+
+Each SQL run used disposable storage with no public listener. These are scoped
+results, not a substitute for the final exact-head CI and source-owner checks.
