@@ -2987,6 +2987,57 @@
           "parent": "the test pair requires a reviewed source-pin change and fresh check results. Use only PHP 8.5.12 with JIT explicitly disabled and zero\n"
         }
       ]
+    },
+    "tests/governance/test_project_description_ci.py": {
+      "current_bytes": 9739,
+      "current_sha256": "61ef69287211e2fb310223f72225783dbd422f4db1aa622d7bb3d1cfc90e6fca",
+      "target_bytes": 5115,
+      "target_sha256": "5800a73a93c9e1d35ed6e4433d4d7954db54a9fb377330ff22a3085fd249d5d6",
+      "edits": [
+        {
+          "offset": 459,
+          "current": " def test_task_fixture_factory_exact_binding_and_restoration_without_SQL(self):\n  shared=load('support/governance/project-content-grants-ci/ci.py','fixture_shared_factory')\n  folder=ROOT/'support/governance/project-content-grants-ci/prerequisites'\n  fixture=(ROOT/'support/governance/project-description-ci/fixture.php').read_bytes()\n  original=shared.module;pins=shared.REVIEWED_PINS['prerequisites']\n  with ci.task_description_fixture_factory(shared,folder,fixture):\n   adapted=shared.module('N05_actual_prerequisites',folder/'provision.py',pins)\n   self.assertEqual(adapted.DESCRIPTION_FIXTURE_SHA,ci.DESCRIPTION_FIXTURE_CURRENT_SHA)\n   self.assertIsNone(adapted.ROOT_PROFILE_SHA);self.assertIsNone(adapted.ROOT_REVIEW_SHA)\n   self.assertIsNone(adapted.ROOT_SOURCE_FREEZE_SHA)\n   for name,path,provided in [('unknown',folder/'provision.py',pins),('N05_actual_prerequisites',folder/'wrong.py',pins),('N05_actual_prerequisites',folder/'provision.py',{})]:\n    with self.assertRaises(ValueError):shared.module(name,path,provided)\n  self.assertIs(shared.module,original)\n  normal=shared.module('description_prerequisites',folder/'provision.py',pins)\n  self.assertEqual(normal.DESCRIPTION_FIXTURE_SHA,ci.DESCRIPTION_FIXTURE_PARENT_SHA)\n  with self.assertRaisesRegex(RuntimeError,'fixed'):\n   with ci.task_description_fixture_factory(shared,folder,fixture):raise RuntimeError('fixed')\n  self.assertIs(shared.module,original)\n  for raw in [fixture+b'\\n',fixture.replace(b'8.5.13',b'8.5.12'),fixture.replace(b'8.5.13',b'8.5.14'),fixture.replace(b\"opcache.jit')==='disable'\",b\"opcache.jit')==='off'\")]:\n   with self.assertRaises(ValueError):\n    with ci.task_description_fixture_factory(shared,folder,raw):self.fail('unknown fixture accepted')\n  import types\n  class ExtraGlobal(types.ModuleType):\n   def __setattr__(self,name,value):\n    super().__setattr__(name,value)\n    if name=='DESCRIPTION_FIXTURE_SHA'and value==ci.DESCRIPTION_FIXTURE_CURRENT_SHA:super().__setattr__('unreviewed_global',True)\n  def altered(name,path,provided):\n   value=original(name,path,provided);bad=ExtraGlobal(name);bad.__dict__.update(vars(value));return bad\n  shared.module=altered\n  with self.assertRaises(ValueError):\n   with ci.task_description_fixture_factory(shared,folder,fixture):shared.module('N05_actual_prerequisites',folder/'provision.py',pins)\n  self.assertIs(shared.module,altered)\n\n def test_metadata_projection_only_exports_fixed_shared_failure_fields(self):\n  import types\n  shared=load('support/governance/project-content-grants-ci/ci.py','metadata_diagnostic_only')\n  shared.stage('reviewed-manifests')\n  result=ci.metadata_failure(shared,ValueError('SECRET credential path'))\n  self.assertEqual(result,{'stage':'reviewed-manifests','error_code':'gate-refused','child_ordinal':None,'child_outcome':'not-observed','child_exit_code':None})\n  self.assertNotIn('SECRET',json.dumps(result))\n  baseline=shared.failure_summary(ValueError('SECRET'))\n  for key,value in [('stage','/private/SECRET'),('error_code','SECRET'),('child_ordinal',True),('child_ordinal',257),('child_outcome','SECRET'),('child_exit_code',True),('child_exit_code',1),('execution_authorized',True),('SQL_execution_status','passed'),('automatic_retry_or_cleanup',True)]:\n   bad=copy.deepcopy(baseline);bad[key]=value\n   fake=types.SimpleNamespace(failure_summary=lambda error,bad=bad:bad)\n   with self.subTest(key=key),self.assertRaises(ValueError):ci.metadata_failure(fake,ValueError('SECRET'))\n  shared.stage('prerequisites-native-users');shared.DIAGNOSTIC.update(child_ordinal=2,child_outcome='known-nonzero',child_exit_code=1)\n  self.assertEqual(ci.metadata_failure(shared,ValueError('SECRET'))['child_exit_code'],1)\n\n def test_task_php13_continuations_keep_exact_old_targets_and_refuse_mutations(self):\n  for path,(current,parent,anchor) in ci.TASK_PHP13_CONTINUATIONS.items():\n   raw=(ROOT/path).read_bytes()\n   self.assertEqual(ci.task_php13_continuation(path,raw,parent),raw)\n   old=raw.replace(anchor,anchor.replace(b'8.5.13',b'8.5.12'),1)\n   self.assertEqual(ci.sha(old),parent)\n   for changed in [old,raw+b'\\n',raw.replace(anchor,anchor.replace(b'8.5.13',b'8.5.14'),1),raw.replace(anchor,b'',1),raw+anchor]:\n    with self.subTest(path=path,digest=ci.sha(changed)):\n     with self.assertRaises(ValueError):ci.task_php13_continuation(path,changed,parent)\n   for wrong in [None,'0'*64,current]:\n    with self.assertRaises(ValueError):ci.task_php13_continuation(path,raw,wrong)\n   with self.assertRaises(ValueError):ci.task_php13_continuation(path,bytearray(raw),parent)\n   with self.assertRaises(ValueError):ci.task_php13_continuation('unknown',raw,parent)\n\n",
+          "parent": ""
+        }
+      ]
+    },
+    "support/governance/media-session-ci/prepare.py": {
+      "current_bytes": 3128,
+      "current_sha256": "1559b93e1990b2424d4ed9dd85bee88557f9c815de3267ac3a1a6d917ffaa598",
+      "target_bytes": 1383,
+      "target_sha256": "00ed4d415a8d84cb0dda4556279ac56c3f07e6c4aece3a2a0532016a36e2a127",
+      "edits": [
+        {
+          "offset": 0,
+          "current": "\"\"\"Bind the current locked PHP build ID and fixed MySQL image to the runner's 3-key config.\"\"\"\nimport argparse,hashlib,json,os,re,subprocess\n",
+          "parent": "\"\"\"Bind only explicitly pulled immutable CI images to the runner's 3-key config.\"\"\"\nimport argparse,json,os,re,subprocess\n"
+        },
+        {
+          "offset": 166,
+          "current": "LEGACY_PHP_DATA='ghcr.io/soulteary/phorge@sha256:6e5b5b230fa07c0d4b1b0c6a948791ed77eb1583c54a13d7c8b2f7927adc7dda'\n",
+          "parent": "PHP='ghcr.io/soulteary/phorge@sha256:6e5b5b230fa07c0d4b1b0c6a948791ed77eb1583c54a13d7c8b2f7927adc7dda'\n"
+        },
+        {
+          "offset": 367,
+          "current": "BUILD_LOCK_SHA='39d9998c8dc6702f537c216cfebe0f15a25ad2cadae1d4fd769ae45fbd815ea9'\ndef build_arguments(root):\n raw=(Path(root)/'deploy/acceptance/build-lock.json').read_bytes()\n if hashlib.sha256(raw).hexdigest()!=BUILD_LOCK_SHA:raise ValueError('unreviewed build lock')\n lock=json.loads(raw)\n return ['--build-arg', 'PHP_BASE_IMAGE='+lock['images']['php'], '--build-arg', 'APCU_VERSION='+lock['apcu'], '--build-arg', 'APCU_SHA256='+lock['apcuSHA256'], '--build-arg', 'DEBIAN_SNAPSHOT='+lock['debianSnapshot']]\ndef build_runtime(root,iidfile,configdir):\n args=build_arguments(root)\n subprocess.run(['/usr/bin/docker','--config',str(configdir),'--host','unix:///var/run/docker.sock','build','--iidfile',str(iidfile)]+args+['--file',str(Path(root)/'Dockerfile'),str(root)],env={'PATH':os.defpath},check=True,stdout=subprocess.DEVNULL,timeout=1200)\n value=Path(iidfile).read_text().strip()\n if not re.fullmatch('sha256:[a-f0-9]{64}',value):raise ValueError('exact built image ID required')\n return value\n\ndef bind(output,php_image_id):\n if type(php_image_id)is not str or not re.fullmatch('sha256:[a-f0-9]{64}',php_image_id):raise ValueError('exact built image ID required')\n",
+          "parent": "def bind(output):\n"
+        },
+        {
+          "offset": 1643,
+          "current": " for name,ref in [('php_image',php_image_id),('mysql_image',MYSQL)]:\n",
+          "parent": " for name,ref in [('php_image',PHP),('mysql_image',MYSQL)]:\n"
+        },
+        {
+          "offset": 2084,
+          "current": "  if name=='php_image' and ids[name]!=php_image_id:raise ValueError('built image ID mismatch')\n",
+          "parent": ""
+        },
+        {
+          "offset": 2522,
+          "current": " p=argparse.ArgumentParser();p.add_argument('--output');p.add_argument('--php-image-id');p.add_argument('--build-root');p.add_argument('--iidfile');p.add_argument('--docker-config');a=p.parse_args()\n if a.build_root:\n  if not a.iidfile or not a.docker_config or a.output or a.php_image_id:p.error('exclusive build arguments required')\n  print(build_runtime(a.build_root,a.iidfile,a.docker_config))\n else:\n  if not a.output or not a.php_image_id or a.iidfile or a.docker_config:p.error('output and exact php-image-id required')\n  bind(a.output,a.php_image_id);print('{\"immutable_local_images_bound\":true}')\n",
+          "parent": " p=argparse.ArgumentParser();p.add_argument('--output',required=True);a=p.parse_args();bind(a.output);print('{\"immutable_local_images_bound\":true}')\n"
+        }
+      ]
     }
   }
 }

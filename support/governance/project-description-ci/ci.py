@@ -4,6 +4,7 @@ The shared reviewed metadata recipe owns fresh bootstrap and standard migrations
 A private exact successor admits one generated profile; tracked PHP stays null.
 """
 import argparse,hashlib,json,os,re,subprocess,types,stat
+from contextlib import contextmanager
 from pathlib import Path
 HERE=Path(__file__).resolve().parent
 TARGET='c7e5b9927d5c2fee5d4d9766d613e51ec400d11b'
@@ -12,6 +13,7 @@ sha=lambda b:hashlib.sha256(b).hexdigest()
 canon=lambda d:json.dumps(d,sort_keys=True,separators=(',',':')).encode()+b'\n'
 PHASE='entry'
 NATIVE_FAILURE=None
+METADATA_FAILURE=None
 CASES={'no-grant','user-positive','audit-fault-rollback','direct-modular-no-scope','revoked','team-positive','expired','credential-revoked','account-disabled'}
 def need(v):
  if not v:raise ValueError('description_ci_refused')
@@ -30,6 +32,26 @@ def load_shared(root,revision):
  for p,h in lock['files'].items():need(sha(tracked(root,p,revision))==h)
  return m
 
+# Task-v2 only: exact PHP security continuation, never a general version reducer.
+TASK_PHP13_CONTINUATIONS={
+ 'support/governance/project-content-grants-ci/ci.py':(
+  'da1f1c6db0cf51ccfc4dba9d630233458d6f684add64ff14e6924faf8c536a9a',
+  '0db5be8fef363406c6dce16d0eb2dcc5a33ac2aea6ee9e6e083759654d92901c',
+  b"need(v['php_version']=='8.5.13' and v['mysql_version']=='8.4.13')"),
+ 'support/governance/project-description-qualification/native.php':(
+  '0f377110eb5186ec8f56efe70ff57b4b2a87f775fb0561d73ff9b21ca64cb9e3',
+  '0451da98e73b118cb066d5ef8a73bface226b8469dc199062521271d43834434',
+  b"qneed(PHP_VERSION==='8.5.13'&&in_array(ini_get('opcache.jit'),array('','0','disable','off'),true)&&(string)ini_get('opcache.jit_buffer_size')==='0'&&(string)ini_get('opcache.enable_cli')==='0');"),
+}
+def task_php13_continuation(path,raw,parent_pin):
+ need(type(path)is str and path in TASK_PHP13_CONTINUATIONS and type(raw)is bytes)
+ current,parent,anchor=TASK_PHP13_CONTINUATIONS[path]
+ need(parent_pin==parent and sha(raw)==current and raw.count(anchor)==1)
+ old=anchor.replace(b'8.5.13',b'8.5.12')
+ restored=raw.replace(anchor,old,1)
+ need(sha(restored)==parent and restored.replace(old,anchor,1)==raw)
+ return raw
+
 def load_shared_task_v2(root,revision):
  import sys
  folder=str(root/'scripts/governance')
@@ -40,11 +62,13 @@ def load_shared_task_v2(root,revision):
   relative='support/governance/project-content-grants-ci/ci.py';raw=operation._task_contexts[root].current(relative)
   lock=json.loads(tracked(root,'support/governance/project-description-ci/task-metadata-lock-v2.json',revision))
   need(set(lock)=={'schema','parent_lock_sha256','current_ci_sha256'}and lock['schema']=='Task-CI-shared-metadata-lock-v2')
-  need(sha(tracked(root,'support/governance/project-description-ci/metadata-lock.json',revision))==lock['parent_lock_sha256']and sha(raw)==lock['current_ci_sha256'])
+  need(sha(tracked(root,'support/governance/project-description-ci/metadata-lock.json',revision))==lock['parent_lock_sha256'])
+  task_php13_continuation(relative,raw,lock['current_ci_sha256'])
   old=json.loads(tracked(root,'support/governance/project-description-ci/metadata-lock.json',revision))
   need(set(old)=={'ci_sha256','files','description_template_sha256'})
   for path,pin in old['files'].items():need(sha(tracked(root,path,revision))==pin)
-  need(sha(tracked(root,'support/governance/project-description-qualification/native.php',revision))==old['description_template_sha256'])
+  template_path='support/governance/project-description-qualification/native.php'
+  task_php13_continuation(template_path,tracked(root,template_path,revision),old['description_template_sha256'])
   module=types.ModuleType('Task_actual_CURRENT_shared_CI');module.__file__=str(root/relative);exec(compile(raw,module.__file__,'exec'),module.__dict__)
   need(module.TARGET==TARGET and module.TREE==TREE)
  return module
@@ -131,9 +155,58 @@ def native_cases(journal,argv,cwd):
   except Exception:NATIVE_FAILURE=None
   raise
 
+DESCRIPTION_FIXTURE_CURRENT_SHA='7a9c28521c551e43bea04f74d5f52e4586f7bc0eb99b5f5a2f323e091c1ab696'
+DESCRIPTION_FIXTURE_PARENT_SHA='754546ac5223a5631fcec55d354293564e0dc8e89a8b0ff616bbd55551fe1955'
+def task_fixture_continuation(raw):
+ anchor=b"nneed(PHP_VERSION==='8.5.13' && ini_get('opcache.jit')==='disable' && ini_get('opcache.jit_buffer_size')==='0' && ini_get('opcache.enable_cli')==='0');"
+ need(type(raw)is bytes and sha(raw)==DESCRIPTION_FIXTURE_CURRENT_SHA and raw.count(anchor)==1)
+ prior=anchor.replace(b'8.5.13',b'8.5.12');restored=raw.replace(anchor,prior,1)
+ need(sha(restored)==DESCRIPTION_FIXTURE_PARENT_SHA and restored.replace(prior,anchor,1)==raw)
+ return raw
+
+@contextmanager
+def task_description_fixture_factory(shared,prerequisites,fixture):
+ # Only the first prerequisites module calls sequence(description_fixture=True).
+ # The later description_prerequisites module only decodes private data/Journal.
+ task_fixture_continuation(fixture)
+ expected=prerequisites/'provision.py';pins=shared.REVIEWED_PINS['prerequisites']
+ need(pins=={'native.php':{'bytes':9741,'sha256':'3fb91c6e8f51444c90305fa3ebddb607b36f52afa55df44a6e6f07a428a8fb6e'},'provision.py':{'bytes':11688,'sha256':'a71ea657dbf8bffde7e292f634664d196b3dc02f86b423ed892b8c89bd4d0b35'}})
+ original=shared.module
+ def factory(name,path,provided):
+  if name=='N05_actual_prerequisites' or path==expected:
+   need(name=='N05_actual_prerequisites'and path==expected and provided==pins)
+   module=original(name,path,provided)
+   need(type(module)is types.ModuleType and module.__file__==str(expected)and module.DESCRIPTION_FIXTURE_SHA==DESCRIPTION_FIXTURE_PARENT_SHA)
+   before=dict(vars(module));module.DESCRIPTION_FIXTURE_SHA=DESCRIPTION_FIXTURE_CURRENT_SHA
+   after=dict(vars(module));after['DESCRIPTION_FIXTURE_SHA']=DESCRIPTION_FIXTURE_PARENT_SHA
+   need(before==after)
+   return module
+  return original(name,path,provided)
+ shared.module=factory
+ try:yield
+ finally:shared.module=original
+
+METADATA_STAGES={'entry','source-binding','reviewed-manifests','actual-service-inspect','runtime-before','private-profile-publication','prerequisites-bind','qualification-profile-publication','qualification-bind','runtime-after','public-summary'}
+METADATA_CHILD_LABELS={'child','standard-upgrade','user-approve','user-empower'}|{'native-'+x for x in {'empty','users','tokens','structure','readback','discover','before-upgrade','schema','target','submit-grant','submit-revoke','approve','deny-self','deny-replay'}}
+METADATA_STAGES|={phase+'-'+label for phase in ('prerequisites','qualification')for label in METADATA_CHILD_LABELS}
+def metadata_failure(shared,error):
+ # The shared recipe already projects exceptions. Revalidate a smaller fixed
+ # subset; no exception text, argv, path, credential or raw child output escapes.
+ value=shared.failure_summary(error)
+ need(type(value)is dict and value.get('passed')is False and value.get('retained')is True and value.get('automatic_retry_or_cleanup')is False and value.get('SQL_execution_status')=='unknown'and value.get('execution_authorized')is False)
+ code=value.get('error_code');phase=value.get('stage');ordinal=value.get('child_ordinal');outcome=value.get('child_outcome');exit_code=value.get('child_exit_code')
+ need(type(code)is str and code in {'gate-refused','child-terminal-unknown','source-command-failed','local-operation-failed','required-field-missing','invalid-json','unclassified-failure'})
+ need(type(phase)is str and phase in METADATA_STAGES)
+ need(ordinal is None or type(ordinal)is int and 1<=ordinal<=256)
+ need(type(outcome)is str and outcome in {'not-observed','unknown','known-zero','known-nonzero'})
+ need(exit_code is None or type(exit_code)is int and -255<=exit_code<=255)
+ need((outcome=='known-zero'and exit_code==0)or(outcome=='known-nonzero'and exit_code is not None and exit_code!=0)or(outcome in {'not-observed','unknown'}and exit_code is None))
+ return {'stage':phase,'error_code':code,'child_ordinal':ordinal,'child_outcome':outcome,'child_exit_code':exit_code}
+
 def execute(a):
- global PHASE,NATIVE_FAILURE
+ global PHASE,NATIVE_FAILURE,METADATA_FAILURE
  NATIVE_FAILURE=None
+ METADATA_FAILURE=None
  need(a.current.is_absolute()and a.current.resolve()==a.current)
  revision=a.expected_current_revision if a.task_source_v2 else os.environ.get('GITHUB_SHA','');need(type(revision)is str and re.fullmatch('[a-f0-9]{40}',revision))
  for p in ('ci.py','fixture.php','metadata-lock.json'):tracked(a.current,'support/governance/project-description-ci/'+p,revision)
@@ -141,7 +214,15 @@ def execute(a):
  # The real shared recipe guards the exact service, runtime, fresh owned DB and
  # all original current-source/provisioning/native standard-upgrade boundaries.
  PHASE='metadata-provision-and-qualification'
- meta=m.execute(a,description_fixture=True)
+ try:
+  if a.task_source_v2:
+   fixture=tracked(a.current,'support/governance/project-description-ci/fixture.php',revision)
+   with task_description_fixture_factory(m,a.prerequisites,fixture):meta=m.execute(a,description_fixture=True)
+  else:meta=m.execute(a,description_fixture=True)
+ except Exception as error:
+  try:METADATA_FAILURE=metadata_failure(m,error)
+  except Exception:METADATA_FAILURE=None
+  raise
  need(meta['target_revision']==TARGET and meta['target_tree']==TREE and meta['standard_native_upgrade']is True and meta['productionSchemaSpec']is True and meta['execution_authorized']is False)
  PHASE='private-description-profile'
  pmod=m.module('description_prerequisites',a.prerequisites/'provision.py',m.REVIEWED_PINS['prerequisites'])
@@ -170,7 +251,10 @@ def execute(a):
  need(re.fullmatch('PHID-PROJ-[A-Za-z0-9]{20}',prepared.get('target_phid',''))and prepared['target_phid']!=q['target_phid'])
  profile['target_phid']=prepared['target_phid'];pp=a.output/'description-profile.private.json';raw=canon(profile);m.private_new(pp,raw)
  # This one private copied helper changes ONLY the null profile pin, not source.
- native=dc/'native.php';template=tracked(a.current,'support/governance/project-description-qualification/native.php',revision);need(sha(template)=='0451da98e73b118cb066d5ef8a73bface226b8469dc199062521271d43834434');m.private_new(native,successor(template,sha(raw),'cases'))
+ native=dc/'native.php';template_path='support/governance/project-description-qualification/native.php';template=tracked(a.current,template_path,revision)
+ if a.task_source_v2:task_php13_continuation(template_path,template,'0451da98e73b118cb066d5ef8a73bface226b8469dc199062521271d43834434')
+ else:need(sha(template)=='0451da98e73b118cb066d5ef8a73bface226b8469dc199062521271d43834434')
+ m.private_new(native,successor(template,sha(raw),'cases'))
  (m.current_source_task_v2 if a.task_source_v2 else m.current_source)(a.current,revision)
  PHASE='native-nine-cases'
  result=result_ok(pmod.decode(native_cases(journal,[str(a.php),str(native),str(a.target),str(pp)],a.target)))
@@ -183,6 +267,7 @@ def execute(a):
 def failure():
  result={'schema':'N05-description-CI-failure-v1','passed':False,'phase':PHASE,'SQL_execution_status':'unknown','retained':True,'automatic_retry_or_cleanup':False,'execution_authorized':False}
  if NATIVE_FAILURE is not None:result['native_failure']=NATIVE_FAILURE
+ if METADATA_FAILURE is not None:result['metadata_failure']=METADATA_FAILURE
  return result
 if __name__=='__main__':
  p=argparse.ArgumentParser();p.add_argument('--task-source-v2',action='store_true');p.add_argument('--expected-current-revision')

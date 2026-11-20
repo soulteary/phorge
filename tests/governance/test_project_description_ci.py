@@ -5,6 +5,68 @@ def load(path,name):
  s=importlib.util.spec_from_file_location(name,ROOT/path);m=importlib.util.module_from_spec(s);s.loader.exec_module(m);return m
 ci=load('support/governance/project-description-ci/ci.py','description_ci')
 class DescriptionCI(unittest.TestCase):
+ def test_task_fixture_factory_exact_binding_and_restoration_without_SQL(self):
+  shared=load('support/governance/project-content-grants-ci/ci.py','fixture_shared_factory')
+  folder=ROOT/'support/governance/project-content-grants-ci/prerequisites'
+  fixture=(ROOT/'support/governance/project-description-ci/fixture.php').read_bytes()
+  original=shared.module;pins=shared.REVIEWED_PINS['prerequisites']
+  with ci.task_description_fixture_factory(shared,folder,fixture):
+   adapted=shared.module('N05_actual_prerequisites',folder/'provision.py',pins)
+   self.assertEqual(adapted.DESCRIPTION_FIXTURE_SHA,ci.DESCRIPTION_FIXTURE_CURRENT_SHA)
+   self.assertIsNone(adapted.ROOT_PROFILE_SHA);self.assertIsNone(adapted.ROOT_REVIEW_SHA)
+   self.assertIsNone(adapted.ROOT_SOURCE_FREEZE_SHA)
+   for name,path,provided in [('unknown',folder/'provision.py',pins),('N05_actual_prerequisites',folder/'wrong.py',pins),('N05_actual_prerequisites',folder/'provision.py',{})]:
+    with self.assertRaises(ValueError):shared.module(name,path,provided)
+  self.assertIs(shared.module,original)
+  normal=shared.module('description_prerequisites',folder/'provision.py',pins)
+  self.assertEqual(normal.DESCRIPTION_FIXTURE_SHA,ci.DESCRIPTION_FIXTURE_PARENT_SHA)
+  with self.assertRaisesRegex(RuntimeError,'fixed'):
+   with ci.task_description_fixture_factory(shared,folder,fixture):raise RuntimeError('fixed')
+  self.assertIs(shared.module,original)
+  for raw in [fixture+b'\n',fixture.replace(b'8.5.13',b'8.5.12'),fixture.replace(b'8.5.13',b'8.5.14'),fixture.replace(b"opcache.jit')==='disable'",b"opcache.jit')==='off'")]:
+   with self.assertRaises(ValueError):
+    with ci.task_description_fixture_factory(shared,folder,raw):self.fail('unknown fixture accepted')
+  import types
+  class ExtraGlobal(types.ModuleType):
+   def __setattr__(self,name,value):
+    super().__setattr__(name,value)
+    if name=='DESCRIPTION_FIXTURE_SHA'and value==ci.DESCRIPTION_FIXTURE_CURRENT_SHA:super().__setattr__('unreviewed_global',True)
+  def altered(name,path,provided):
+   value=original(name,path,provided);bad=ExtraGlobal(name);bad.__dict__.update(vars(value));return bad
+  shared.module=altered
+  with self.assertRaises(ValueError):
+   with ci.task_description_fixture_factory(shared,folder,fixture):shared.module('N05_actual_prerequisites',folder/'provision.py',pins)
+  self.assertIs(shared.module,altered)
+
+ def test_metadata_projection_only_exports_fixed_shared_failure_fields(self):
+  import types
+  shared=load('support/governance/project-content-grants-ci/ci.py','metadata_diagnostic_only')
+  shared.stage('reviewed-manifests')
+  result=ci.metadata_failure(shared,ValueError('SECRET credential path'))
+  self.assertEqual(result,{'stage':'reviewed-manifests','error_code':'gate-refused','child_ordinal':None,'child_outcome':'not-observed','child_exit_code':None})
+  self.assertNotIn('SECRET',json.dumps(result))
+  baseline=shared.failure_summary(ValueError('SECRET'))
+  for key,value in [('stage','/private/SECRET'),('error_code','SECRET'),('child_ordinal',True),('child_ordinal',257),('child_outcome','SECRET'),('child_exit_code',True),('child_exit_code',1),('execution_authorized',True),('SQL_execution_status','passed'),('automatic_retry_or_cleanup',True)]:
+   bad=copy.deepcopy(baseline);bad[key]=value
+   fake=types.SimpleNamespace(failure_summary=lambda error,bad=bad:bad)
+   with self.subTest(key=key),self.assertRaises(ValueError):ci.metadata_failure(fake,ValueError('SECRET'))
+  shared.stage('prerequisites-native-users');shared.DIAGNOSTIC.update(child_ordinal=2,child_outcome='known-nonzero',child_exit_code=1)
+  self.assertEqual(ci.metadata_failure(shared,ValueError('SECRET'))['child_exit_code'],1)
+
+ def test_task_php13_continuations_keep_exact_old_targets_and_refuse_mutations(self):
+  for path,(current,parent,anchor) in ci.TASK_PHP13_CONTINUATIONS.items():
+   raw=(ROOT/path).read_bytes()
+   self.assertEqual(ci.task_php13_continuation(path,raw,parent),raw)
+   old=raw.replace(anchor,anchor.replace(b'8.5.13',b'8.5.12'),1)
+   self.assertEqual(ci.sha(old),parent)
+   for changed in [old,raw+b'\n',raw.replace(anchor,anchor.replace(b'8.5.13',b'8.5.14'),1),raw.replace(anchor,b'',1),raw+anchor]:
+    with self.subTest(path=path,digest=ci.sha(changed)):
+     with self.assertRaises(ValueError):ci.task_php13_continuation(path,changed,parent)
+   for wrong in [None,'0'*64,current]:
+    with self.assertRaises(ValueError):ci.task_php13_continuation(path,raw,wrong)
+   with self.assertRaises(ValueError):ci.task_php13_continuation(path,bytearray(raw),parent)
+   with self.assertRaises(ValueError):ci.task_php13_continuation('unknown',raw,parent)
+
  def test_one_profile_pin_successor_preserves_all_other_template_bytes(self):
   for kind,path in [('cases','support/governance/project-description-qualification/native.php'),('fixture','support/governance/project-description-ci/fixture.php')]:
    b=(ROOT/path).read_bytes();n=ci.successor(b,'1'*64,kind)
