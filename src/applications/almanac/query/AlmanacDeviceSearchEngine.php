@@ -162,8 +162,8 @@ final class AlmanacDeviceSearchEngine
       ->setTitle(pht('Welcome to %s', $app_name))
       ->setDescription(
         pht(
-          'Use Almanac devices to catalogue your build hosts '.
-          'and their SSH ports your network, and more.'))
+          'Use Almanac devices to catalogue physical and virtual hosts '.
+          'and their network interfaces.'))
       ->addAction($see_network)
       ->addAction($create_button);
 

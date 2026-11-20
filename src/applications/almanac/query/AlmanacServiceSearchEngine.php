@@ -142,8 +142,8 @@ final class AlmanacServiceSearchEngine
       ->setTitle(pht('Welcome to %s', $app_name))
       ->setDescription(
         pht(
-          'Services describe pools of devices, and '.
-          'they are available to Drydock for CI/CD, and more.'))
+          'Use Almanac services to catalogue services and bind them to '.
+          'device interfaces.'))
       ->addAction($see_devices)
       ->addAction($create_button);
 
