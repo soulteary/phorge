@@ -42,8 +42,8 @@ final class PhabricatorConfigRetiredSchemaTestCase extends PhabricatorTestCase {
 
   public function testRetiredManifestKeepsCurrentRequirements() {
     $tables = PhabricatorConfigRetiredSchema::getRetiredTables();
-    $this->assertEqual(1, PhabricatorConfigRetiredSchema::VERSION);
-    $this->assertEqual(117, count(array_mergev(array_values($tables))));
+    $this->assertEqual(2, PhabricatorConfigRetiredSchema::VERSION);
+    $this->assertEqual(127, count(array_mergev(array_values($tables))));
     foreach (array(
       'edge', 'edgedata', 'differential_changeset_parse_cache',
       'differential_revisionhash', 'differential_changeset',
@@ -90,6 +90,63 @@ final class PhabricatorConfigRetiredSchemaTestCase extends PhabricatorTestCase {
           $actual_table->getKey('PRIMARY')->getTable());
       }
     }
+  }
+
+  public function testWikiQuickstartTablesAreRetained() {
+    $quickstart = Filesystem::readFile(
+      dirname(__DIR__, 5).'/resources/sql/quickstart.sql');
+    preg_match_all(
+      '/USE `\{\$NAMESPACE\}_phriction`;\s+CREATE TABLE `([^`]+)`/',
+      $quickstart,
+      $matches);
+    $expected = $matches[1];
+    $tables = PhabricatorConfigRetiredSchema::getRetiredTables()['phriction'];
+    sort($expected);
+    sort($tables);
+    $this->assertEqual(10, count($tables));
+    $this->assertEqual($expected, $tables);
+    $this->assertFalse(class_exists('PhrictionDocument'));
+    $this->assertFalse(class_exists('PhabricatorPhrictionApplication'));
+    $observed = $this->newDatabase('phriction');
+    foreach ($tables as $table) {
+      $observed->addTable($this->newTable($table));
+    }
+    $comp = $this->compare($this->newServer(),
+      $this->newServer()->addDatabase($observed));
+    $database = $comp->getDatabase($observed->getName());
+    $this->assertTrue($database->getIsRetained());
+    $this->assertEqual(array(), $comp->getAllIssues());
+    $this->assertEqual(10, $comp->getRetainedTableCount());
+    $this->assertFalse($observed->getIsRetained());
+    $this->assertFalse(PhabricatorConfigRetiredSchema::isRetiredDatabase(
+      'another_phriction', 'current'));
+  }
+
+  public function testUnknownWikiTablesAndCurrentRequirementsStillFail() {
+    $observed = $this->newDatabase('phriction')
+      ->addTable($this->newTable('phriction_document'))
+      ->addTable($this->newTable('phriction_unreviewed'));
+    $comp = $this->compare($this->newServer(),
+      $this->newServer()->addDatabase($observed));
+    $database = $comp->getDatabase($observed->getName());
+    $this->assertEqual(1, $comp->getRetainedTableCount());
+    $this->assertTrue($database->getTable('phriction_unreviewed')->hasIssue(
+      PhabricatorConfigStorageSchema::ISSUE_SURPLUS));
+    $this->assertEqual(PhabricatorConfigStorageSchema::STATUS_FAIL,
+      $comp->getStatus());
+
+    $expected = $this->newServer()->addDatabase(
+      $this->newDatabase('phriction')
+        ->addTable($this->newTable('phriction_document')));
+    $actual = $this->newDatabase('phriction')
+      ->addTable($this->newTable('phriction_document'));
+    $actual->getTable('phriction_document')->getColumn('id')->setNullable(true);
+    $comp = $this->compare($expected,
+      $this->newServer()->addDatabase($actual));
+    $this->assertEqual(0, $comp->getRetainedTableCount());
+    $this->assertTrue($comp->getDatabase($actual->getName())
+      ->getTable('phriction_document')->getColumn('id')->hasIssue(
+        PhabricatorConfigStorageSchema::ISSUE_NULLABLE));
   }
 
   public function testRetentionUsesTheActiveManagementNamespace() {

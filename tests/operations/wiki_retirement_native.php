@@ -8,6 +8,7 @@ $classes = array(
   'PhorgeGovernanceReadSetTestCase',
   'PhorgeGovernanceContentDecisionTestCase',
   'PhorgeGovernanceNativeObservationTestCase',
+  'PhabricatorConfigRetiredSchemaTestCase',
 );
 $failed = 0;
 $count = 0;

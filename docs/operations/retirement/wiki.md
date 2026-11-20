@@ -104,3 +104,15 @@ fixtures are checked against their actual admitted Task predecessor rather
 than an unrelated older OAuth baseline. Current source admission and all
 negative tests remain required. Full exact-head CI and final review are still
 pending; this record does not claim merge readiness or deployment.
+
+The retired-schema manifest is version 2. It explicitly retains the ten Wiki
+tables present in the tracked quickstart schema. Fresh storage initialization
+and restored storage must pass the ordinary schema verifier; unknown tables
+and current schema requirements remain errors. Document, content, search,
+transaction and edge tables are retained as historical data.
+
+Local PHP 8.5.13 storage verification returned zero for fresh initialization,
+repeated upgrade with populated historical Wiki tables, and upgrade after a
+logical restore. The document, content and audit rows remained byte-identical.
+The retirement native runner passed 66 methods, including the closed table
+manifest, rejection of unknown Wiki tables and active-schema precedence.

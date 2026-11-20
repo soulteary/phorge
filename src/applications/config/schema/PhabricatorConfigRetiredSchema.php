@@ -3,7 +3,7 @@
 /**
  * Reviewed historical tables left by physically retired applications.
  *
- * Version 1 records the retained SQL history after the 2026 application cuts.
+ * Version 2 adds Wiki tables to the retained SQL history of retired applications.
  * This is a table-level retention policy, not a second SchemaSpec: historical
  * columns and indexes stay with their table. Never infer this list from live
  * surplus objects or a table-name prefix. Unknown tables remain schema errors,
@@ -11,11 +11,11 @@
  */
 final class PhabricatorConfigRetiredSchema extends Phobject {
 
-  const VERSION = 1;
+  const VERSION = 2;
 
   public static function isRetiredDatabase($database, $namespace) {
     foreach (array('audit', 'diviner', 'drydock', 'owners', 'paste',
-      'repository') as $application) {
+      'phriction', 'repository') as $application) {
       if ($database === $namespace.'_'.$application) {
         return true;
       }
@@ -124,6 +124,18 @@ final class PhabricatorConfigRetiredSchema extends Phobject {
         'paste_paste_fngrams_common',
         'paste_transaction',
         'paste_transaction_comment',
+      ),
+      'phriction' => array(
+        'edge',
+        'edgedata',
+        'phriction_content',
+        'phriction_document',
+        'phriction_document_fdocument',
+        'phriction_document_ffield',
+        'phriction_document_fngrams',
+        'phriction_document_fngrams_common',
+        'phriction_transaction',
+        'phriction_transaction_comment',
       ),
       'repository' => array(
         'edge',

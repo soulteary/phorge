@@ -2869,6 +2869,52 @@
           "parent": ""
         }
       ]
+    },
+    "src/applications/config/schema/PhabricatorConfigRetiredSchema.php": {
+      "current_bytes": 5744,
+      "current_sha256": "ebf47a5324128fa8c04ec7f0c75a1401cb357d5b876f0614bac29b6276b199c5",
+      "target_bytes": 5361,
+      "target_sha256": "727815d36311a3d05bb3e824a81f6d6ccd7496bd2168a6b2fb1c07a61fafcba9",
+      "edits": [
+        {
+          "offset": 85,
+          "current": " * Version 2 adds Wiki tables to the retained SQL history of retired applications.\n",
+          "parent": " * Version 1 records the retained SQL history after the 2026 application cuts.\n"
+        },
+        {
+          "offset": 539,
+          "current": "  const VERSION = 2;\n",
+          "parent": "  const VERSION = 1;\n"
+        },
+        {
+          "offset": 698,
+          "current": "      'phriction', 'repository') as $application) {\n",
+          "parent": "      'repository') as $application) {\n"
+        },
+        {
+          "offset": 4003,
+          "current": "      'phriction' => array(\n        'edge',\n        'edgedata',\n        'phriction_content',\n        'phriction_document',\n        'phriction_document_fdocument',\n        'phriction_document_ffield',\n        'phriction_document_fngrams',\n        'phriction_document_fngrams_common',\n        'phriction_transaction',\n        'phriction_transaction_comment',\n      ),\n",
+          "parent": ""
+        }
+      ]
+    },
+    "src/applications/config/schema/__tests__/PhabricatorConfigRetiredSchemaTestCase.php": {
+      "current_bytes": 14557,
+      "current_sha256": "db6a67e5e3802b6007cf6f77c500821a61caa180f8841dc273aac166ed0ad6fc",
+      "target_bytes": 11922,
+      "target_sha256": "17bb594f9cab194fcb4e2c2bd45736209516a6cfeb1dfc8ca72ca78db41c5aa5",
+      "edits": [
+        {
+          "offset": 1468,
+          "current": "    $this->assertEqual(2, PhabricatorConfigRetiredSchema::VERSION);\n    $this->assertEqual(127, count(array_mergev(array_values($tables))));\n",
+          "parent": "    $this->assertEqual(1, PhabricatorConfigRetiredSchema::VERSION);\n    $this->assertEqual(117, count(array_mergev(array_values($tables))));\n"
+        },
+        {
+          "offset": 3743,
+          "current": "  }\n\n  public function testWikiQuickstartTablesAreRetained() {\n    $quickstart = Filesystem::readFile(\n      dirname(__DIR__, 5).'/resources/sql/quickstart.sql');\n    preg_match_all(\n      '/USE `\\{\\$NAMESPACE\\}_phriction`;\\s+CREATE TABLE `([^`]+)`/',\n      $quickstart,\n      $matches);\n    $expected = $matches[1];\n    $tables = PhabricatorConfigRetiredSchema::getRetiredTables()['phriction'];\n    sort($expected);\n    sort($tables);\n    $this->assertEqual(10, count($tables));\n    $this->assertEqual($expected, $tables);\n    $this->assertFalse(class_exists('PhrictionDocument'));\n    $this->assertFalse(class_exists('PhabricatorPhrictionApplication'));\n    $observed = $this->newDatabase('phriction');\n    foreach ($tables as $table) {\n      $observed->addTable($this->newTable($table));\n    }\n    $comp = $this->compare($this->newServer(),\n      $this->newServer()->addDatabase($observed));\n    $database = $comp->getDatabase($observed->getName());\n    $this->assertTrue($database->getIsRetained());\n    $this->assertEqual(array(), $comp->getAllIssues());\n    $this->assertEqual(10, $comp->getRetainedTableCount());\n    $this->assertFalse($observed->getIsRetained());\n    $this->assertFalse(PhabricatorConfigRetiredSchema::isRetiredDatabase(\n      'another_phriction', 'current'));\n  }\n\n  public function testUnknownWikiTablesAndCurrentRequirementsStillFail() {\n    $observed = $this->newDatabase('phriction')\n      ->addTable($this->newTable('phriction_document'))\n      ->addTable($this->newTable('phriction_unreviewed'));\n    $comp = $this->compare($this->newServer(),\n      $this->newServer()->addDatabase($observed));\n    $database = $comp->getDatabase($observed->getName());\n    $this->assertEqual(1, $comp->getRetainedTableCount());\n    $this->assertTrue($database->getTable('phriction_unreviewed')->hasIssue(\n      PhabricatorConfigStorageSchema::ISSUE_SURPLUS));\n    $this->assertEqual(PhabricatorConfigStorageSchema::STATUS_FAIL,\n      $comp->getStatus());\n\n    $expected = $this->newServer()->addDatabase(\n      $this->newDatabase('phriction')\n        ->addTable($this->newTable('phriction_document')));\n    $actual = $this->newDatabase('phriction')\n      ->addTable($this->newTable('phriction_document'));\n    $actual->getTable('phriction_document')->getColumn('id')->setNullable(true);\n    $comp = $this->compare($expected,\n      $this->newServer()->addDatabase($actual));\n    $this->assertEqual(0, $comp->getRetainedTableCount());\n    $this->assertTrue($comp->getDatabase($actual->getName())\n      ->getTable('phriction_document')->getColumn('id')->hasIssue(\n        PhabricatorConfigStorageSchema::ISSUE_NULLABLE));\n",
+          "parent": ""
+        }
+      ]
     }
   }
 }
