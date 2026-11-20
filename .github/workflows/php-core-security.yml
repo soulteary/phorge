@@ -47,8 +47,9 @@ jobs:
             docker run --rm \
               -v "$PWD/docker/php/uploads.ini:/usr/local/etc/php/conf.d/phorge-uploads.ini:ro" \
               -v "$PWD/docker/php/opcache.ini:/usr/local/etc/php/conf.d/phorge-opcache.ini:ro" \
-              -v "$PWD/deploy/acceptance/php_security.php:/tmp/php_security.php:ro" \
-              "$ref" php /tmp/php_security.php
+              -v "$PWD/deploy/acceptance/php_security.php:/opt/acceptance/deploy/acceptance/php_security.php:ro" \
+              -v "$PWD/support/runtime/php-version.php:/opt/acceptance/support/runtime/php-version.php:ro" \
+              "$ref" php /opt/acceptance/deploy/acceptance/php_security.php
           done
       - name: Build and verify the locked production PHP application image
         run: |

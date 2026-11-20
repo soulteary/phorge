@@ -38,6 +38,16 @@ class PHPSecurityPredicate(unittest.TestCase):
         self.assertEqual(observed, expected)
         return result
 
+    def test_stock_image_workflow_mounts_the_complete_acceptance_dependency(self):
+        workflow = (ROOT / ".github/workflows/php-core-security.yml").read_text()
+        self.assertIn(
+            '-v "$PWD/deploy/acceptance/php_security.php:/opt/acceptance/deploy/acceptance/php_security.php:ro"',
+            workflow)
+        self.assertIn(
+            '-v "$PWD/support/runtime/php-version.php:/opt/acceptance/support/runtime/php-version.php:ro"',
+            workflow)
+        self.assertIn('"$ref" php /opt/acceptance/deploy/acceptance/php_security.php', workflow)
+
     def test_stable_patch_versions(self):
         for version in ("8.5.13", "8.5.14"):
             with self.subTest(version=version):

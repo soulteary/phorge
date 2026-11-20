@@ -1892,8 +1892,8 @@
       ]
     },
     ".github/workflows/php-core-security.yml": {
-      "current_bytes": 2860,
-      "current_sha256": "cd591b495a20319861aeb3db9c74f84e878b97b1ff0b9c73aff065db0d5b6991",
+      "current_bytes": 3027,
+      "current_sha256": "068c4b1affba81909da33a1da8d93802b20fb312351247fc747bc12e25d9a7e3",
       "target_bytes": 2860,
       "target_sha256": "c712fc74eea5f742509e50266af8047b604892c4a2523169487afaae5165bcbd",
       "edits": [
@@ -1901,6 +1901,11 @@
           "offset": 1039,
           "current": "          if [[ ! \"$image\" =~ ^php:8\\.5\\.13-apache$ ]]; then\n            echo \"::error::Expected the PHP 8.5.13 Apache production baseline, found: $image\"\n",
           "parent": "          if [[ ! \"$image\" =~ ^php:8\\.5\\.12-apache$ ]]; then\n            echo \"::error::Expected the PHP 8.5.12 Apache production baseline, found: $image\"\n"
+        },
+        {
+          "offset": 1710,
+          "current": "              -v \"$PWD/deploy/acceptance/php_security.php:/opt/acceptance/deploy/acceptance/php_security.php:ro\" \\\n              -v \"$PWD/support/runtime/php-version.php:/opt/acceptance/support/runtime/php-version.php:ro\" \\\n              \"$ref\" php /opt/acceptance/deploy/acceptance/php_security.php\n",
+          "parent": "              -v \"$PWD/deploy/acceptance/php_security.php:/tmp/php_security.php:ro\" \\\n              \"$ref\" php /tmp/php_security.php\n"
         }
       ]
     },
