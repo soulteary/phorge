@@ -4,6 +4,7 @@ The shared reviewed metadata recipe owns fresh bootstrap and standard migrations
 A private exact successor admits one generated profile; tracked PHP stays null.
 """
 import argparse,hashlib,json,os,re,subprocess,types,stat
+from contextlib import contextmanager
 from pathlib import Path
 HERE=Path(__file__).resolve().parent
 TARGET='c7e5b9927d5c2fee5d4d9766d613e51ec400d11b'
@@ -154,6 +155,37 @@ def native_cases(journal,argv,cwd):
   except Exception:NATIVE_FAILURE=None
   raise
 
+DESCRIPTION_FIXTURE_CURRENT_SHA='7a9c28521c551e43bea04f74d5f52e4586f7bc0eb99b5f5a2f323e091c1ab696'
+DESCRIPTION_FIXTURE_PARENT_SHA='754546ac5223a5631fcec55d354293564e0dc8e89a8b0ff616bbd55551fe1955'
+def task_fixture_continuation(raw):
+ anchor=b"nneed(PHP_VERSION==='8.5.13' && ini_get('opcache.jit')==='disable' && ini_get('opcache.jit_buffer_size')==='0' && ini_get('opcache.enable_cli')==='0');"
+ need(type(raw)is bytes and sha(raw)==DESCRIPTION_FIXTURE_CURRENT_SHA and raw.count(anchor)==1)
+ prior=anchor.replace(b'8.5.13',b'8.5.12');restored=raw.replace(anchor,prior,1)
+ need(sha(restored)==DESCRIPTION_FIXTURE_PARENT_SHA and restored.replace(prior,anchor,1)==raw)
+ return raw
+
+@contextmanager
+def task_description_fixture_factory(shared,prerequisites,fixture):
+ # Only the first prerequisites module calls sequence(description_fixture=True).
+ # The later description_prerequisites module only decodes private data/Journal.
+ task_fixture_continuation(fixture)
+ expected=prerequisites/'provision.py';pins=shared.REVIEWED_PINS['prerequisites']
+ need(pins=={'native.php':{'bytes':9741,'sha256':'3fb91c6e8f51444c90305fa3ebddb607b36f52afa55df44a6e6f07a428a8fb6e'},'provision.py':{'bytes':11688,'sha256':'a71ea657dbf8bffde7e292f634664d196b3dc02f86b423ed892b8c89bd4d0b35'}})
+ original=shared.module
+ def factory(name,path,provided):
+  if name=='N05_actual_prerequisites' or path==expected:
+   need(name=='N05_actual_prerequisites'and path==expected and provided==pins)
+   module=original(name,path,provided)
+   need(type(module)is types.ModuleType and module.__file__==str(expected)and module.DESCRIPTION_FIXTURE_SHA==DESCRIPTION_FIXTURE_PARENT_SHA)
+   before=dict(vars(module));module.DESCRIPTION_FIXTURE_SHA=DESCRIPTION_FIXTURE_CURRENT_SHA
+   after=dict(vars(module));after['DESCRIPTION_FIXTURE_SHA']=DESCRIPTION_FIXTURE_PARENT_SHA
+   need(before==after)
+   return module
+  return original(name,path,provided)
+ shared.module=factory
+ try:yield
+ finally:shared.module=original
+
 METADATA_STAGES={'entry','source-binding','reviewed-manifests','actual-service-inspect','runtime-before','private-profile-publication','prerequisites-bind','qualification-profile-publication','qualification-bind','runtime-after','public-summary'}
 METADATA_CHILD_LABELS={'child','standard-upgrade','user-approve','user-empower'}|{'native-'+x for x in {'empty','users','tokens','structure','readback','discover','before-upgrade','schema','target','submit-grant','submit-revoke','approve','deny-self','deny-replay'}}
 METADATA_STAGES|={phase+'-'+label for phase in ('prerequisites','qualification')for label in METADATA_CHILD_LABELS}
@@ -182,7 +214,11 @@ def execute(a):
  # The real shared recipe guards the exact service, runtime, fresh owned DB and
  # all original current-source/provisioning/native standard-upgrade boundaries.
  PHASE='metadata-provision-and-qualification'
- try:meta=m.execute(a,description_fixture=True)
+ try:
+  if a.task_source_v2:
+   fixture=tracked(a.current,'support/governance/project-description-ci/fixture.php',revision)
+   with task_description_fixture_factory(m,a.prerequisites,fixture):meta=m.execute(a,description_fixture=True)
+  else:meta=m.execute(a,description_fixture=True)
  except Exception as error:
   try:METADATA_FAILURE=metadata_failure(m,error)
   except Exception:METADATA_FAILURE=None
