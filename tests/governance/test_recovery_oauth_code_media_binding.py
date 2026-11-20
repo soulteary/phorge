@@ -177,9 +177,9 @@ class SignedSourceBinding(unittest.TestCase):
   context=self._operation._task_contexts[ROOT]
   for name in paths:
    self.assertEqual((ROOT/name).read_bytes(),context.current(name))
-   # Compare authenticated predecessor DATA, not the current security runtime.
-   raw=context.parent(name)
-   if name in self.media_binding.SOURCE_INPUTS:raw=self.media_binding.reduce_current(name,raw)
+   # The closed media reducer takes current bytes and supplies its own
+   # authenticated DATA view. Other leaves use the Task predecessor directly.
+   raw=self.media_binding.reduce_current(name,context.current(name)) if name in self.media_binding.SOURCE_INPUTS else context.parent(name)
    self.assertEqual(raw,self.git('show',BASE+':'+name),name)
  def test_previous_signed_recipe_literals_are_exact_test_only_and_unknown_refused(self):
   m=self._operation._modules['project_content_grant_source_delta'].media_source_delta()
