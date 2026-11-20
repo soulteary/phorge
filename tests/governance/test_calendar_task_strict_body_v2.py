@@ -1,5 +1,5 @@
 """AST-only contracts; patched owner is synthetic, never actual source/SQL proof."""
-import ast,importlib.util,os,sys,types,unittest
+import ast,importlib.util,os,sys,types,unittest,subprocess
 from pathlib import Path
 from unittest.mock import patch
 ROOT=Path(__file__).resolve().parents[2];REFERENCE=Path(os.environ.get('CALENDAR_TEST_SOURCE_ROOT',str(ROOT))).resolve();sys.path.insert(0,str(REFERENCE/'scripts/governance'))
@@ -14,6 +14,8 @@ class CalendarCurrentControls(unittest.TestCase):
   class Context:
    def current(self,path):
     raw=(REFERENCE/path).read_bytes();return raw+b'\n'if drift and path==adapter.CHECKER else raw
+   def parent(self,path):
+    return subprocess.check_output(['git','--no-replace-objects','-C',str(REFERENCE),'show','5903d98b14926401f0be49cb0a9d6168026a2642:'+path])
   op=types.SimpleNamespace(_task_contexts={REFERENCE:Context()},_modules={'project_description_admission_delta':object()})
   def captured(owner,root,path):self.assertIs(owner,op);self.assertEqual(root,REFERENCE);return load(REFERENCE/path)
   return op,captured
@@ -22,6 +24,21 @@ class CalendarCurrentControls(unittest.TestCase):
   with patch.object(adapter.source,'require_task_operation',return_value=op):
    model=adapter.model(op,REFERENCE,captured,lambda *a,**k:None,completion,types.SimpleNamespace(FIELDS=native.FIELDS,BLOCKERS=native.BLOCKERS))
   self.assertEqual((model['checks'],model['calendar_obligations'],model['source_inputs']),(32,21,12));self.assertTrue(callable(model['validate']))
+ def test_retired_mail_current_and_parent_tamper_refuse(self):
+  for path in adapter.MAIL_RETIREMENT_PINS:
+   for role in ('current','parent'):
+    op,captured=self.fixture();context=op._task_contexts[REFERENCE];original=getattr(context,role)
+    def changed(name,original=original,path=path):
+     raw=original(name);return raw+b'unknown' if name==path else raw
+    setattr(context,role,changed)
+    with self.subTest(path=path,role=role),patch.object(adapter.source,'require_task_operation',return_value=op),self.assertRaises(ValueError):
+     adapter.model(op,REFERENCE,captured,lambda *a:None,completion,types.SimpleNamespace(FIELDS=native.FIELDS,BLOCKERS=native.BLOCKERS))
+ def test_retirement_pin_set_is_closed_and_current(self):
+  import hashlib
+  self.assertEqual(set(adapter.MAIL_RETIREMENT_PINS),{'src/applications/metamta/storage/PhabricatorMetaMTAMail.php','src/infrastructure/governance/notification/PhorgePrivateMailPolicy.php'})
+  for path,(old,new) in adapter.MAIL_RETIREMENT_PINS.items():
+   self.assertNotEqual(old,new)
+   self.assertEqual(hashlib.sha256((REFERENCE/path).read_bytes()).hexdigest(),new)
  def test_current_checker_drift_refused(self):
   op,captured=self.fixture(True)
   with patch.object(adapter.source,'require_task_operation',return_value=op),self.assertRaises(ValueError):adapter.model(op,REFERENCE,captured,lambda *a:None,completion,types.SimpleNamespace(FIELDS=native.FIELDS,BLOCKERS=native.BLOCKERS))

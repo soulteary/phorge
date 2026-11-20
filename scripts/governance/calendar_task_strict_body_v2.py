@@ -4,12 +4,23 @@ from pathlib import Path
 import source_operation_snapshot as source
 CHECKER='scripts/governance/check_private_calendar_reminders.py'
 CHECKER_SHA='95d0540f89b798d0045070c865b7e909819e0a871d378efc95f9a277a859f4c9'
+MAIL_RETIREMENT_PINS={'src/applications/metamta/storage/PhabricatorMetaMTAMail.php': ('56016d144982aa284ac0afc2fd272f65a785af26d85c502782d45fc3cfa07c28', 'f2340c51cb66a17c841f8d17f5e1ba425d4294a7abfb5d376c2130113c186212'), 'src/infrastructure/governance/notification/PhorgePrivateMailPolicy.php': ('67112136ba242de5c8ada4b22ee07958722fcf3fb93b34dabf08bc353364a361', '22ea72b678bddb26058b8268903c4a1c8a1cc000655a63f0db0377178b4e22d9')}
 def need(value):
  if value is not True:raise ValueError('Calendar_CURRENT_strict_body_refused')
 def model(operation,root,captured,restore,completion,native):
  root=Path(root);source.require_task_operation(operation,root);need(callable(restore)and type(native)is types.SimpleNamespace and set(vars(native))=={'FIELDS','BLOCKERS'})
  context=operation._task_contexts[root];raw=context.current(CHECKER);need(hashlib.sha256(raw).hexdigest()==CHECKER_SHA)
  original=captured(operation,root,CHECKER);need(len(original.SOURCE_INPUTS)==12 and len(original.CASES)==21 and len(original.obligations())==32)
+ # Only these reviewed mail sources changed with retirement. Authenticate both
+ # ends of their DATA provenance, then require the current physical hashes.
+ current_pins=dict(original.SOURCE_INPUTS)
+ for relative,(parent_pin,current_pin)in MAIL_RETIREMENT_PINS.items():
+  need(original.SOURCE_INPUTS.get(relative)==parent_pin)
+  need(hashlib.sha256(context.parent(relative)).hexdigest()==parent_pin)
+  need(hashlib.sha256(context.current(relative)).hexdigest()==current_pin)
+  current_pins[relative]=current_pin
+ need(set(current_pins)==set(original.SOURCE_INPUTS) and len(current_pins)==12)
+
  names={'_source_views','sources','wire_sources','summary','validate'};nodes=[copy.deepcopy(n)for n in ast.parse(raw).body if isinstance(n,ast.FunctionDef)and n.name in names];need({n.name for n in nodes}==names);before=copy.deepcopy(nodes)
  imports={'import check_recovery_file_parent_policy as native_driver_source':'_native_driver_source','import project_description_admission_delta as current':'_current_admission'};found=[];restores=[]
  for node in nodes:
@@ -42,7 +53,7 @@ def model(operation,root,captured,restore,completion,native):
   guard();path=Path(path);need(path.is_absolute()and path.is_relative_to(root));name=str(path.relative_to(root));need(name in original.SOURCE_INPUTS);body=context.current(name);guard();return body
  def prior(base,body):
   guard();need(Path(base)==root and type(body)is bytes and body==context.current(driver.NATIVE_DRIVER_PATH));admission=operation._modules['project_description_admission_delta'];parent=context.parent(driver.NATIVE_DRIVER_PATH);result=driver._native_driver_prior(admission._normalize_metadata(driver.NATIVE_DRIVER_PATH,parent));guard();return result
- namespace=dict(original.__dict__);namespace.update(_task_restore=restore,_source_operation=operation,completion=completion,native=native,conduit_delta=conduit,source_reader=types.SimpleNamespace(read_source_checked=read),_native_driver_source=types.SimpleNamespace(NATIVE_DRIVER_PATH=driver.NATIVE_DRIVER_PATH,admitted_native_driver_source=prior),_current_admission=operation._modules['project_description_admission_delta'])
+ namespace=dict(original.__dict__);namespace.update(SOURCE_INPUTS=current_pins,_task_restore=restore,_source_operation=operation,completion=completion,native=native,conduit_delta=conduit,source_reader=types.SimpleNamespace(read_source_checked=read),_native_driver_source=types.SimpleNamespace(NATIVE_DRIVER_PATH=driver.NATIVE_DRIVER_PATH,admitted_native_driver_source=prior),_current_admission=operation._modules['project_description_admission_delta'])
  exec(compile(ast.fix_missing_locations(ast.Module(nodes,[])),str(root/CHECKER),'exec'),namespace)
  def accept(data,*,source_revision,file_digest,queue_digest):
   guard();result=namespace['validate'](data,root=root,source_revision=source_revision,file_digest=file_digest,queue_digest=queue_digest);guard();return result
