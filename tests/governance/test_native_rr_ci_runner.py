@@ -59,7 +59,7 @@ class Flow(unittest.TestCase):
     if args[0]==str(go):return json.dumps(info()).encode()
     if args[0]=='docker':return json.dumps(service()).encode()
     if args[0]=='/usr/bin/php':
-     if args[1:]==['-r','echo PHP_VERSION;']:return b'8.5.12'
+     if args[1:]==['-r','echo PHP_VERSION;']:return b'8.5.13'
      if args[1]=='scripts/runtime/build.php':
       self.assertEqual('xhpast',args[2])
       parser=source/'support/runtime/src/parser/xhpast/bin/xhpast';parser.parent.mkdir(parents=True);parser.write_bytes(b'synthetic-parser');parser.chmod(0o700)
@@ -68,7 +68,7 @@ class Flow(unittest.TestCase):
      if args[1]=='bin/rebuild-library-map':return b''
      if args[1]=='-r'and 'profile_accepted'in args[2]:return b'{"profile_accepted":true,"production_authority":false}'
      if args[1]=='-r'and 'new mysqli'in args[2]:return b'{"version":"8.4.13","principal":"root@%","role":"NONE","proxy":null}'
-     if args[1].endswith('/tests/governance/run.php'):return json.dumps({'passed':True,'runtime':'8.5.12','expected_methods':276,'results':[{'id':i,'result':'pass'}for i in ids]}).encode()
+     if args[1].endswith('/tests/governance/run.php'):return json.dumps({'passed':True,'runtime':'8.5.13','expected_methods':276,'results':[{'id':i,'result':'pass'}for i in ids]}).encode()
     raise AssertionError('unexpected fixed command')
    real_seed=r.create_seed
    def seed(*args):seed_dirs.append(args[0]);return real_seed(*args)

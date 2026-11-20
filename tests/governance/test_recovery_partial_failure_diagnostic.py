@@ -52,7 +52,7 @@ class PartialDiagnostic(unittest.TestCase):
   import tempfile
   # Run the actual verifier's complete source-reference scan independently of
   # its supported-runtime bootstrap. Host PHP 8.5.8 cannot run full verify.php;
-  # CI must execute the complete verifier under its required PHP 8.5.12.
+  # CI must execute the complete verifier under its required PHP 8.5.13.
   verifier=(ROOT/'scripts/runtime/verify.php').read_text()
   scan=verifier[verifier.index('$snapshot_symbols_path ='):verifier.index('if ($refresh) {')]
   code=r'''$project=$argv[1];$runtime=$argv[2];function phutil_register_library_map($m){$GLOBALS['actual_map']=$m;}require$runtime.'/src/__phutil_library_map__.php';$map=$GLOBALS['actual_map'];'''+scan+'echo json_encode(["passed"=>true]);'
@@ -74,7 +74,7 @@ class PartialDiagnostic(unittest.TestCase):
   self.assertIsNotNone(parsed)
   major,minor,patch=map(int,parsed.groups())
   if (major,minor)!=(8,5) or patch<12:
-   self.skipTest('Full runtime verifier/contracts require PHP 8.5.12+; host is '+version.stdout)
+   self.skipTest('Full runtime verifier/contracts require PHP 8.5.13+; host is '+version.stdout)
   for relative in ('scripts/runtime/verify.php','tests/contract/worker/bundled_runtime.php',
                    'tests/contract/runtime/compatibility.php','tests/contract/runtime/diff.php',
                    'tests/contract/runtime/integrity.php','tests/contract/runtime/maintenance.php',

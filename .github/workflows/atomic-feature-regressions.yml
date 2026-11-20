@@ -45,7 +45,7 @@ jobs:
         run: |
           python3 -B scripts/ci/core_guard.py plan --event "$CI_EVENT" --sha "$CI_SHA" --pr-head "$CI_PR_HEAD" --called-head "$CI_CALLED_HEAD" >> "$GITHUB_OUTPUT"
   core-boundaries:
-    name: Defaults-OFF and native core boundaries (PHP 8.5.12)
+    name: Defaults-OFF and native core boundaries (PHP 8.5.13)
     needs: ci-plan
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -70,7 +70,7 @@ jobs:
             --expected-head "$CORE_EXPECTED_HEAD" --github-sha "$GITHUB_SHA" --trust-home "$trust_home" --external-proof-tag "source-proof/$CORE_EXPECTED_HEAD"
       - uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.5.12'
+          php-version: '8.5.13'
           ini-values: opcache.jit=disable, opcache.jit_buffer_size=0
           extensions: mysqli, mbstring, curl, gd, zip, dom, xmlreader, xmlwriter
           coverage: none
@@ -99,7 +99,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php: ['8.5.12']
+        php: ['8.5.13']
     services:
       mysql:
         image: mysql:8.4.13@sha256:a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7
@@ -1246,7 +1246,7 @@ jobs:
       fail-fast: false
       matrix:
         php:
-        - 8.5.12
+        - 8.5.13
     services:
       mysql:
         image: mysql:8.0
@@ -1555,7 +1555,7 @@ jobs:
       fail-fast: false
       matrix:
         php:
-        - 8.5.12
+        - 8.5.13
     services:
       mysql:
         image: mysql:8.0
@@ -1864,7 +1864,7 @@ jobs:
       fail-fast: false
       matrix:
         php:
-        - 8.5.12
+        - 8.5.13
     services:
       mysql:
         image: mysql:8.0
@@ -2164,7 +2164,7 @@ jobs:
         if-no-files-found: error
         retention-days: 7
   native-packages-gate:
-    name: Native packages (PHP 8.5.12)
+    name: Native packages (PHP 8.5.13)
     outputs:
       qualified_head: ${{ steps.full-qualified.outputs.head }}
     needs:
@@ -2205,19 +2205,19 @@ jobs:
       if: ${{ needs.ci-plan.outputs.mode == 'full' }}
       uses: actions/download-artifact@v4
       with:
-        name: atomic-governance-unit-shard-0-results-php-8.5.12-attempt-${{ github.run_attempt }}
+        name: atomic-governance-unit-shard-0-results-php-8.5.13-attempt-${{ github.run_attempt }}
         path: ${{ runner.temp }}/atomic-unit-gate/shard-0
     - name: Gate / Download same-run shard 1 safe summary
       if: ${{ needs.ci-plan.outputs.mode == 'full' }}
       uses: actions/download-artifact@v4
       with:
-        name: atomic-governance-unit-shard-1-results-php-8.5.12-attempt-${{ github.run_attempt }}
+        name: atomic-governance-unit-shard-1-results-php-8.5.13-attempt-${{ github.run_attempt }}
         path: ${{ runner.temp }}/atomic-unit-gate/shard-1
     - name: Gate / Download same-run tooling safe summary
       if: ${{ needs.ci-plan.outputs.mode == 'full' }}
       uses: actions/download-artifact@v4
       with:
-        name: atomic-governance-unit-shard-2-results-php-8.5.12-attempt-${{ github.run_attempt }}
+        name: atomic-governance-unit-shard-2-results-php-8.5.13-attempt-${{ github.run_attempt }}
         path: ${{ runner.temp }}/atomic-unit-gate/shard-2
     - name: Gate / Verify full discovery and exact disjoint successful union
       if: ${{ needs.ci-plan.outputs.mode == 'full' }}
@@ -2283,7 +2283,7 @@ jobs:
       if: ${{ needs.ci-plan.outputs.mode == 'full' }}
       uses: actions/upload-artifact@v4
       with:
-        name: atomic-governance-unit-union-php-8.5.12-attempt-${{ github.run_attempt }}
+        name: atomic-governance-unit-union-php-8.5.13-attempt-${{ github.run_attempt }}
         path: ${{ runner.temp }}/atomic-unit-gate/union-results.json
         if-no-files-found: error
         retention-days: 7

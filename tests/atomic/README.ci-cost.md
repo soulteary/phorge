@@ -1,7 +1,7 @@
 # CI validation cost policy
 
 PR and `main` feedback uses the core tier. The stable required context
-`Native packages (PHP 8.5.12)` reports real core-check results and terminates
+`Native packages (PHP 8.5.13)` reports real core-check results and terminates
 without running disabled-adapter integration branches or acceptance-tool
 partitions. Its core checks must succeed; skipped core work is not acceptance.
 Other existing core runtime, native-security and Phorge/Gorge contract workflows

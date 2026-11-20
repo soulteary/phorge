@@ -177,7 +177,7 @@ def execute(a):
  PHASE='bracket-after'
  after=m.runtime(json.loads(journal.run([str(a.php),'-r',m.PROBE,str(a.output/'db-credential.private.json'),str(db['host_port'])],a.output)))
  need(after['server_uuid']==db['server_uuid']);(m.current_source_task_v2 if a.task_source_v2 else m.current_source)(a.current,revision)
- summary={'schema':'N05-description-CI-real-native-v1','passed':True,'recipe_revision':revision,'target_revision':TARGET,'target_tree':TREE,'php':'8.5.12','mysql':'8.4.13','native_standard_upgrade':True,'fixture_source_revision':m.BASE,'fixture_created_before_target_flags':True,'metadata_qualification':True,'description':result,'description_template_sha256':sha(template),'same_database_at_bracket_observations':True,'whole_window_identity_proved':False,'cleanup_executed':False,'owned_namespace_retained':True,'automatic_retry':False,'HTTP_verified':False,'worker_delivery_verified':False,'execution_authorized':False,'online_activation':False}
+ summary={'schema':'N05-description-CI-real-native-v1','passed':True,'recipe_revision':revision,'target_revision':TARGET,'target_tree':TREE,'php':'8.5.13','mysql':'8.4.13','native_standard_upgrade':True,'fixture_source_revision':m.BASE,'fixture_created_before_target_flags':True,'metadata_qualification':True,'description':result,'description_template_sha256':sha(template),'same_database_at_bracket_observations':True,'whole_window_identity_proved':False,'cleanup_executed':False,'owned_namespace_retained':True,'automatic_retry':False,'HTTP_verified':False,'worker_delivery_verified':False,'execution_authorized':False,'online_activation':False}
  m.private_new(a.output/'public/description-summary.json',canon(summary));return summary
 
 def failure():

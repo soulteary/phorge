@@ -84,7 +84,7 @@ class ReleaseCIPolicyTests(unittest.TestCase):
 
     def test_support_policy_keeps_historical_schema_fixture_without_expanding_support(self):
         policy = json.loads((ROOT / 'docs/ci/support-baseline.json').read_text())
-        self.assertEqual(policy['productionPHP'], '8.5.12')
+        self.assertEqual(policy['productionPHP'], '8.5.13')
         self.assertEqual(policy['historicalSchemaWorkflow'], 'gorge-runtime-contracts.yml')
         self.assertTrue((ROOT / '.github/workflows' / policy['historicalSchemaWorkflow']).is_file())
         self.assertFalse(policy['engineUpgradeQualifiedByHistoricalFixture'])

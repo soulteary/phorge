@@ -1394,7 +1394,7 @@ def validate(data, root=ROOT, file_digest=None, measurement_revision=None, rende
     expected_native['conduit_HTTP_revocation_measurement_tests']=http_observed
     exact_tree(native,expected_native)
     for key, target in {'batch': 'native-organization-media-integration', 'passed': True,
-        'scope': 'owned-full-native-source-synthetic-accounts', 'php_version': '8.5.12',
+        'scope': 'owned-full-native-source-synthetic-accounts', 'php_version': '8.5.13',
         'failure': None, 'cleanup_failures': [], 'terminal_failure_cleanup_rollbacks': 0,
         'production_deployment': False, 'production_executor': False,
         'production_optional_features_enabled': False, 'native_permission_axes_changed': False,

@@ -752,12 +752,12 @@ manifest；不要重新构建后继续沿用旧验收结果。
 
 ## 内置 PHP 兼容运行库
 
-唯一支持的 PHP 分支是 8.5，最低安全补丁及当前生产镜像为 **8.5.12**。
+唯一支持的 PHP 分支是 8.5，最低安全补丁及生产构建基线为 **8.5.13**。
 Web、CLI、迁移、运维和 CI 使用同一版本策略；8.3/8.4 等其他分支不再支持。
 PHP 8.5 已内置 OPcache，镜像不再独立安装此扩展；Web 与 CLI 都显式设置
 `opcache.jit=disable`、`opcache.jit_buffer_size=0`。不得用 JIT 模式覆盖生产配置。
 运行库维护见 [运行库说明](support/runtime/README.md)，升级与回退见
-[8.5.12 升级说明](docs/releases/php-8.5.12-upgrade.md)。
+[8.5.13 升级说明](docs/releases/php-8.5.13-upgrade.md)。
 
 Phorge 的 PHP 基础运行库位于 `support/runtime/`，随本仓库源码和镜像交付。
 构建、网页、管理命令和契约测试都不需要相邻的 Arcanist checkout。内部库注册名

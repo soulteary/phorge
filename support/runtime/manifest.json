@@ -4,7 +4,7 @@
     "libraryName": "arcanist",
     "upstreamRevision": null,
     "upstreamSnapshotSHA256": "a1d8fd74c7e68da6a54f114aac253bb2c0c8a7fe971eae5882b45fe99541f42a",
-    "contentSHA256": "b6b6850e975f8d7f847c739b56b2488d8c7755e43fd4bae96dd3e65dcb4aeff6",
+    "contentSHA256": "de725ca6bb3e6abe6f09568e7e816e6f1b0cc8a3ad853886340556d5adc32e03",
     "generatedPaths": [
         "src/.phutil_module_cache",
         "src/parser/xhpast/bin/xhpast",
@@ -101,7 +101,7 @@
         {
             "id": "php85-only-runtime-policy",
             "path": "bootstrap.php",
-            "description": "Reject unsupported PHP minor branches and PHP 8.5 builds below the 8.5.12 security baseline before loading CLI tools."
+            "description": "Reject unsupported PHP minor branches and PHP 8.5 builds below the 8.5.13 security baseline before loading CLI tools."
         }
     ],
     "files": [
@@ -121,7 +121,7 @@
             "path": "README.md",
             "sourceSHA256": null,
             "reason": "project-runtime-maintenance",
-            "sha256": "5a58b11f37bd95e4c83187bb44d484728e484ef78876b9b20a60460d71a9b38d"
+            "sha256": "12f3f1bc0ad524548f135fe6ab04cee954b235c235e808a76b01e611b4cf0ad3"
         },
         {
             "path": "bootstrap-cli.php",
@@ -181,7 +181,7 @@
             "path": "php-version.php",
             "sourceSHA256": null,
             "reason": "project-runtime-maintenance",
-            "sha256": "4d363adfcaf8a6f70221d03d23dd6a789afacd428b218bbe4d79639012fe850e"
+            "sha256": "346a79867d6d53c925f60834dabefdee919282953633f1f8dcbfc485ad3f8d6d"
         },
         {
             "path": "resources/php/symbol-information.json",

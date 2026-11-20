@@ -29,7 +29,7 @@ fail the native fixture allowlist; only the exact Task patch is added.
 ## Native SQL entry (Root-only, unrun)
 
 `native.php` discovers the real patch and SchemaSpec, requires a real owned
-native fixture marker/server UUID/namespace and PHP8.5.12/MySQL8.4.13 with JIT
+native fixture marker/server UUID/namespace and PHP8.5.13/MySQL8.4.13 with JIT
 disabled, verifies actual columns/indexes/engine and the standard patch ledger,
 and calls the actual Task Service for submit/approve/revoke. It uses real
 independent native API-token actors; caller JSON cannot supply admin status or

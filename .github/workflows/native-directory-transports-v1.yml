@@ -61,7 +61,7 @@ jobs:
           echo "HOME=$trust_home" >> "$GITHUB_ENV"
       - uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.5.12'
+          php-version: '8.5.13'
           ini-values: opcache.jit=disable, opcache.jit_buffer_size=0
           extensions: mysqli, mbstring, curl, gd, zip, dom, xmlreader, xmlwriter
           tools: composer:2.11.1
@@ -69,7 +69,7 @@ jobs:
       - name: Existing retained runtime and two standard mapper passes
         run: |
           python3 -B scripts/governance/check_directory_transports_task_source_v2.py --expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT"
-          php -r 'exit(PHP_VERSION === "8.5.12" ? 0 : 1);'
+          php -r 'exit(PHP_VERSION === "8.5.13" ? 0 : 1);'
           php scripts/runtime/build.php all
           php bin/rebuild-library-map
           git diff --exit-code -- src/__phutil_library_map__.php support/runtime/src/__phutil_library_map__.php support/runtime/manifest.json
@@ -208,7 +208,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: success()
         with:
-          name: native-directory-transports-v1-php-8.5.12
+          name: native-directory-transports-v1-php-8.5.13
           path: ${{ runner.temp }}/directory-transports-v1
           if-no-files-found: error
       - uses: actions/upload-artifact@v4

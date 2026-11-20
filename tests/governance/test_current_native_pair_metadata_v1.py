@@ -70,7 +70,7 @@ class MetadataControls(unittest.TestCase):
   unknown=self.raw+b'\n';ns['description']=types.SimpleNamespace(checked_bytes=lambda path:unknown)
   with self.assertRaises(ValueError):ns['_exact'](ns['_admitted_bytes'](None,REFERENCE,REFERENCE/native),ns['CURRENT_METADATA'][native])
   oldfn=next(n for n in original.body if isinstance(n,ast.FunctionDef)and n.name=='_normalize_metadata');newfn=next(copy.deepcopy(n)for n in tree.body if isinstance(n,ast.FunctionDef)and n.name=='_normalize_metadata')
-  additions=[n for n in newfn.body if isinstance(n,ast.If)and '5e12dada7162f8c7d696366b3307fa6e0f9fc4a5886f96b4875adc1123f4d853'in ast.unparse(n.test)];self.assertEqual(len(additions),1);newfn.body.remove(additions[0]);self.assertEqual(ast.dump(newfn,include_attributes=False),ast.dump(oldfn,include_attributes=False))
+  additions=[n for n in newfn.body if isinstance(n,ast.If)and '49ff3c53cd415a0d441d79f9471461dae6f8cca5dfc62ed1accd9f38e9332572'in ast.unparse(n.test)];self.assertEqual(len(additions),1);newfn.body.remove(additions[0]);self.assertEqual(ast.dump(newfn,include_attributes=False),ast.dump(oldfn,include_attributes=False))
  def test_genuine_public_fixture_positive_and_metadata_tamper(self):
   self.assertEqual(REFERENCE,ROOT,'genuine fixture replay requires the complete signed CURRENT checkout')
   from task_inverse_test_api_v2 import owner

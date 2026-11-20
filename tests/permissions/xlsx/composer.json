@@ -7,7 +7,7 @@
   },
   "config": {
     "platform": {
-      "php": "8.5.12"
+      "php": "8.5.13"
     },
     "allow-plugins": false
   },

@@ -55,7 +55,7 @@ final class PhorgeGovernanceCompletionFixture {
   /** Explicit isolated pre-Task bootstrap; create() keeps its original default. */
   public function createBeforeTaskMetadataPatchV1() {
     $this->assertTaskMetadataFreshV1();
-    if (PHP_VERSION !== '8.5.12' ||
+    if (PHP_VERSION !== '8.5.13' ||
         ini_get('opcache.jit') !== 'disable' ||
         ini_get('opcache.jit_buffer_size') !== '0' ||
         ini_get('opcache.enable_cli') !== '0') {

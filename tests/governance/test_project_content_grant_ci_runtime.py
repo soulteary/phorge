@@ -8,7 +8,7 @@ ci=importlib.util.module_from_spec(_spec);_spec.loader.exec_module(ci)
 
 class RuntimeTests(unittest.TestCase):
     def state(self):
-        return dict(php_version='8.5.12',mysql_version='8.4.13',server_uuid='aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',opcache_jit='disable',opcache_jit_buffer_size='0',opcache_enable_cli='0')
+        return dict(php_version='8.5.13',mysql_version='8.4.13',server_uuid='aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',opcache_jit='disable',opcache_jit_buffer_size='0',opcache_enable_cli='0')
     def test_actual_version_and_default_JIT_required(self):
         good=self.state();self.assertEqual(ci.runtime(good),good)
         for key,value in [('php_version','8.5.8'),('mysql_version','8.0.44'),('opcache_jit','tracing'),('opcache_jit_buffer_size','128M'),('opcache_enable_cli','1'),('server_uuid','unknown'),('server_uuid','-'*36)]:

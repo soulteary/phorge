@@ -111,7 +111,7 @@ def run_matrix(config, fault_manifest):
     try:
         unit = subprocess.run([php_binary, str(source / 'tests/governance/run.php')], cwd=source, env=runtime.env(), capture_output=True, timeout=180)
         runtime.write('pure.json', unit.stdout); pure = json.loads(unit.stdout)
-        check(unit.returncode == 0 and pure.get('passed') is True and pure.get('runtime') == '8.5.12' and pure.get('expected_methods') == config['expected_pure_methods'], 'actual_supported_pure_suite')
+        check(unit.returncode == 0 and pure.get('passed') is True and pure.get('runtime') == '8.5.13' and pure.get('expected_methods') == config['expected_pure_methods'], 'actual_supported_pure_suite')
         db = config['database']
         env = {'PHORGE_GOVERNANCE_FIXTURE_DSN': 'mysql:host=127.0.0.1;port=' + str(db['port']) + ';dbname=governance_fixture_bootstrap;charset=utf8mb4',
                'PHORGE_GOVERNANCE_FIXTURE_USER': db['user'], 'PHORGE_GOVERNANCE_FIXTURE_PASSWORD': os.environ[db['password_env']],

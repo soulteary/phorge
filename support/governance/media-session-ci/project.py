@@ -98,12 +98,12 @@ def project(directory,freshness_path=None):
   if hashlib.sha256(json.dumps(inventory,sort_keys=True,separators=(',',':')).encode()).hexdigest()!=accepted['source_inventory_sha256']or inventory.get('archive_sha256')!=accepted['source_archive_sha256']or inventory.get('base')!=fresh['base_revision']or type(inventory.get('entries'))is not dict or len(inventory['entries'])!=9325 or type(inventory.get('overlay'))is not dict or len(inventory['overlay'])!=8 or inventory.get('base_object_provenance',{}).get('root_tree')!=fresh['base_tree']or inventory.get('base_object_provenance',{}).get('git_object_hashes_verified')is not True:raise ValueError('source inventory binding')
   result['source_leaf_count']=len(inventory['entries'])
   probe,_=load(root/'actual-image-prerequisite.json',8192)
-  if probe.get('version')!='8.5.12'or any(probe.get(k)is not True for k in ('mysqli','mbstring','pcntl_exec','posix_identity','fsync'))or probe.get('jit')!='disable'or probe.get('buffer')!='0'or probe.get('cli')!='0':raise ValueError('runtime prerequisite')
+  if probe.get('version')!='8.5.13'or any(probe.get(k)is not True for k in ('mysqli','mbstring','pcntl_exec','posix_identity','fsync'))or probe.get('jit')!='disable'or probe.get('buffer')!='0'or probe.get('cli')!='0':raise ValueError('runtime prerequisite')
   caps=probe.get('caps',{});names={'CapEff','CapPrm','CapInh','CapAmb','CapBnd'}
   if set(caps)!=names|{'NoNewPrivs'}or caps['NoNewPrivs']!='1'or any(caps[k]!='0000000000000000'for k in names):raise ValueError('runtime capabilities')
   baseline,_=load(root/'fresh-database-baseline.json',8192)
   if set(baseline)!={'version','uuid','performance_schema','mdl_enabled','databases'}or baseline['version']!='8.4.13'or type(baseline['uuid'])is not str or not re.fullmatch('[a-f0-9-]{36}',baseline['uuid'])or any(type(baseline[k])is not int for k in ('performance_schema','mdl_enabled','databases'))or baseline['performance_schema']!=1 or baseline['mdl_enabled']!=1 or baseline['databases']!=0:raise ValueError('database baseline')
-  result['PHP_version']='8.5.12';result['MySQL_version']='8.4.13';result['JIT_disabled']=True;result['fresh_database_baseline_verified']=True;result['MDL_instrument_enabled']=True
+  result['PHP_version']='8.5.13';result['MySQL_version']='8.4.13';result['JIT_disabled']=True;result['fresh_database_baseline_verified']=True;result['MDL_instrument_enabled']=True
  if result.get('runner_terminal_accepted')is not True or result.get('unknown')is not False or result.get('resources_retained')is not False:result['strict_selected_accepted']=False
  return result
 if __name__=='__main__':

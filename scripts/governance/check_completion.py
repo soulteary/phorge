@@ -207,7 +207,7 @@ def validate(data, root=ROOT):
         'production_executor':False,'optional_features_enabled':False,
         'terminal_failure_cleanup_rollbacks':0,'successful_owned_service_startups':2}.items():
         exact(data[key], expected, 'Completion gate refused: '+key)
-    require(type(data['php_version']) is str and re.fullmatch(r'8\.5\.12(?:[-+].*)?',data['php_version']),
+    require(type(data['php_version']) is str and data['php_version'] == '8.5.13',
             'Supported PHP runtime refused.')
     checks = data['checks']
     require(type(checks) is list and all(type(c) is str and re.fullmatch(

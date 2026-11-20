@@ -1,3 +1,14 @@
+# Superseded PHP image experiment
+
+This historical image record is retired. It does not qualify PHP 8.5.13 and
+must not be used as a current image selector or fallback.
+
+Current runs must explicitly supply a newly built, immutable PHP 8.5.13 image
+to `PHP_TEST_IMAGE`, verify the actual runtime and disabled JIT, and repeat the
+full test gates. No older image ID is a default in the Dockerfile.
+
+## Historical record (not current acceptance)
+
 # Isolated PHP/Python wire image — prepared, NOT BUILT / NOT RUN
 
 The inspected existing dedicated test container uses immutable image ID

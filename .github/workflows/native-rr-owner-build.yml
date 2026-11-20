@@ -58,7 +58,7 @@ jobs:
           git diff --exit-code -- support/governance/recovery/owned-process
       - uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.5.12'
+          php-version: '8.5.13'
           ini-values: opcache.jit=disable, opcache.jit_buffer_size=0
           extensions: mysqli, mbstring, posix
           coverage: none

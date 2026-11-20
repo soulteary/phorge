@@ -107,7 +107,7 @@ def pure_inventory(root):
  if not CURRENT_PURE_ADDITIONS<=ids or not RETIREMENT_PURE_ADDITIONS<=ids or RETIRED_PURE_IDS&ids or digest(json.dumps(sorted((ids-CURRENT_PURE_ADDITIONS-RETIREMENT_PURE_ADDITIONS)|RETIRED_PURE_IDS),separators=(',',':')).encode())!=BASE_PURE_IDS_SHA256:raise ValueError('original280 plus exact five current cases required')
  return ids
 def validate_pure(data,ids):
- if data.get('passed')is not True or data.get('runtime')!='8.5.12'or type(data.get('expected_methods'))is not int or data['expected_methods']!=276:raise ValueError('actual pure outcome refused')
+ if data.get('passed')is not True or data.get('runtime')!='8.5.13'or type(data.get('expected_methods'))is not int or data['expected_methods']!=276:raise ValueError('actual pure outcome refused')
  results=data.get('results')
  if type(results)is not list or len(results)!=276 or len({r['id']for r in results})!=276 or {r['id']for r in results}!=ids or any(r.get('result')!='pass'for r in results):raise ValueError('actual pure IDs refused')
  return {'passed':True,'methods':276,'classes':49,'new_executions':1}

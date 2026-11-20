@@ -25,7 +25,7 @@ def valid_template():
     checks=sorted(gate.REQUIRED_CHECKS|gate.matrix_checks())
     return {'batch':'native-governance-completion','phase':'all','passed':True,
         'acceptance_scope':'full-current-profile-attempt','checks':checks,'check_count':len(checks),
-        'php_version':'8.5.12','queue_profile':'gorge','successful_owned_service_startups':2,
+        'php_version':'8.5.13','queue_profile':'gorge','successful_owned_service_startups':2,
         'source_restore':{'quickstart_sha256':hashlib.sha256((ROOT/'resources/sql/quickstart.sql').read_bytes()).hexdigest(),
             'app_schema_count':54,'owned_schema_count':55,'quickstart_source_table_count':500,
             'current_table_count':549,'restore_phase_workers_started':0,
@@ -61,6 +61,11 @@ class CompletionReceiptTests(unittest.TestCase):
     def reject(self,data):
         with self.assertRaises((ValueError,TypeError,KeyError)):
             gate.validate(data)
+
+    def test_retired_and_prerelease_runtimes_cannot_qualify_current_evidence(self):
+        for version in ('8.5.12', '8.5.11', '8.5.13RC1', '8.5.13-dev', '8.4.99', None, True):
+            data=valid_template();data['php_version']=version
+            with self.subTest(version=version):self.reject(data)
 
     def test_accepts_only_bounded_current_scope(self):
         result=gate.validate(valid_template())

@@ -4,7 +4,7 @@ This test-only component fixes the event contract and inventories actual native
 seams. It does not change sessions, permission axes, cache settings or production
 features. Four inventory adapters remain **unsupported/uninstrumented**. The two narrow
 profiles below passed at exact source `f3ceb7046b4f94ae791b4ca43b6de0b9d06faba9`:210
-native methods and710 SQL checks on PHP8.5.12. All6778 executed PHP/SQL and pinned
+native methods and710 SQL checks on PHP8.5.13. All6778 executed PHP/SQL and pinned
 PSL files matched an independent archive of that source. This documentation-only
 successor is not a new runtime execution. No SLA is adopted. The eleven tests use
 synthetic event data only to verify consumer behavior. Earlier
@@ -121,7 +121,7 @@ API execution, propagation SLA, convergence, HTTP or production proof is claimed
 
 Run only from an exact committed, tracked-clean Linux checkout with the existing
 owned full-native fixture environment and actual paired binaries. The selected
-PHP must be 8.5.12 or a supported later version. Generate the library map in the
+PHP must be 8.5.13 or a supported later version. Generate the library map in the
 isolated staging copy, compare its intended delta, then execute:
 
 ```sh

@@ -52,7 +52,7 @@ Neither the driver nor the feature adds a production PHP rendering fallback.
 
 The functional HTTP server explicitly uses `opcache.jit=disable`, retaining
 OPcache and all HTTP assertions. Function JIT reproduces an incorrect retained
-SQL-formatter result before web startup on the PHP 8.5.12 CI runtime; a DB-free
+SQL-formatter result before web startup on the PHP 8.5.13 CI runtime; a DB-free
 real-server regression simulates that host configuration, checks exact formatter
 outputs and rejected argument counts, and verifies the launcher's selected mode.
 CI runs this regression before HTTP acceptance. The report records the actual

@@ -27,20 +27,35 @@
     },
     ".github/workflows/gorge-runtime-contracts.yml": {
       "current_bytes": 17699,
-      "current_sha256": "0318bd00cca44e47d155ab1a682c2629cff16efa78b47d5e072ad56397f9a1d7",
+      "current_sha256": "172e2221d8870aac5a7d3d3cb9fe6d8e4bbe38fb2d154990c7f733d7bdb0f3ba",
       "target_bytes": 14318,
       "target_sha256": "1fac4ce6d96459d41d5f86f618c987b0e9678a180afe19111888a369d623ef77",
       "edits": [
         {
           "offset": 414,
-          "current": "  media-isolation:\n    runs-on: ubuntu-latest\n    timeout-minutes: 10\n    strategy:\n      fail-fast: false\n      matrix:\n        include:\n          - family: mysql\n            image: mysql:8.4.13@sha256:a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7\n          - family: mariadb\n            image: mariadb@sha256:d769e37960821dfdcf096954f6e7ac89f747e116c1bba98e48edd265dfc7deae\n    services:\n      database:\n        image: ${{ matrix.image }}\n        env:\n          MYSQL_ROOT_PASSWORD: media-isolation-test-only\n          MYSQL_ROOT_HOST: '%'\n        ports: ['3306:3306']\n        options: --health-cmd \"mysqladmin --protocol=tcp --host=127.0.0.1 ping --silent\" --health-interval 5s --health-timeout 3s --health-retries 30\n    steps:\n      - uses: actions/checkout@v6\n      - uses: shivammathur/setup-php@v2\n        with:\n          php-version: '8.5.12'\n          ini-values: opcache.jit=disable, opcache.jit_buffer_size=0\n          extensions: mysqli, mbstring, curl\n          coverage: none\n      - name: Verify isolation row validation without database access\n        run: |\n          php -r 'require \"tests/contract/bootstrap.php\"; $test = new PhorgeGovernanceMediaExchangeServiceTestCase(); $test->testIsolationRowsKeepExactNamesAndKnownNativeValues(); $assertions = new ReflectionProperty(PhutilTestCase::class, \"assertions\"); if ($assertions->getValue($test) !== 22) { throw new RuntimeException(\"Unexpected assertion count.\"); }'\n      - name: Verify isolated media transactions and cleanup\n        env:\n          PHORGE_MEDIA_ISOLATION_TEST: '1'\n          PHORGE_MEDIA_DATABASE_FAMILY: ${{ matrix.family }}\n          PHORGE_MEDIA_MYSQL_HOST: 127.0.0.1\n          PHORGE_MEDIA_MYSQL_PASSWORD: media-isolation-test-only\n        run: php tests/contract/runtime/media-isolation.php\n  proxy-session-identity:\n    runs-on: ubuntu-latest\n    services:\n      mysql:\n        image: mysql:8.0\n        env:\n          MYSQL_ROOT_PASSWORD: proxy-session-test-only\n          MYSQL_ROOT_HOST: '%'\n        ports: ['3306:3306']\n        options: --health-cmd \"mysqladmin ping -pproxy-session-test-only\" --health-interval 5s --health-timeout 3s --health-retries 30\n    steps:\n      - uses: actions/checkout@v6\n      - uses: shivammathur/setup-php@v2\n        with:\n          php-version: '8.5.12'\n          ini-values: opcache.jit=disable, opcache.jit_buffer_size=0\n          extensions: mysqli, mbstring, curl, dom\n          coverage: none\n      - name: Prepare isolated authentication test database\n        run: |\n          php scripts/runtime/build.php all\n          mkdir -p conf/local\n          php -r '$db=new mysqli(\"127.0.0.1\",\"root\",\"proxy-session-test-only\",\"\",3306); $db->query(\"SET GLOBAL sql_mode = '\\''STRICT_ALL_TABLES'\\''\"); file_put_contents(\"conf/local/local.json\",json_encode([\"mysql.host\"=>\"127.0.0.1\",\"mysql.port\"=>\"3306\",\"mysql.user\"=>\"root\",\"mysql.pass\"=>\"proxy-session-test-only\"]));'\n      - name: Verify proxy identity and explicit account linking\n        run: |\n          php bin/unit --no-coverage \\\n            src/applications/auth/__tests__/PhabricatorTraefikSessionIdentityTestCase.php \\\n            src/applications/auth/__tests__/PhabricatorTraefikAuthProviderTestCase.php\n      - name: Verify native Almanac inventory boundaries\n        run: php bin/unit --no-coverage src/applications/almanac/__tests__/AlmanacInventoryBoundaryTestCase.php\n",
+          "current": "  media-isolation:\n    runs-on: ubuntu-latest\n    timeout-minutes: 10\n    strategy:\n      fail-fast: false\n      matrix:\n        include:\n          - family: mysql\n            image: mysql:8.4.13@sha256:a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7\n          - family: mariadb\n            image: mariadb@sha256:d769e37960821dfdcf096954f6e7ac89f747e116c1bba98e48edd265dfc7deae\n    services:\n      database:\n        image: ${{ matrix.image }}\n        env:\n          MYSQL_ROOT_PASSWORD: media-isolation-test-only\n          MYSQL_ROOT_HOST: '%'\n        ports: ['3306:3306']\n        options: --health-cmd \"mysqladmin --protocol=tcp --host=127.0.0.1 ping --silent\" --health-interval 5s --health-timeout 3s --health-retries 30\n    steps:\n      - uses: actions/checkout@v6\n      - uses: shivammathur/setup-php@v2\n        with:\n          php-version: '8.5.13'\n          ini-values: opcache.jit=disable, opcache.jit_buffer_size=0\n          extensions: mysqli, mbstring, curl\n          coverage: none\n      - name: Verify isolation row validation without database access\n        run: |\n          php -r 'require \"tests/contract/bootstrap.php\"; $test = new PhorgeGovernanceMediaExchangeServiceTestCase(); $test->testIsolationRowsKeepExactNamesAndKnownNativeValues(); $assertions = new ReflectionProperty(PhutilTestCase::class, \"assertions\"); if ($assertions->getValue($test) !== 22) { throw new RuntimeException(\"Unexpected assertion count.\"); }'\n      - name: Verify isolated media transactions and cleanup\n        env:\n          PHORGE_MEDIA_ISOLATION_TEST: '1'\n          PHORGE_MEDIA_DATABASE_FAMILY: ${{ matrix.family }}\n          PHORGE_MEDIA_MYSQL_HOST: 127.0.0.1\n          PHORGE_MEDIA_MYSQL_PASSWORD: media-isolation-test-only\n        run: php tests/contract/runtime/media-isolation.php\n  proxy-session-identity:\n    runs-on: ubuntu-latest\n    services:\n      mysql:\n        image: mysql:8.0\n        env:\n          MYSQL_ROOT_PASSWORD: proxy-session-test-only\n          MYSQL_ROOT_HOST: '%'\n        ports: ['3306:3306']\n        options: --health-cmd \"mysqladmin ping -pproxy-session-test-only\" --health-interval 5s --health-timeout 3s --health-retries 30\n    steps:\n      - uses: actions/checkout@v6\n      - uses: shivammathur/setup-php@v2\n        with:\n          php-version: '8.5.13'\n          ini-values: opcache.jit=disable, opcache.jit_buffer_size=0\n          extensions: mysqli, mbstring, curl, dom\n          coverage: none\n      - name: Prepare isolated authentication test database\n        run: |\n          php scripts/runtime/build.php all\n          mkdir -p conf/local\n          php -r '$db=new mysqli(\"127.0.0.1\",\"root\",\"proxy-session-test-only\",\"\",3306); $db->query(\"SET GLOBAL sql_mode = '\\''STRICT_ALL_TABLES'\\''\"); file_put_contents(\"conf/local/local.json\",json_encode([\"mysql.host\"=>\"127.0.0.1\",\"mysql.port\"=>\"3306\",\"mysql.user\"=>\"root\",\"mysql.pass\"=>\"proxy-session-test-only\"]));'\n      - name: Verify proxy identity and explicit account linking\n        run: |\n          php bin/unit --no-coverage \\\n            src/applications/auth/__tests__/PhabricatorTraefikSessionIdentityTestCase.php \\\n            src/applications/auth/__tests__/PhabricatorTraefikAuthProviderTestCase.php\n      - name: Verify native Almanac inventory boundaries\n        run: php bin/unit --no-coverage src/applications/almanac/__tests__/AlmanacInventoryBoundaryTestCase.php\n",
           "parent": ""
+        },
+        {
+          "offset": 3898,
+          "current": "        php: ['8.5.13']\n",
+          "parent": "        php: ['8.5.12']\n"
+        },
+        {
+          "offset": 6242,
+          "current": "          php-version: '8.5.13'\n",
+          "parent": "          php-version: '8.5.12'\n"
+        },
+        {
+          "offset": 15035,
+          "current": "          php-version: '8.5.13'\n",
+          "parent": "          php-version: '8.5.12'\n"
         }
       ]
     },
     ".github/workflows/native-rr-owner-build.yml": {
       "current_bytes": 2978,
-      "current_sha256": "c1477f17447ec20ce70f0688e89a03ea44578087eb1c10f77b65372f105e073a",
+      "current_sha256": "42c30097c96481a00eddc9800c14ed4c4644bab62b6806684967eba1bac93a50",
       "target_bytes": 3380,
       "target_sha256": "025e5f5d8d9eb73952539c7bf8efb7c66b62c06de5c19aab9b3d9df69d04a432",
       "edits": [
@@ -63,6 +78,11 @@
           "offset": 1106,
           "current": "      - name: Require exact full-tier caller checkpoint\n        env:\n          FOCUSED_EXPECTED_HEAD: ${{ inputs.expected_head }}\n        run: |\n          python3 -B scripts/ci/focused_workflows.py bind-head --expected-head \"$FOCUSED_EXPECTED_HEAD\"\n",
           "parent": ""
+        },
+        {
+          "offset": 2227,
+          "current": "          php-version: '8.5.13'\n",
+          "parent": "          php-version: '8.5.12'\n"
         }
       ]
     },
@@ -289,7 +309,7 @@
     },
     "tests/governance/native_rr_ci/execution.py": {
       "current_bytes": 20374,
-      "current_sha256": "2ef43559788ad70e198c0e74a850f869c5d8adeebd0d2e9af2d2728f31794e5f",
+      "current_sha256": "548b9275398bd536ba1dbc5f571e531a24bcbf505e6c15c667c0be2cf5968148",
       "target_bytes": 8508,
       "target_sha256": "f250bcd482a4799d5b41c1f0d3af76b13605cbbf4be97d874ec54827edd34895",
       "edits": [
@@ -310,7 +330,7 @@
         },
         {
           "offset": 9261,
-          "current": " if data.get('passed')is not True or data.get('runtime')!='8.5.12'or type(data.get('expected_methods'))is not int or data['expected_methods']!=276:raise ValueError('actual pure outcome refused')\n",
+          "current": " if data.get('passed')is not True or data.get('runtime')!='8.5.13'or type(data.get('expected_methods'))is not int or data['expected_methods']!=276:raise ValueError('actual pure outcome refused')\n",
           "parent": " if data.get('passed')is not True or data.get('runtime')!='8.5.12'or type(data.get('expected_methods'))is not int or data['expected_methods']!=280:raise ValueError('actual pure outcome refused')\n"
         },
         {
@@ -332,7 +352,7 @@
     },
     "tests/governance/native_rr_ci/runner.py": {
       "current_bytes": 17439,
-      "current_sha256": "e9bb4e289d55bef1e46df6e69b4661d3f44340e7e74c54f0886d021d81aa3942",
+      "current_sha256": "a8a7f3a1d588177e86ca7ea008b6ee6baab19d6ba58f08637986a806aaa654b7",
       "target_bytes": 16531,
       "target_sha256": "9ac6a8477020fe4ee7db665707c020ded69415dfd5ad9bac90b03b6cf3491ea1",
       "edits": [
@@ -350,6 +370,11 @@
           "offset": 7752,
           "current": "  execution.verify_current_restore_inputs(SOURCE,head,restore_inputs,code_root=ROOT,read_committed=restore_committed)\n",
           "parent": ""
+        },
+        {
+          "offset": 8030,
+          "current": "  if command([str(php),'-r','echo PHP_VERSION;'])!=b'8.5.13':raise ValueError('exact native PHP required')\n",
+          "parent": "  if command([str(php),'-r','echo PHP_VERSION;'])!=b'8.5.12':raise ValueError('exact native PHP required')\n"
         },
         {
           "offset": 11745,
@@ -370,13 +395,13 @@
     },
     "tests/governance/test_native_rr_ci_execution.py": {
       "current_bytes": 21221,
-      "current_sha256": "fc589d0c142ca0f6e9b7aa7eec0e982abd5ab597852c76798b41d178a7fd9e3e",
+      "current_sha256": "d82e65a6688c3eeadefcdfc855ec6352dc6cadb6f7b99e830671488fe16af9ab",
       "target_bytes": 6348,
       "target_sha256": "42c3bccffac825e267b28f8cf0f1c581280dbba142be2712654a3c8975b44ea5",
       "edits": [
         {
           "offset": 3975,
-          "current": "  ids=e.pure_inventory(ROOT);self.assertEqual(276,len(ids));data={'passed':True,'runtime':'8.5.12','expected_methods':276,'results':[{'id':i,'result':'pass'}for i in ids]};self.assertTrue(e.validate_pure(data,ids)['passed'])\n  for change in ('bool','duplicate','failed','old-count','stale-280'):\n",
+          "current": "  ids=e.pure_inventory(ROOT);self.assertEqual(276,len(ids));data={'passed':True,'runtime':'8.5.13','expected_methods':276,'results':[{'id':i,'result':'pass'}for i in ids]};self.assertTrue(e.validate_pure(data,ids)['passed'])\n  for change in ('bool','duplicate','failed','old-count','stale-280'):\n",
           "parent": "  ids=e.pure_inventory(ROOT);self.assertEqual(280,len(ids));data={'passed':True,'runtime':'8.5.12','expected_methods':280,'results':[{'id':i,'result':'pass'}for i in ids]};self.assertTrue(e.validate_pure(data,ids)['passed'])\n  for change in ('bool','duplicate','failed','old-count'):\n"
         },
         {
@@ -386,7 +411,7 @@
         },
         {
           "offset": 4658,
-          "current": " def test_five_current_media_methods_are_not_omitted_from_real_inventory(self):\n  ids=e.pure_inventory(ROOT)\n  additions={\n   'PhorgeGovernanceMediaExchangeServiceTestCase::testIsolationRowsKeepExactNamesAndKnownNativeValues',\n   'PhorgeGovernanceMediaFileGuardTestCase::testDisabledFileGuardDeniesBeforeInterpretingRouteOrIdentity',\n   'PhorgeGovernanceMediaFileGuardTestCase::testPrivateResponsesDisableCachingAndConstrainActiveContent',\n   'PhorgeGovernanceMediaHTTPProtocolTestCase::testDisabledCandidateEndpointsDenyWithoutCreatingAuthority',\n   'PhorgeGovernanceMediaHTTPProtocolTestCase::testDisabledHTTPPreservesNativeCredentialsAndOmitsBootstrap'}\n  self.assertTrue(additions<=ids)\n  self.assertEqual(additions,e.CURRENT_PURE_ADDITIONS)\n  for removed in additions:\n   data={'passed':True,'runtime':'8.5.12','expected_methods':276,\n         'results':[{'id':i,'result':'pass'}for i in ids if i!=removed]}\n   with self.subTest(removed=removed),self.assertRaises(ValueError):e.validate_pure(data,ids)\n  # The historical280 prefix/success bit cannot replace all current276 IDs.\n  old=ids-additions\n  with self.assertRaises(ValueError):e.validate_pure({'passed':True,'runtime':'8.5.12',\n   'expected_methods':280,'results':[{'id':i,'result':'pass'}for i in old]},ids)\n def test_unchanged_count_cannot_replace_original_or_new_method(self):\n  import re\n  text=(ROOT/'tests/governance/run.php').read_text()\n  classes=re.findall(r\"'(Phorge[A-Za-z0-9_]+TestCase)'\",text.split('$classes = array(',1)[1].split(');',1)[0])\n  with tempfile.TemporaryDirectory()as tmp:\n   root=Path(tmp);runner=root/'tests/governance/run.php';runner.parent.mkdir(parents=True);runner.write_text(text)\n   files={}\n   for cls in classes:\n    original=next((ROOT/'src').rglob(cls+'.php'));target=root/'src'/original.name\n    target.parent.mkdir(exist_ok=True);target.write_text(original.read_text());files[cls]=target\n   self.assertEqual(276,len(e.pure_inventory(root)))\n   for identity in ('PhorgeGovernanceDirectoryReaderTestCase',\n                    'PhorgeGovernanceMediaExchangeServiceTestCase'):\n    target=files[identity];original=target.read_text()\n    method=('testIsolationRowsKeepExactNamesAndKnownNativeValues'if 'MediaExchange'in identity\n            else re.search(r'public\\s+function\\s+(test[A-Za-z0-9_]+)\\s*\\(',original).group(1))\n    target.write_text(original.replace(method,'testUnreviewedReplacement',1))\n    with self.subTest(identity=identity),self.assertRaises(ValueError):e.pure_inventory(root)\n    target.write_text(original)\n",
+          "current": " def test_five_current_media_methods_are_not_omitted_from_real_inventory(self):\n  ids=e.pure_inventory(ROOT)\n  additions={\n   'PhorgeGovernanceMediaExchangeServiceTestCase::testIsolationRowsKeepExactNamesAndKnownNativeValues',\n   'PhorgeGovernanceMediaFileGuardTestCase::testDisabledFileGuardDeniesBeforeInterpretingRouteOrIdentity',\n   'PhorgeGovernanceMediaFileGuardTestCase::testPrivateResponsesDisableCachingAndConstrainActiveContent',\n   'PhorgeGovernanceMediaHTTPProtocolTestCase::testDisabledCandidateEndpointsDenyWithoutCreatingAuthority',\n   'PhorgeGovernanceMediaHTTPProtocolTestCase::testDisabledHTTPPreservesNativeCredentialsAndOmitsBootstrap'}\n  self.assertTrue(additions<=ids)\n  self.assertEqual(additions,e.CURRENT_PURE_ADDITIONS)\n  for removed in additions:\n   data={'passed':True,'runtime':'8.5.13','expected_methods':276,\n         'results':[{'id':i,'result':'pass'}for i in ids if i!=removed]}\n   with self.subTest(removed=removed),self.assertRaises(ValueError):e.validate_pure(data,ids)\n  # The historical280 prefix/success bit cannot replace all current276 IDs.\n  old=ids-additions\n  with self.assertRaises(ValueError):e.validate_pure({'passed':True,'runtime':'8.5.13',\n   'expected_methods':280,'results':[{'id':i,'result':'pass'}for i in old]},ids)\n def test_unchanged_count_cannot_replace_original_or_new_method(self):\n  import re\n  text=(ROOT/'tests/governance/run.php').read_text()\n  classes=re.findall(r\"'(Phorge[A-Za-z0-9_]+TestCase)'\",text.split('$classes = array(',1)[1].split(');',1)[0])\n  with tempfile.TemporaryDirectory()as tmp:\n   root=Path(tmp);runner=root/'tests/governance/run.php';runner.parent.mkdir(parents=True);runner.write_text(text)\n   files={}\n   for cls in classes:\n    original=next((ROOT/'src').rglob(cls+'.php'));target=root/'src'/original.name\n    target.parent.mkdir(exist_ok=True);target.write_text(original.read_text());files[cls]=target\n   self.assertEqual(276,len(e.pure_inventory(root)))\n   for identity in ('PhorgeGovernanceDirectoryReaderTestCase',\n                    'PhorgeGovernanceMediaExchangeServiceTestCase'):\n    target=files[identity];original=target.read_text()\n    method=('testIsolationRowsKeepExactNamesAndKnownNativeValues'if 'MediaExchange'in identity\n            else re.search(r'public\\s+function\\s+(test[A-Za-z0-9_]+)\\s*\\(',original).group(1))\n    target.write_text(original.replace(method,'testUnreviewedReplacement',1))\n    with self.subTest(identity=identity),self.assertRaises(ValueError):e.pure_inventory(root)\n    target.write_text(original)\n",
           "parent": ""
         },
         {
@@ -426,7 +451,7 @@
     },
     "tests/governance/test_native_rr_ci_runner.py": {
       "current_bytes": 14505,
-      "current_sha256": "eb16e08b8415d839d6293ef7724cc3ff8e0a7d330d2c0157791b8f546bd6e42d",
+      "current_sha256": "ca411ba07b18b086ccf42e5367f5e388a732b627dbd0f20b5b6c449487e28b07",
       "target_bytes": 12654,
       "target_sha256": "d93d7205de9f0c23cf71e820b390ae11e5b6da96a0065fd85c37ba63121217c5",
       "edits": [
@@ -451,8 +476,13 @@
           "parent": "     if 'rev-parse'in args:return(REV+'\\n').encode()\n"
         },
         {
+          "offset": 5125,
+          "current": "     if args[1:]==['-r','echo PHP_VERSION;']:return b'8.5.13'\n",
+          "parent": "     if args[1:]==['-r','echo PHP_VERSION;']:return b'8.5.12'\n"
+        },
+        {
           "offset": 5853,
-          "current": "     if args[1].endswith('/tests/governance/run.php'):return json.dumps({'passed':True,'runtime':'8.5.12','expected_methods':276,'results':[{'id':i,'result':'pass'}for i in ids]}).encode()\n",
+          "current": "     if args[1].endswith('/tests/governance/run.php'):return json.dumps({'passed':True,'runtime':'8.5.13','expected_methods':276,'results':[{'id':i,'result':'pass'}for i in ids]}).encode()\n",
           "parent": "     if args[1].endswith('/tests/governance/run.php'):return json.dumps({'passed':True,'runtime':'8.5.12','expected_methods':280,'results':[{'id':i,'result':'pass'}for i in ids]}).encode()\n"
         },
         {
@@ -1368,8 +1398,8 @@
       ]
     },
     "scripts/governance/check_completion.py": {
-      "current_bytes": 16735,
-      "current_sha256": "fa9f6c1e360a95822651f3b4af0277cc243e8edac78ad78f1cf924c713c46b1c",
+      "current_bytes": 16710,
+      "current_sha256": "b412555b95a1f450540474807c044e0c20dd3305b3e17e5635c9812122e08296",
       "target_bytes": 16475,
       "target_sha256": "39956a43c26607ac5ebb761ec25f686b2314326511a082f80efe4bf3a2258649",
       "edits": [
@@ -1399,7 +1429,12 @@
           "parent": "    require(type(rows) is list and len(rows) == 24, 'Native shape matrix count refused.')\n    exact(data.get('shape_count'), 24, 'Native shape count refused.')\n    exact(data.get('operation_count'), 9, 'Native operation count refused.')\n"
         },
         {
-          "offset": 15577,
+          "offset": 10032,
+          "current": "    require(type(data['php_version']) is str and data['php_version'] == '8.5.13',\n",
+          "parent": "    require(type(data['php_version']) is str and re.fullmatch(r'8\\.5\\.12(?:[-+].*)?',data['php_version']),\n"
+        },
+        {
+          "offset": 15552,
           "current": "        'native_shapes':17,'retired_shapes':7,'operation_vocabularies':7,'phase':'all','gorge_profile_accepted':True,\n",
           "parent": "        'native_shapes':24,'operation_vocabularies':9,'phase':'all','gorge_profile_accepted':True,\n"
         }
@@ -1667,33 +1702,43 @@
       ]
     },
     "tests/governance/test_completion.py": {
-      "current_bytes": 12882,
-      "current_sha256": "d31ea1b2b71c8eb401d34555dcde701d02feaaf2b187bc6476acb0ad5cc83441",
+      "current_bytes": 13188,
+      "current_sha256": "3b2985878499db3236905602eda2ed69f1f2bca6c3ceeeb4544b51dfb67f25fa",
       "target_bytes": 12403,
       "target_sha256": "8f6acafcf49fba16c6222a80e56d9659b03c54c2bf595afbe210d37c94e65ecb",
       "edits": [
         {
-          "offset": 3929,
+          "offset": 1090,
+          "current": "        'php_version':'8.5.13','queue_profile':'gorge','successful_owned_service_startups':2,\n",
+          "parent": "        'php_version':'8.5.12','queue_profile':'gorge','successful_owned_service_startups':2,\n"
+        },
+        {
+          "offset": 3827,
+          "current": "    def test_retired_and_prerelease_runtimes_cannot_qualify_current_evidence(self):\n        for version in ('8.5.12', '8.5.11', '8.5.13RC1', '8.5.13-dev', '8.4.99', None, True):\n            data=valid_template();data['php_version']=version\n            with self.subTest(version=version):self.reject(data)\n\n",
+          "parent": ""
+        },
+        {
+          "offset": 4235,
           "current": "        self.assertEqual(result['native_shapes'],17)\n        self.assertEqual(result['operation_vocabularies'],7)\n",
           "parent": "        self.assertEqual(result['native_shapes'],24)\n        self.assertEqual(result['operation_vocabularies'],9)\n"
         },
         {
-          "offset": 4846,
+          "offset": 5152,
           "current": "    def test_retired_checks_are_explicit_and_not_current_success_requirements(self):\n        retirement=json.loads((ROOT/'docs/operations/retirement/wiki.json').read_text())\n        retired=set(retirement['retired_completion_checks'])\n        self.assertEqual(len(retired),16)\n        self.assertEqual(125-len(retired),109)\n        self.assertFalse(retired & (gate.REQUIRED_CHECKS | gate.matrix_checks()))\n        matrix=json.loads((ROOT/gate.MATRIX).read_text())\n        self.assertTrue({c for row in matrix['retired_rows'] for c in row['check_ids']} <= retired)\n\n",
           "parent": ""
         },
         {
-          "offset": 5536,
+          "offset": 5842,
           "current": "        self.assertEqual(len(matrix['rows']),17)\n",
           "parent": "        self.assertEqual(len(matrix['rows']),24)\n"
         },
         {
-          "offset": 6572,
+          "offset": 6878,
           "current": "",
           "parent": "                      'read-view-wiki-private-ancestor-local-allow-actor-query-deny',\n"
         },
         {
-          "offset": 11718,
+          "offset": 12024,
           "current": "            self.assertEqual(json.loads(result.stdout)['native_shapes'],17)\n",
           "parent": "            self.assertEqual(json.loads(result.stdout)['native_shapes'],24)\n"
         }
@@ -1843,6 +1888,972 @@
           "offset": 8636,
           "current": "                    value=json.loads(result.stdout);self.assertEqual(922,value['native_checks'])\n",
           "parent": "                    value=json.loads(result.stdout);self.assertEqual(936,value['native_checks'])\n"
+        }
+      ]
+    },
+    ".github/workflows/php-core-security.yml": {
+      "current_bytes": 2860,
+      "current_sha256": "cd591b495a20319861aeb3db9c74f84e878b97b1ff0b9c73aff065db0d5b6991",
+      "target_bytes": 2860,
+      "target_sha256": "c712fc74eea5f742509e50266af8047b604892c4a2523169487afaae5165bcbd",
+      "edits": [
+        {
+          "offset": 1039,
+          "current": "          if [[ ! \"$image\" =~ ^php:8\\.5\\.13-apache$ ]]; then\n            echo \"::error::Expected the PHP 8.5.13 Apache production baseline, found: $image\"\n",
+          "parent": "          if [[ ! \"$image\" =~ ^php:8\\.5\\.12-apache$ ]]; then\n            echo \"::error::Expected the PHP 8.5.12 Apache production baseline, found: $image\"\n"
+        }
+      ]
+    },
+    ".github/workflows/rebuild-phutil-map.yml": {
+      "current_bytes": 2700,
+      "current_sha256": "1df42d1bc93140106fbfc1aa8478f41310d05f1739c8592dee60a72d5189ba10",
+      "target_bytes": 2700,
+      "target_sha256": "e3e716164b12a6b6ba4a9654d74e5f55027b57043c30b227448b8f7216c5b758",
+      "edits": [
+        {
+          "offset": 537,
+          "current": "          php-version: '8.5.13'\n",
+          "parent": "          php-version: '8.5.12'\n"
+        }
+      ]
+    },
+    "DOCKER.md": {
+      "current_bytes": 59622,
+      "current_sha256": "0379d3daa6d749de83758dfd4590b4eb59ca22143c66f7baf7c5a5a9e0882c11",
+      "target_bytes": 59622,
+      "target_sha256": "0ed7eeaa6c6fc0d1d7b19afaddd33021d4ebc28416d33a5fade4c25dc14843c3",
+      "edits": [
+        {
+          "offset": 56353,
+          "current": "\u552f\u4e00\u652f\u6301\u7684 PHP \u5206\u652f\u662f 8.5\uff0c\u6700\u4f4e\u5b89\u5168\u8865\u4e01\u53ca\u751f\u4ea7\u6784\u5efa\u57fa\u7ebf\u4e3a **8.5.13**\u3002\n",
+          "parent": "\u552f\u4e00\u652f\u6301\u7684 PHP \u5206\u652f\u662f 8.5\uff0c\u6700\u4f4e\u5b89\u5168\u8865\u4e01\u53ca\u5f53\u524d\u751f\u4ea7\u955c\u50cf\u4e3a **8.5.12**\u3002\n"
+        },
+        {
+          "offset": 56819,
+          "current": "[8.5.13 \u5347\u7ea7\u8bf4\u660e](docs/releases/php-8.5.13-upgrade.md)\u3002\n",
+          "parent": "[8.5.12 \u5347\u7ea7\u8bf4\u660e](docs/releases/php-8.5.12-upgrade.md)\u3002\n"
+        }
+      ]
+    },
+    "Dockerfile": {
+      "current_bytes": 7318,
+      "current_sha256": "65726234cc8124d50ac47c892501e988ee00dd414917eb6c402c0a780fc1008e",
+      "target_bytes": 7318,
+      "target_sha256": "537830dc44a8648ad1a6d553d80e34dea2f34e220106fff9c0c4215a731a6f95",
+      "edits": [
+        {
+          "offset": 310,
+          "current": "ARG PHP_BASE_IMAGE=php:8.5.13-apache\n",
+          "parent": "ARG PHP_BASE_IMAGE=php:8.5.12-apache\n"
+        },
+        {
+          "offset": 394,
+          "current": "ARG DEBIAN_SNAPSHOT=20261120T000000Z\n",
+          "parent": "ARG DEBIAN_SNAPSHOT=20261028T000000Z\n"
+        }
+      ]
+    },
+    "README.md": {
+      "current_bytes": 2080,
+      "current_sha256": "4930f968350e37487ce10a387445d5e13a3ea4bce63a87bc900daf6351293c39",
+      "target_bytes": 2080,
+      "target_sha256": "eb05082d4fa7607e3c70c590656f990af8498e88dba11d817ce364f77e58b34c",
+      "edits": [
+        {
+          "offset": 101,
+          "current": "> PHP runtime: **8.5 only**, minimum **8.5.13**. Docker and CI pin 8.5.13;\n",
+          "parent": "> PHP runtime: **8.5 only**, minimum **8.5.12**. Docker and CI pin 8.5.12;\n"
+        },
+        {
+          "offset": 245,
+          "current": "> See [upgrade and rollback](docs/releases/php-8.5.13-upgrade.md).\n",
+          "parent": "> See [upgrade and rollback](docs/releases/php-8.5.12-upgrade.md).\n"
+        }
+      ]
+    },
+    "deploy/acceptance/image-lock-provenance.md": {
+      "current_bytes": 4881,
+      "current_sha256": "744a467b0762379cfb4a47a6385d5db917ae4f566803ba94e22dba4630e03315",
+      "target_bytes": 4171,
+      "target_sha256": "11be562d499baeb6f19fdad91d468e7f0705a388a7b99f036124b1272d8e70a6",
+      "edits": [
+        {
+          "offset": 0,
+          "current": "# Current PHP security baseline\n\nPHP 8.5.13 supersedes the previous PHP baseline. Current acceptance requires\n8.5.13; older runtime receipts do not qualify this release.\n\nThe official `php:8.5.13-apache` multi-platform manifest is pinned as\n`sha256:0a785eab8b7eb4836f9c6093771c8ea15ff8ba7269444f3da70a1d33d15fe664`.\nThe Debian dependency snapshot is `20261120T000000Z`. The remaining paired\ncomponent pins are unchanged. Build and runtime qualification are required\nbefore any deployment.\n\n## Superseded provenance record\n\nThe record below is retained as historical audit data only. Its PHP image and\nruntime qualification have been superseded and must not be used for a current\nbuild or acceptance decision.\n\n",
+          "parent": ""
+        }
+      ]
+    },
+    "deploy/acceptance/php_security.php": {
+      "current_bytes": 773,
+      "current_sha256": "da291c330a1045894a5133e56669b8d9ed06effabe03618dfe85d79a3228c5cb",
+      "target_bytes": 773,
+      "target_sha256": "13b834fc85bfad6d67702e41eaf8fe2d40deaf6114fb26d88924344b37577ea3",
+      "edits": [
+        {
+          "offset": 143,
+          "current": "    version_compare(PHP_VERSION, '8.5.13', '<')) {\n  fwrite(STDERR, \"Unsupported PHP runtime; require PHP 8.5.13+ on the 8.5 branch: \".PHP_VERSION.\"\\n\");\n",
+          "parent": "    version_compare(PHP_VERSION, '8.5.12', '<')) {\n  fwrite(STDERR, \"Unsupported PHP runtime; require PHP 8.5.12+ on the 8.5 branch: \".PHP_VERSION.\"\\n\");\n"
+        }
+      ]
+    },
+    "deploy/release/README.md": {
+      "current_bytes": 3542,
+      "current_sha256": "edde1ad1a235f9696ae2573cf70a1b319b6956b1c0fd8437382203faad0b9e53",
+      "target_bytes": 3542,
+      "target_sha256": "722453f35b882f10f07587a991524c624c05c789cf060eda2f0ac1ff5f816044",
+      "edits": [
+        {
+          "offset": 1565,
+          "current": "including PHP 8.5.13 and disabled JIT. Pulling both platforms through one root\n",
+          "parent": "including PHP 8.5.12 and disabled JIT. Pulling both platforms through one root\n"
+        }
+      ]
+    },
+    "docker/acceptance.Dockerfile": {
+      "current_bytes": 596,
+      "current_sha256": "94e9aa0f2ea1ad02e58b63008ffc02f5087a5d85e03a29ca4ef8294598adbebc",
+      "target_bytes": 596,
+      "target_sha256": "efe351497b3c56ab4512bdedbf80031965f7a8c952f7e93f2ab40e5167312908",
+      "edits": [
+        {
+          "offset": 117,
+          "current": "ARG DEBIAN_SNAPSHOT=20261120T000000Z\n",
+          "parent": "ARG DEBIAN_SNAPSHOT=20261006T000000Z\n"
+        }
+      ]
+    },
+    "scripts/governance/check_api_credential_concurrency.py": {
+      "current_bytes": 8750,
+      "current_sha256": "13eec9ef904d996a8e09b836901a3933e72911548dee3baff06542ad27b18bea",
+      "target_bytes": 8750,
+      "target_sha256": "cc09eb17d675d458c57f1116d97228a92834fd227101086ec56ab4c392b4ea0c",
+      "edits": [
+        {
+          "offset": 4144,
+          "current": "    exact(data['php_version'], '8.5.13')\n",
+          "parent": "    exact(data['php_version'], '8.5.12')\n"
+        }
+      ]
+    },
+    "scripts/governance/check_directory_transports_v1.py": {
+      "current_bytes": 21024,
+      "current_sha256": "13a914081c9a7c40e5729f9a176cc4fffd3b94d22f8c37e249e4ebb93b557fbf",
+      "target_bytes": 21024,
+      "target_sha256": "df5dd1a3ad39d5b3c53f17343ccd15232a37bc8a37a3c3de954174c92e6f5462",
+      "edits": [
+        {
+          "offset": 14988,
+          "current": "    for k,v in dict(batch='native-directory-transports-v2-restore-progress',passed=True,scope='owned-native-directory-transport-matrix-with-paired-file-and-exact-restore-progress',php_version='8.5.13',\n",
+          "parent": "    for k,v in dict(batch='native-directory-transports-v2-restore-progress',passed=True,scope='owned-native-directory-transport-matrix-with-paired-file-and-exact-restore-progress',php_version='8.5.12',\n"
+        }
+      ]
+    },
+    "scripts/governance/check_native_user_rr_mdl.py": {
+      "current_bytes": 6016,
+      "current_sha256": "b0668dedcdf76e02a091311fa0cb439e0e2ff6162be57e5a53d8f6a6b6cd28b3",
+      "target_bytes": 6016,
+      "target_sha256": "45f5097603be4862928426cb346145805d13165ee03b8e07124837988e8c8a1f",
+      "edits": [
+        {
+          "offset": 2107,
+          "current": "   'passed':True,'php_version':'8.5.13','check_count':21,'failure':None,'cleanup_failures':[],\n",
+          "parent": "   'passed':True,'php_version':'8.5.12','check_count':21,'failure':None,'cleanup_failures':[],\n"
+        }
+      ]
+    },
+    "scripts/governance/check_organization_approval_workbench.py": {
+      "current_bytes": 4290,
+      "current_sha256": "b8c1656aca04aaea858cd8abb104d8b320b4da788a3aa4e980233dc0b0bd07b7",
+      "target_bytes": 4290,
+      "target_sha256": "c899d76c4c7876af224adb730b3f7062c70aad4d314af8e40e176332cab67f37",
+      "edits": [
+        {
+          "offset": 1751,
+          "current": " for key,value in {'batch':'native-organization-approval-workbench','scope':'owned-native-organization-approval-workbench','passed':True,'php_version':'8.5.13','check_count':26,'failure':None,'cleanup_failures':[],'optional_source_reader_adapter_exercised':True,'isolated_optional_features_enabled':True,'successful_owned_file_service_startups':0,'file_service_cleanup':None,'terminal_failure_cleanup_rollbacks':0,'production_deployment':False,'production_executor':False,'production_optional_features_enabled':False,'native_permission_axes_changed':False}.items():completion.exact(data[key],value,'workbench typed fact refused')\n",
+          "parent": " for key,value in {'batch':'native-organization-approval-workbench','scope':'owned-native-organization-approval-workbench','passed':True,'php_version':'8.5.12','check_count':26,'failure':None,'cleanup_failures':[],'optional_source_reader_adapter_exercised':True,'isolated_optional_features_enabled':True,'successful_owned_file_service_startups':0,'file_service_cleanup':None,'terminal_failure_cleanup_rollbacks':0,'production_deployment':False,'production_executor':False,'production_optional_features_enabled':False,'native_permission_axes_changed':False}.items():completion.exact(data[key],value,'workbench typed fact refused')\n"
+        }
+      ]
+    },
+    "scripts/governance/check_private_calendar_reminders.py": {
+      "current_bytes": 15446,
+      "current_sha256": "95d0540f89b798d0045070c865b7e909819e0a871d378efc95f9a277a859f4c9",
+      "target_bytes": 15446,
+      "target_sha256": "bcdeb6e18e405fa81d7cb3ffea395b8bd523923927f20b45b897d599d4dbcd6f",
+      "edits": [
+        {
+          "offset": 12046,
+          "current": "        'php_version': '8.5.13', 'check_count': len(expected), 'failure': None,\n",
+          "parent": "        'php_version': '8.5.12', 'check_count': len(expected), 'failure': None,\n"
+        }
+      ]
+    },
+    "scripts/governance/check_recovery_application_config.py": {
+      "current_bytes": 4456,
+      "current_sha256": "3c97b93587e097accce34885d97f10ad625c244f3bb3015a7758add5677c329c",
+      "target_bytes": 4456,
+      "target_sha256": "547365bba9c5efa2d3832d4deaaca3cfc3454b2b8f435af7ea17638c95fecd2c",
+      "edits": [
+        {
+          "offset": 2268,
+          "current": "  'passed':True,'php_version':'8.5.13','check_count':19,'failure':None,'cleanup_failures':[],\n",
+          "parent": "  'passed':True,'php_version':'8.5.12','check_count':19,'failure':None,'cleanup_failures':[],\n"
+        }
+      ]
+    },
+    "scripts/governance/check_recovery_assessment_credentials.py": {
+      "current_bytes": 39436,
+      "current_sha256": "da403cc742f87840fbcefd3591eef3d256104c8886eb64696b63065596b4c7ac",
+      "target_bytes": 39436,
+      "target_sha256": "546e8cfe00e8814171f25b267ea3a2f43632c7594b1fcf6c16fc3989281dc82a",
+      "edits": [
+        {
+          "offset": 36137,
+          "current": " for k,v in {'batch':'native-assessment-credential-readset','scope':'owned-native-assessment-credential-readset-no-permit','passed':True,'php_version':'8.5.13','check_count':len(expected),'failure':None,'cleanup_failures':[],\n",
+          "parent": " for k,v in {'batch':'native-assessment-credential-readset','scope':'owned-native-assessment-credential-readset-no-permit','passed':True,'php_version':'8.5.12','check_count':len(expected),'failure':None,'cleanup_failures':[],\n"
+        }
+      ]
+    },
+    "scripts/governance/check_recovery_assessment_credentials_v2.py": {
+      "current_bytes": 42145,
+      "current_sha256": "ca82705cce8a7b98b499fe1b7e573c13fad5f1634bda996f4b380bba2c8b156f",
+      "target_bytes": 42145,
+      "target_sha256": "43e1dad5248c03c7a8c9c537d6c4bf88fd89b12a7eb42163f66f1a31b02e4388",
+      "edits": [
+        {
+          "offset": 38727,
+          "current": " for k,v in {'batch':'native-assessment-credential-readset','scope':'owned-native-assessment-credential-readset-no-permit','passed':True,'php_version':'8.5.13','check_count':len(expected),'failure':None,'cleanup_failures':[],\n",
+          "parent": " for k,v in {'batch':'native-assessment-credential-readset','scope':'owned-native-assessment-credential-readset-no-permit','passed':True,'php_version':'8.5.12','check_count':len(expected),'failure':None,'cleanup_failures':[],\n"
+        }
+      ]
+    },
+    "scripts/governance/check_recovery_borrowed_session.py": {
+      "current_bytes": 12289,
+      "current_sha256": "4ca5b2c9945e84802fd2ba446228642c69fb033470f63c1bef1229fd9163aa67",
+      "target_bytes": 12289,
+      "target_sha256": "f6252dec35141e12ab64a66dea67176fb9d9ff4cd83e3ea1a18e522f43f77843",
+      "edits": [
+        {
+          "offset": 9044,
+          "current": " for k,v in {'batch':'native-borrowed-session-owner','scope':'owned-native-borrowed-session-owner-no-permit','passed':True,'php_version':'8.5.13','check_count':len(expected),'failure':None,'cleanup_failures':[],\n",
+          "parent": " for k,v in {'batch':'native-borrowed-session-owner','scope':'owned-native-borrowed-session-owner-no-permit','passed':True,'php_version':'8.5.12','check_count':len(expected),'failure':None,'cleanup_failures':[],\n"
+        }
+      ]
+    },
+    "scripts/governance/check_recovery_conduit_producer.py": {
+      "current_bytes": 13270,
+      "current_sha256": "a2fc42b3a54074852503d37f6059084094ec5f25670ebe314c495a1892ada109",
+      "target_bytes": 13270,
+      "target_sha256": "336053a5fd975918b34fc3f47f829c8120fe0d7d0302685b49213c3caf47b464",
+      "edits": [
+        {
+          "offset": 9933,
+          "current": " for k,v in {'batch':'native-conduit-producer-owner','scope':'owned-native-conduit-producer-owner-no-permit','passed':True,'php_version':'8.5.13','check_count':len(expected),'failure':None,'cleanup_failures':[],\n",
+          "parent": " for k,v in {'batch':'native-conduit-producer-owner','scope':'owned-native-conduit-producer-owner-no-permit','passed':True,'php_version':'8.5.12','check_count':len(expected),'failure':None,'cleanup_failures':[],\n"
+        }
+      ]
+    },
+    "scripts/governance/check_recovery_file_parent_policy.py": {
+      "current_bytes": 14447,
+      "current_sha256": "b40f322ddf1e0e4983c8d0b3cba595fc5bca6ba5570b08fa7971faf060c0d837",
+      "target_bytes": 14447,
+      "target_sha256": "239b9614af1288b053d369d5a4e62fb127a955a79f66053f281e34e9b1aad786",
+      "edits": [
+        {
+          "offset": 11495,
+          "current": "  'passed':True,'php_version':'8.5.13','check_count':count,'failure':None,'cleanup_failures':[],\n",
+          "parent": "  'passed':True,'php_version':'8.5.12','check_count':count,'failure':None,'cleanup_failures':[],\n"
+        }
+      ]
+    },
+    "scripts/governance/check_recovery_file_source.py": {
+      "current_bytes": 8788,
+      "current_sha256": "c936c427c14d74febe987b4d26b4960e3bb72df205038471e3580251bfdba88d",
+      "target_bytes": 8788,
+      "target_sha256": "9f7d9782dba24f9f14b4bfd7be9a6ebf39c567f4e6d197e705bfd76a8d08e375",
+      "edits": [
+        {
+          "offset": 4880,
+          "current": "  'passed':True,'php_version':'8.5.13','check_count':39,'failure':None,'cleanup_failures':[],\n",
+          "parent": "  'passed':True,'php_version':'8.5.12','check_count':39,'failure':None,'cleanup_failures':[],\n"
+        }
+      ]
+    },
+    "scripts/governance/check_recovery_oauth_access_producer.py": {
+      "current_bytes": 13753,
+      "current_sha256": "46ba8ca592d61c8c7c61c2da1db54a22d47c2805d9e2e85753c96d6f3ed80340",
+      "target_bytes": 13753,
+      "target_sha256": "849379babe4f030ba40e927d867cc30e3f7b829cd3c16c8c993454b908ed6161",
+      "edits": [
+        {
+          "offset": 10484,
+          "current": " for k,v in {'batch':'native-oauth-access-producer-owner','scope':'owned-native-oauth-access-producer-owner-no-permit','passed':True,'php_version':'8.5.13','check_count':len(expected),'failure':None,'cleanup_failures':[],\n",
+          "parent": " for k,v in {'batch':'native-oauth-access-producer-owner','scope':'owned-native-oauth-access-producer-owner-no-permit','passed':True,'php_version':'8.5.12','check_count':len(expected),'failure':None,'cleanup_failures':[],\n"
+        }
+      ]
+    },
+    "scripts/governance/check_recovery_oauth_access_producer_v2.py": {
+      "current_bytes": 13855,
+      "current_sha256": "dc3c235fe9d9b042ed774ec93f396adf6d48a0c4330ee4e7a3c876be1ee4179d",
+      "target_bytes": 13855,
+      "target_sha256": "0118a9abacbbf39bf4e31795212cc60b3da6522df4a421f35c4bcd32cf5feb7c",
+      "edits": [
+        {
+          "offset": 10574,
+          "current": " for k,v in {'batch':'native-oauth-access-producer-owner','scope':'owned-native-oauth-access-producer-owner-no-permit','passed':True,'php_version':'8.5.13','check_count':len(expected),'failure':None,'cleanup_failures':[],\n",
+          "parent": " for k,v in {'batch':'native-oauth-access-producer-owner','scope':'owned-native-oauth-access-producer-owner-no-permit','passed':True,'php_version':'8.5.12','check_count':len(expected),'failure':None,'cleanup_failures':[],\n"
+        }
+      ]
+    },
+    "scripts/governance/check_recovery_oauth_access_producer_v3.py": {
+      "current_bytes": 15166,
+      "current_sha256": "c24ea6004b27f1722dd30c45cae0f34d1b243012f4db3a2f33b648e6ac173082",
+      "target_bytes": 15166,
+      "target_sha256": "aeae15549c413899f594432b63ff4a4a4a636701942c92cb1a560209ca45acdd",
+      "edits": [
+        {
+          "offset": 11797,
+          "current": " for k,v in {'batch':'native-oauth-access-producer-owner','scope':'owned-native-oauth-access-producer-owner-no-permit','passed':True,'php_version':'8.5.13','check_count':len(expected),'failure':None,'cleanup_failures':[],\n",
+          "parent": " for k,v in {'batch':'native-oauth-access-producer-owner','scope':'owned-native-oauth-access-producer-owner-no-permit','passed':True,'php_version':'8.5.12','check_count':len(expected),'failure':None,'cleanup_failures':[],\n"
+        }
+      ]
+    },
+    "scripts/governance/check_recovery_oauth_authorization_producer_v1.py": {
+      "current_bytes": 21543,
+      "current_sha256": "4638d5be341fe8fa782ab19eeeeb35232b7d8d265c76b9c775219ebe630c51bf",
+      "target_bytes": 21543,
+      "target_sha256": "e3e271c4343815bcbf0a263de9b75428561721e8e42fc1f522a8dd9907d69c5f",
+      "edits": [
+        {
+          "offset": 18207,
+          "current": " for k,v in {'batch':'native-oauth-authorization-producer-owner','scope':'owned-native-oauth-authorization-producer-owner-no-permit','passed':True,'php_version':'8.5.13','check_count':len(expected),'failure':None,'cleanup_failures':[],\n",
+          "parent": " for k,v in {'batch':'native-oauth-authorization-producer-owner','scope':'owned-native-oauth-authorization-producer-owner-no-permit','passed':True,'php_version':'8.5.12','check_count':len(expected),'failure':None,'cleanup_failures':[],\n"
+        }
+      ]
+    },
+    "scripts/governance/check_recovery_oauth_client_lifecycle.py": {
+      "current_bytes": 14655,
+      "current_sha256": "613cf817bd51b0f32a751de300752d9c71dff64654a0863f809bc73377608bc4",
+      "target_bytes": 14655,
+      "target_sha256": "a5f6e98e1bea0ae6365bd412d8cf3f1cc5313901969cdcf72d616d2957cd4e25",
+      "edits": [
+        {
+          "offset": 9878,
+          "current": " for name,value in {'batch':'native-oauth-client-lifecycle-owner','scope':'owned-native-oauth-client-lifecycle-no-permit','passed':True,'php_version':'8.5.13','check_count':len(expected),'failure':None,'cleanup_failures':[],'terminal_failure_cleanup_rollbacks':0,'optional_source_reader_adapter_exercised':True,'isolated_optional_features_enabled':True,'successful_owned_file_service_startups':1,'production_deployment':False,'production_executor':False,'production_optional_features_enabled':False,'native_permission_axes_changed':False}.items():exact(data[name],value)\n",
+          "parent": " for name,value in {'batch':'native-oauth-client-lifecycle-owner','scope':'owned-native-oauth-client-lifecycle-no-permit','passed':True,'php_version':'8.5.12','check_count':len(expected),'failure':None,'cleanup_failures':[],'terminal_failure_cleanup_rollbacks':0,'optional_source_reader_adapter_exercised':True,'isolated_optional_features_enabled':True,'successful_owned_file_service_startups':1,'production_deployment':False,'production_executor':False,'production_optional_features_enabled':False,'native_permission_axes_changed':False}.items():exact(data[name],value)\n"
+        }
+      ]
+    },
+    "scripts/governance/check_recovery_oauth_code_producer_v1.py": {
+      "current_bytes": 14349,
+      "current_sha256": "db7169a52d07ed0f81496d3a1ed5f682f5da078a856366fb60bd057d69a6cac1",
+      "target_bytes": 14349,
+      "target_sha256": "db3b3eac04e5034c5c6b116b8a1c05abb68c51b04bd7bcad6835130c0bc45747",
+      "edits": [
+        {
+          "offset": 11088,
+          "current": " for k,v in {'batch':'native-oauth-code-producer-owner','scope':'owned-native-oauth-code-producer-owner-no-permit','passed':True,'php_version':'8.5.13','check_count':len(expected),'failure':None,'cleanup_failures':[],\n",
+          "parent": " for k,v in {'batch':'native-oauth-code-producer-owner','scope':'owned-native-oauth-code-producer-owner-no-permit','passed':True,'php_version':'8.5.12','check_count':len(expected),'failure':None,'cleanup_failures':[],\n"
+        }
+      ]
+    },
+    "scripts/governance/check_recovery_org_lifecycle.py": {
+      "current_bytes": 7841,
+      "current_sha256": "3bcd3423d4b108afba073a164badbc7582270f94d92b85be32a476a3674e8c27",
+      "target_bytes": 7841,
+      "target_sha256": "a41589fa595c5eccad6a500508a0394f54d1e9dae2d212984d3aa0224164954e",
+      "edits": [
+        {
+          "offset": 4335,
+          "current": "   'passed':True,'php_version':'8.5.13','check_count':45,'failure':None,'cleanup_failures':[],\n",
+          "parent": "   'passed':True,'php_version':'8.5.12','check_count':45,'failure':None,'cleanup_failures':[],\n"
+        }
+      ]
+    },
+    "scripts/governance/check_recovery_org_metadata.py": {
+      "current_bytes": 6002,
+      "current_sha256": "1a4c500cc59a6fa23bf9503dd7fdb1b5fffc9047eaf217ac24ad6132b7761626",
+      "target_bytes": 6002,
+      "target_sha256": "c17cbfe4a3a876943e52d875a1e4c2e5e57c44c9cb6cce6e41c187de8a5a72cc",
+      "edits": [
+        {
+          "offset": 2213,
+          "current": "   'passed':True,'php_version':'8.5.13','check_count':15,'failure':None,'cleanup_failures':[],\n",
+          "parent": "   'passed':True,'php_version':'8.5.12','check_count':15,'failure':None,'cleanup_failures':[],\n"
+        }
+      ]
+    },
+    "scripts/governance/check_recovery_partial_composition.py": {
+      "current_bytes": 7743,
+      "current_sha256": "1a06ef08a91bc152ffee0d8810210a1e0536223bda683a4a4dbb2028fdf1660f",
+      "target_bytes": 7743,
+      "target_sha256": "76930e99b57cb3a4488817fa88865f9b8a17df9c2cf8c501367f8779abb3e0ca",
+      "edits": [
+        {
+          "offset": 3205,
+          "current": "  'passed':True,'php_version':'8.5.13','check_count':31,'failure':None,'cleanup_failures':[],\n",
+          "parent": "  'passed':True,'php_version':'8.5.12','check_count':31,'failure':None,'cleanup_failures':[],\n"
+        }
+      ]
+    },
+    "scripts/governance/check_recovery_policy_isolation.py": {
+      "current_bytes": 6677,
+      "current_sha256": "4252ac4ec647608e704e9d2a28f466cfa5956c59d64cc00bbcf710ed0b8087d7",
+      "target_bytes": 6677,
+      "target_sha256": "977702a4fff5fec35807c4f36eee31bf263bd8aff0215c6104bbae29dbf8c127",
+      "edits": [
+        {
+          "offset": 2856,
+          "current": "   'passed':True,'php_version':'8.5.13','check_count':23,'failure':None,'cleanup_failures':[],\n",
+          "parent": "   'passed':True,'php_version':'8.5.12','check_count':23,'failure':None,'cleanup_failures':[],\n"
+        }
+      ]
+    },
+    "scripts/governance/check_recovery_project_source.py": {
+      "current_bytes": 3924,
+      "current_sha256": "923cb283a799964709a1c25b21b65bb48f5baa1920b9ee118b2b51d2629d7133",
+      "target_bytes": 3924,
+      "target_sha256": "363ce505ba83516bc0d79b5a9bde9af316ef316a678dc66c75f39ddd4d761d2c",
+      "edits": [
+        {
+          "offset": 1728,
+          "current": "  'passed':True,'php_version':'8.5.13','check_count':11,'failure':None,'cleanup_failures':[],\n",
+          "parent": "  'passed':True,'php_version':'8.5.12','check_count':11,'failure':None,'cleanup_failures':[],\n"
+        }
+      ]
+    },
+    "scripts/governance/check_recovery_session_lease.py": {
+      "current_bytes": 14399,
+      "current_sha256": "5cc7f77056d6bb6d6f0bfc0f7ff89ef6984098c53feecec56ab75a8257334343",
+      "target_bytes": 14399,
+      "target_sha256": "4ebb8b5c0257bdaf6480ce8ce1e11ede39a5e6e38a6d1bbba97cbba69b72b814",
+      "edits": [
+        {
+          "offset": 7426,
+          "current": " for k,v in {'batch':'native-session-producer-lease','scope':'owned-native-session-producer-lease-no-permit','passed':True,'php_version':'8.5.13','check_count':len(expected),'failure':None,'cleanup_failures':[],\n",
+          "parent": " for k,v in {'batch':'native-session-producer-lease','scope':'owned-native-session-producer-lease-no-permit','passed':True,'php_version':'8.5.12','check_count':len(expected),'failure':None,'cleanup_failures':[],\n"
+        }
+      ]
+    },
+    "scripts/governance/check_recovery_spaces_source.py": {
+      "current_bytes": 5082,
+      "current_sha256": "9497624bf8d28e36b21d3ffb65a1b817fc45e06d998f2cc6572d93341cf6ec63",
+      "target_bytes": 5082,
+      "target_sha256": "00cc1324227a6c70cf8677ffc8149c0b5f99db75d1f3a20926a3cd2722325761",
+      "edits": [
+        {
+          "offset": 2867,
+          "current": "  'passed':True,'php_version':'8.5.13','check_count':20,'failure':None,'cleanup_failures':[],\n",
+          "parent": "  'passed':True,'php_version':'8.5.12','check_count':20,'failure':None,'cleanup_failures':[],\n"
+        }
+      ]
+    },
+    "scripts/governance/check_recovery_task_owner_source.py": {
+      "current_bytes": 7857,
+      "current_sha256": "0dd6bd11fad2e8cafa197e3b367105fb5039e7ad69297052761c3f2eac99659f",
+      "target_bytes": 7857,
+      "target_sha256": "ec15053fa6f27cb5c358b5c54cb4ae254618da805b118ab53abf618df939ee25",
+      "edits": [
+        {
+          "offset": 3926,
+          "current": "  'passed':True,'php_version':'8.5.13','check_count':30,'failure':None,'cleanup_failures':[],\n",
+          "parent": "  'passed':True,'php_version':'8.5.12','check_count':30,'failure':None,'cleanup_failures':[],\n"
+        }
+      ]
+    },
+    "src/__tests__/PhorgePHPVersionTestCase.php": {
+      "current_bytes": 1032,
+      "current_sha256": "07cd67d12d862c7eac61c540ba80df9f78ef89b7b5597d7a8a9aabaf9a8d175e",
+      "target_bytes": 1022,
+      "target_sha256": "7ec1bd7df4e177c3822ad2cec1e8e0dbec78a61c1c5440cd62304dd32fe15466",
+      "edits": [
+        {
+          "offset": 124,
+          "current": "    foreach (array('8.5.13', '8.5.14', '8.5.99') as $version) {\n",
+          "parent": "    foreach (array('8.5.12', '8.5.13', '8.5.99') as $version) {\n"
+        },
+        {
+          "offset": 472,
+          "current": "    foreach (array('7.2.25', '8.3.36', '8.4.27', '8.5.0', '8.5.11', '8.5.12',\n",
+          "parent": "    foreach (array('7.2.25', '8.3.36', '8.4.27', '8.5.0', '8.5.11',\n"
+        }
+      ]
+    },
+    "src/docs/user/installation_guide.diviner": {
+      "current_bytes": 6642,
+      "current_sha256": "ca2731fe4a4a3dfa72de317b7601ea998d2ced1bb66a5440ab81ae8a222a45a4",
+      "target_bytes": 6642,
+      "target_sha256": "d0f0c5cc535c91022d8f5358606e0f79aadb3762d30dc8c8996e413a07989d28",
+      "edits": [
+        {
+          "offset": 3791,
+          "current": "    - PHP 8.5 - 8.5.13 or newer within the 8.5 branch.\n",
+          "parent": "    - PHP 8.5 - 8.5.12 or newer within the 8.5 branch.\n"
+        }
+      ]
+    },
+    "support/governance/completion/fixture.php": {
+      "current_bytes": 37961,
+      "current_sha256": "d240e0a2cc2a8d5596d2dff61d024b2c3e0b99fdd5fb05460792a23b1fd4a5cf",
+      "target_bytes": 37961,
+      "target_sha256": "5fcb8e63a287880f32d0ea71a744a6e63bef104469086b5441be5d16cc6353e6",
+      "edits": [
+        {
+          "offset": 2420,
+          "current": "    if (PHP_VERSION !== '8.5.13' ||\n",
+          "parent": "    if (PHP_VERSION !== '8.5.12' ||\n"
+        }
+      ]
+    },
+    "support/governance/media-session-ci/project.py": {
+      "current_bytes": 11363,
+      "current_sha256": "5a0175c549f6f8d9404c9d36265be4b866041041e61a60319238542e44aa28a5",
+      "target_bytes": 11363,
+      "target_sha256": "f52895df79c6ae926d51ad1184fb4c3d26df8a42a13047219207a9ff87ff582b",
+      "edits": [
+        {
+          "offset": 9341,
+          "current": "  if probe.get('version')!='8.5.13'or any(probe.get(k)is not True for k in ('mysqli','mbstring','pcntl_exec','posix_identity','fsync'))or probe.get('jit')!='disable'or probe.get('buffer')!='0'or probe.get('cli')!='0':raise ValueError('runtime prerequisite')\n",
+          "parent": "  if probe.get('version')!='8.5.12'or any(probe.get(k)is not True for k in ('mysqli','mbstring','pcntl_exec','posix_identity','fsync'))or probe.get('jit')!='disable'or probe.get('buffer')!='0'or probe.get('cli')!='0':raise ValueError('runtime prerequisite')\n"
+        },
+        {
+          "offset": 10325,
+          "current": "  result['PHP_version']='8.5.13';result['MySQL_version']='8.4.13';result['JIT_disabled']=True;result['fresh_database_baseline_verified']=True;result['MDL_instrument_enabled']=True\n",
+          "parent": "  result['PHP_version']='8.5.12';result['MySQL_version']='8.4.13';result['JIT_disabled']=True;result['fresh_database_baseline_verified']=True;result['MDL_instrument_enabled']=True\n"
+        }
+      ]
+    },
+    "support/governance/media-session-docker/README.md": {
+      "current_bytes": 10301,
+      "current_sha256": "02c865ffb799499f26abc672e2a2359a9516a26754f2c8f363b0b54008ca42e3",
+      "target_bytes": 10301,
+      "target_sha256": "25729ac65e32232da8f97cd0ffcd1ad527f2337d3db407e92f59920f62d5ebed",
+      "edits": [
+        {
+          "offset": 4374,
+          "current": "Before fixture execution, actual SQL SELECT must prove MySQL8.4.13, real UUID, P_S enabled, MDL instrument enabled and zero non-system databases. A known-terminal nonzero readiness SELECT may be polled under a120s deadline; capture/unknown errors do not become readiness retries. This is a fresh database baseline, not proof from loopback. Before any volume allocation, a fresh no-mount/no-network prerequisite container executes only the fixed PHP helper:8.5.13/mysqli/mbstring/JITdisable/buffer0/CLI0 plus pcntl_exec/posix identity/fsync must be measured. No container Python is assumed or installed. Host orchestration remains Python. Seed/worker wait, stdin injection, source readback and namespace observations use this pinned PHP helper; worker enters the native fixture with pcntl_exec. An image prerequisite failure retains the new probe container and allocates no volumes. Engine inspect binds IDs/images/labels/security/resources/RO code mount and no public ports; actual namespace observations require the same isolated net namespace and different PID namespaces. Any absent/mismatching field refuses; no expected fact is substituted for actual observation.\n",
+          "parent": "Before fixture execution, actual SQL SELECT must prove MySQL8.4.13, real UUID, P_S enabled, MDL instrument enabled and zero non-system databases. A known-terminal nonzero readiness SELECT may be polled under a120s deadline; capture/unknown errors do not become readiness retries. This is a fresh database baseline, not proof from loopback. Before any volume allocation, a fresh no-mount/no-network prerequisite container executes only the fixed PHP helper:8.5.12/mysqli/mbstring/JITdisable/buffer0/CLI0 plus pcntl_exec/posix identity/fsync must be measured. No container Python is assumed or installed. Host orchestration remains Python. Seed/worker wait, stdin injection, source readback and namespace observations use this pinned PHP helper; worker enters the native fixture with pcntl_exec. An image prerequisite failure retains the new probe container and allocates no volumes. Engine inspect binds IDs/images/labels/security/resources/RO code mount and no public ports; actual namespace observations require the same isolated net namespace and different PID namespaces. Any absent/mismatching field refuses; no expected fact is substituted for actual observation.\n"
+        },
+        {
+          "offset": 8568,
+          "current": "Root separately observed the old PHP image has no /usr/bin/python3 and has pcntl_exec; that evidence is not reproduced or generalized by this source. Container helper requires only the existing reviewed PHP path/extensions, and its successful local ownFS controls ran on PHP8.5.8. No target8.5.13 container run is claimed. The original safe-diagnostic eight fixture files and strict consumer remain byte-for-byte unchanged. Earlier15-method setup history remains historical; final corrective18 Python methods plus PHP controls/lint passed.\n",
+          "parent": "Root separately observed the old PHP image has no /usr/bin/python3 and has pcntl_exec; that evidence is not reproduced or generalized by this source. Container helper requires only the existing reviewed PHP path/extensions, and its successful local ownFS controls ran on PHP8.5.8. No target8.5.12 container run is claimed. The original safe-diagnostic eight fixture files and strict consumer remain byte-for-byte unchanged. Earlier15-method setup history remains historical; final corrective18 Python methods plus PHP controls/lint passed.\n"
+        }
+      ]
+    },
+    "support/governance/media-session-docker/run.py": {
+      "current_bytes": 21006,
+      "current_sha256": "7ecb21b2beb42ff6469be467ad9924278b3d717661040d6cded817d4350643ec",
+      "target_bytes": 21006,
+      "target_sha256": "8d84b9744560fba48aaa4634aa095e53e8f441a1138d39ede280326b67eb4209",
+      "edits": [
+        {
+          "offset": 14173,
+          "current": "  raw,err=j.call(c['docker'],['logs',prerequisite]);need(not err);pr=json.loads(raw);need(set(pr)=={'version','mysqli','mbstring','jit','buffer','cli','caps','pcntl_exec','posix_identity','fsync'}and pr['version']=='8.5.13'and pr['mysqli']is True and pr['mbstring']is True and pr['jit']=='disable'and pr['buffer']=='0'and pr['cli']=='0'and pr['pcntl_exec']is True and pr['posix_identity']is True and pr['fsync']is True);caps_accept(pr['caps'])\n",
+          "parent": "  raw,err=j.call(c['docker'],['logs',prerequisite]);need(not err);pr=json.loads(raw);need(set(pr)=={'version','mysqli','mbstring','jit','buffer','cli','caps','pcntl_exec','posix_identity','fsync'}and pr['version']=='8.5.12'and pr['mysqli']is True and pr['mbstring']is True and pr['jit']=='disable'and pr['buffer']=='0'and pr['cli']=='0'and pr['pcntl_exec']is True and pr['posix_identity']is True and pr['fsync']is True);caps_accept(pr['caps'])\n"
+        },
+        {
+          "offset": 17108,
+          "current": "  raw,err=j.call(c['docker'],['exec',worker,'/usr/local/bin/php','-d','opcache.jit=disable','-d','opcache.jit_buffer_size=0','-d','opcache.enable_cli=0','-r',probe]);need(not err and json.loads(raw)=={'version':'8.5.13','mysqli':True,'mbstring':True,'jit':'disable','buffer':'0','cli':'0'})\n",
+          "parent": "  raw,err=j.call(c['docker'],['exec',worker,'/usr/local/bin/php','-d','opcache.jit=disable','-d','opcache.jit_buffer_size=0','-d','opcache.enable_cli=0','-r',probe]);need(not err and json.loads(raw)=={'version':'8.5.12','mysqli':True,'mbstring':True,'jit':'disable','buffer':'0','cli':'0'})\n"
+        }
+      ]
+    },
+    "support/governance/project-content-grants-ci/README.md": {
+      "current_bytes": 6703,
+      "current_sha256": "1c721075931cffa31aa07927e9286272df41cb3fbeee9f9dac6f332ac3556843",
+      "target_bytes": 6703,
+      "target_sha256": "c40fa6c8f4438c93ae6aed9b39fec88ce3c13b323cc038df6077e81efcb7bdc4",
+      "edits": [
+        {
+          "offset": 278,
+          "current": "port maps, then genuine PHP 8.5.13, default JIT disabled, buffer 0, CLI opcache 0,\n",
+          "parent": "port maps, then genuine PHP 8.5.12, default JIT disabled, buffer 0, CLI opcache 0,\n"
+        }
+      ]
+    },
+    "support/governance/project-description-ci/README.md": {
+      "current_bytes": 6104,
+      "current_sha256": "cf2e0778c13f32e379a34d27c13aea1c753f36f7d93fb661bbf6085e4c7606fb",
+      "target_bytes": 6104,
+      "target_sha256": "60f51f457be853c2a4fbff0be30db925cb6eb2b9ab59f005438a383cd946ad61",
+      "edits": [
+        {
+          "offset": 635,
+          "current": "   disposable MySQL 8.4.13 image and PHP 8.5.13 with CLI OPcache/JIT disabled.\n",
+          "parent": "   disposable MySQL 8.4.13 image and PHP 8.5.12 with CLI OPcache/JIT disabled.\n"
+        }
+      ]
+    },
+    "support/governance/project-description-ci/fixture.php": {
+      "current_bytes": 3507,
+      "current_sha256": "7a9c28521c551e43bea04f74d5f52e4586f7bc0eb99b5f5a2f323e091c1ab696",
+      "target_bytes": 3507,
+      "target_sha256": "754546ac5223a5631fcec55d354293564e0dc8e89a8b0ff616bbd55551fe1955",
+      "edits": [
+        {
+          "offset": 1027,
+          "current": " nneed(PHP_VERSION==='8.5.13' && ini_get('opcache.jit')==='disable' && ini_get('opcache.jit_buffer_size')==='0' && ini_get('opcache.enable_cli')==='0');\n",
+          "parent": " nneed(PHP_VERSION==='8.5.12' && ini_get('opcache.jit')==='disable' && ini_get('opcache.jit_buffer_size')==='0' && ini_get('opcache.enable_cli')==='0');\n"
+        }
+      ]
+    },
+    "support/governance/project-description-qualification/README.md": {
+      "current_bytes": 8460,
+      "current_sha256": "489455a346b9a5651e002fcc8884cdc6f226c2d71bad5a2426bf0110932b965e",
+      "target_bytes": 8460,
+      "target_sha256": "83d1365cf21a504300616e755aaa547bb70b2493a6486a95216adc080ebaf207",
+      "edits": [
+        {
+          "offset": 2752,
+          "current": "libraries, PHP exactly 8.5.13, JIT disabled/buffer0/CLI0, MySQL exactly 8.4.13.\n",
+          "parent": "libraries, PHP exactly 8.5.12, JIT disabled/buffer0/CLI0, MySQL exactly 8.4.13.\n"
+        },
+        {
+          "offset": 8224,
+          "current": "sanitized results, actual default-off behavior in the packaged PHP8.5.13 runtime,\n",
+          "parent": "sanitized results, actual default-off behavior in the packaged PHP8.5.12 runtime,\n"
+        }
+      ]
+    },
+    "support/governance/project-description-qualification/native.php": {
+      "current_bytes": 7992,
+      "current_sha256": "0f377110eb5186ec8f56efe70ff57b4b2a87f775fb0561d73ff9b21ca64cb9e3",
+      "target_bytes": 7992,
+      "target_sha256": "0451da98e73b118cb066d5ef8a73bface226b8469dc199062521271d43834434",
+      "edits": [
+        {
+          "offset": 5192,
+          "current": " qneed(PHP_VERSION==='8.5.13'&&in_array(ini_get('opcache.jit'),array('','0','disable','off'),true)&&(string)ini_get('opcache.jit_buffer_size')==='0'&&(string)ini_get('opcache.enable_cli')==='0');\n",
+          "parent": " qneed(PHP_VERSION==='8.5.12'&&in_array(ini_get('opcache.jit'),array('','0','disable','off'),true)&&(string)ini_get('opcache.jit_buffer_size')==='0'&&(string)ini_get('opcache.enable_cli')==='0');\n"
+        }
+      ]
+    },
+    "support/governance/revocation-measurement/README.md": {
+      "current_bytes": 19370,
+      "current_sha256": "6857d8600000d86cca163eee452f4e287acd17e4bd9d658e232e9e426aa23dd8",
+      "target_bytes": 19370,
+      "target_sha256": "882aec0b413e6a4fd0377e8bed36b81a5829bd25812b2c197e0fb4380b2db9d5",
+      "edits": [
+        {
+          "offset": 392,
+          "current": "native methods and710 SQL checks on PHP8.5.13. All6778 executed PHP/SQL and pinned\n",
+          "parent": "native methods and710 SQL checks on PHP8.5.12. All6778 executed PHP/SQL and pinned\n"
+        },
+        {
+          "offset": 8046,
+          "current": "PHP must be 8.5.13 or a supported later version. Generate the library map in the\n",
+          "parent": "PHP must be 8.5.12 or a supported later version. Generate the library map in the\n"
+        }
+      ]
+    },
+    "support/runtime/README.md": {
+      "current_bytes": 5604,
+      "current_sha256": "12f3f1bc0ad524548f135fe6ab04cee954b235c235e808a76b01e611b4cf0ad3",
+      "target_bytes": 5604,
+      "target_sha256": "5a58b11f37bd95e4c83187bb44d484728e484ef78876b9b20a60460d71a9b38d",
+      "edits": [
+        {
+          "offset": 3928,
+          "current": "The only supported PHP branch is 8.5, with PHP 8.5.13 as the minimum\n",
+          "parent": "The only supported PHP branch is 8.5, with PHP 8.5.12 as the minimum\n"
+        },
+        {
+          "offset": 4144,
+          "current": "8.5.13 only; older compatibility matrices have been removed.\n",
+          "parent": "8.5.12 only; older compatibility matrices have been removed.\n"
+        }
+      ]
+    },
+    "support/runtime/manifest.json": {
+      "current_bytes": 102621,
+      "current_sha256": "4a607f713e986554b920eaef6af715b74b93822e7d9bf77bdd319dfc20c0ed15",
+      "target_bytes": 102621,
+      "target_sha256": "5f3168f23959a240d4323f9fa882237a1e41fa164807665ea6268ece8b70ba95",
+      "edits": [
+        {
+          "offset": 212,
+          "current": "    \"contentSHA256\": \"de725ca6bb3e6abe6f09568e7e816e6f1b0cc8a3ad853886340556d5adc32e03\",\n",
+          "parent": "    \"contentSHA256\": \"b6b6850e975f8d7f847c739b56b2488d8c7755e43fd4bae96dd3e65dcb4aeff6\",\n"
+        },
+        {
+          "offset": 4940,
+          "current": "            \"description\": \"Reject unsupported PHP minor branches and PHP 8.5 builds below the 8.5.13 security baseline before loading CLI tools.\"\n",
+          "parent": "            \"description\": \"Reject unsupported PHP minor branches and PHP 8.5 builds below the 8.5.12 security baseline before loading CLI tools.\"\n"
+        },
+        {
+          "offset": 5826,
+          "current": "            \"sha256\": \"12f3f1bc0ad524548f135fe6ab04cee954b235c235e808a76b01e611b4cf0ad3\"\n",
+          "parent": "            \"sha256\": \"5a58b11f37bd95e4c83187bb44d484728e484ef78876b9b20a60460d71a9b38d\"\n"
+        },
+        {
+          "offset": 8779,
+          "current": "            \"sha256\": \"346a79867d6d53c925f60834dabefdee919282953633f1f8dcbfc485ad3f8d6d\"\n",
+          "parent": "            \"sha256\": \"4d363adfcaf8a6f70221d03d23dd6a789afacd428b218bbe4d79639012fe850e\"\n"
+        }
+      ]
+    },
+    "support/runtime/php-version.php": {
+      "current_bytes": 596,
+      "current_sha256": "346a79867d6d53c925f60834dabefdee919282953633f1f8dcbfc485ad3f8d6d",
+      "target_bytes": 596,
+      "target_sha256": "4d363adfcaf8a6f70221d03d23dd6a789afacd428b218bbe4d79639012fe850e",
+      "edits": [
+        {
+          "offset": 287,
+          "current": "    version_compare($version, '8.5.13', '>=');\n",
+          "parent": "    version_compare($version, '8.5.12', '>=');\n"
+        },
+        {
+          "offset": 528,
+          "current": "      'Phorge requires PHP 8.5.x, version 8.5.13 or newer.');\n",
+          "parent": "      'Phorge requires PHP 8.5.x, version 8.5.12 or newer.');\n"
+        }
+      ]
+    },
+    "tests/atomic/README.md": {
+      "current_bytes": 10509,
+      "current_sha256": "2deab150002a7c4120864207ee14620ee704f2315e1d8f4e35fd04e5f70d10a2",
+      "target_bytes": 10509,
+      "target_sha256": "3b3b16885de3474091ca5f66138feda3f662168e2b0903cc780ad1f6b8993a14",
+      "edits": [
+        {
+          "offset": 7275,
+          "current": "PHP 8.5.13 is the sole CI and production baseline. The supported branch is\n8.5 with a security floor of 8.5.13; older and other minor branches are rejected.\n",
+          "parent": "PHP 8.5.12 is the sole CI and production baseline. The supported branch is\n8.5 with a security floor of 8.5.12; older and other minor branches are rejected.\n"
+        }
+      ]
+    },
+    "tests/governance/private_mail_ci/Dockerfile": {
+      "current_bytes": 1418,
+      "current_sha256": "8c36e7f49d51d4a58f24bb9cc41be581f5bae38f98d8e72a4b7d42aba8ac8bf8",
+      "target_bytes": 1476,
+      "target_sha256": "04ca569472a17ead67e2b15eb9199c1bb7bc53e1c3643610b70ee320313b208d",
+      "edits": [
+        {
+          "offset": 81,
+          "current": "# Supply a verified immutable PHP 8.5.13 test image; there is no old-version fallback.\nARG PHP_TEST_IMAGE\n",
+          "parent": "# Default is the inspected local immutable Linux/arm64 PHP8.5.12 test image ID.\nARG PHP_TEST_IMAGE=6ea74a1a8b32951a03847839597c03e82a3935bb151dc85d728c6e58b6170608\n"
+        },
+        {
+          "offset": 229,
+          "current": "ARG DEBIAN_SNAPSHOT=20261120T000000Z\n",
+          "parent": "ARG DEBIAN_SNAPSHOT=20261028T000000Z\n"
+        },
+        {
+          "offset": 405,
+          "current": "    php -r 'if (PHP_VERSION !== \"8.5.13\") { exit(1); }'; \\\n",
+          "parent": "    php -r 'if (PHP_VERSION !== \"8.5.12\") { exit(1); }'; \\\n"
+        },
+        {
+          "offset": 1192,
+          "current": "    php -r 'if (PHP_VERSION !== \"8.5.13\") { exit(1); }'; \\\n",
+          "parent": "    php -r 'if (PHP_VERSION !== \"8.5.12\") { exit(1); }'; \\\n"
+        }
+      ]
+    },
+    "tests/governance/private_mail_ci/IMAGE-PLAN.md": {
+      "current_bytes": 4921,
+      "current_sha256": "1686e572438382b07b24187cd2726222ec0d771f595bdde5bc8e3de8eedaf88e",
+      "target_bytes": 4478,
+      "target_sha256": "d9481b9b959fce68fac2186c7e6aec485bcdb1d91adf90fc6bfe8aa0ce95bf43",
+      "edits": [
+        {
+          "offset": 0,
+          "current": "# Superseded PHP image experiment\n\nThis historical image record is retired. It does not qualify PHP 8.5.13 and\nmust not be used as a current image selector or fallback.\n\nCurrent runs must explicitly supply a newly built, immutable PHP 8.5.13 image\nto `PHP_TEST_IMAGE`, verify the actual runtime and disabled JIT, and repeat the\nfull test gates. No older image ID is a default in the Dockerfile.\n\n## Historical record (not current acceptance)\n\n",
+          "parent": ""
+        }
+      ]
+    },
+    "tests/governance/private_mail_ci/README.md": {
+      "current_bytes": 10351,
+      "current_sha256": "c7562d37f37226180703a44e2a09845362a8317a7b771c162abf26ba2bea28f4",
+      "target_bytes": 10351,
+      "target_sha256": "ba227132dad1199af451184b434e73e0c9054f1619ea7af5cce87dcf1580a6cb",
+      "edits": [
+        {
+          "offset": 155,
+          "current": "workspace dependency. It uses CI's actual PHP 8.5.13, Python, existing disposable\n",
+          "parent": "workspace dependency. It uses CI's actual PHP 8.5.12, Python, existing disposable\n"
+        }
+      ]
+    },
+    "tests/governance/private_mail_ci/pure_inventory.py": {
+      "current_bytes": 1849,
+      "current_sha256": "c8f562c399f2bdcc6b7595974b532473b2f2e00cf194139543d6a39e874d5e14",
+      "target_bytes": 1849,
+      "target_sha256": "6965c69c571902cccaaf00f804ca0f6057c94d6d9a0f257b660f34568f893442",
+      "edits": [
+        {
+          "offset": 1307,
+          "current": "            receipt.get('passed') is not True or receipt.get('runtime') != '8.5.13' or\n",
+          "parent": "            receipt.get('passed') is not True or receipt.get('runtime') != '8.5.12' or\n"
+        }
+      ]
+    },
+    "tests/governance/private_mail_ci/run_matrix.py": {
+      "current_bytes": 38498,
+      "current_sha256": "d74e41c68e5d8778d96a9cf0a440f439d3a2ee6b6f609c67cb87cc43e5efe7d4",
+      "target_bytes": 38498,
+      "target_sha256": "d2d4ecc7c04aa88b73d36232e34d39be64b44105ac8b3933968f1b764523ad18",
+      "edits": [
+        {
+          "offset": 5949,
+          "current": "        check(unit.returncode == 0 and pure.get('passed') is True and pure.get('runtime') == '8.5.13' and pure.get('expected_methods') == config['expected_pure_methods'], 'actual_supported_pure_suite')\n",
+          "parent": "        check(unit.returncode == 0 and pure.get('passed') is True and pure.get('runtime') == '8.5.12' and pure.get('expected_methods') == config['expected_pure_methods'], 'actual_supported_pure_suite')\n"
+        }
+      ]
+    },
+    "tests/governance/private_mail_ci/run_pending.py": {
+      "current_bytes": 18929,
+      "current_sha256": "872881ffa3112e69a5d98185deb5a3be2949e020b0148bfacb47c98865c8ac0a",
+      "target_bytes": 18929,
+      "target_sha256": "bb4a66fb0e257f4ba3cc48f5adaee25dee98a394e12761ff4c158962a6404794",
+      "edits": [
+        {
+          "offset": 2327,
+          "current": "    if version != '8.5.13':\n",
+          "parent": "    if version != '8.5.12':\n"
+        }
+      ]
+    },
+    "tests/governance/private_mail_ci/test_pure_inventory.py": {
+      "current_bytes": 3150,
+      "current_sha256": "d606c6b693f4ba161f7acd4adb363f9f4e914082dea4a4c2e0466fc404f03c59",
+      "target_bytes": 3150,
+      "target_sha256": "d0e5135a4f95af1ec6a6687009bc74e122fc2b1109b36acb6238226a3257ae71",
+      "edits": [
+        {
+          "offset": 2330,
+          "current": "        good = {'passed': True, 'runtime': '8.5.13', 'expected_methods': 2,\n",
+          "parent": "        good = {'passed': True, 'runtime': '8.5.12', 'expected_methods': 2,\n"
+        }
+      ]
+    },
+    "tests/governance/test_recovery_org_lifecycle_gate.py": {
+      "current_bytes": 5407,
+      "current_sha256": "dd37c043c8ac7cb3dc8e6480320ad9031b18e8c7e23999653c1cdfb6705586eb",
+      "target_bytes": 5407,
+      "target_sha256": "9c8843bd72350856c4feb40bce631f0ad65d8375350b5c74f0ea9229d389faa4",
+      "edits": [
+        {
+          "offset": 757,
+          "current": "  'check_count':45,'checks':sorted(gate.BOOTSTRAP|gate.SQL|gate.CLEANUP),'php_version':'8.5.13',\n",
+          "parent": "  'check_count':45,'checks':sorted(gate.BOOTSTRAP|gate.SQL|gate.CLEANUP),'php_version':'8.5.12',\n"
+        }
+      ]
+    },
+    "tests/governance/test_recovery_org_metadata_gate.py": {
+      "current_bytes": 5561,
+      "current_sha256": "5c02c5a14bb685747b7b19170fd63f962f85b909c0b6b7eefbd93aa8a7f7447c",
+      "target_bytes": 5561,
+      "target_sha256": "b8c4fd2faf18edd08916c3005eae0f405a9feee7006907c5e7924007beff32df",
+      "edits": [
+        {
+          "offset": 759,
+          "current": "  'check_count':15,'checks':sorted(gate.BOOTSTRAP|gate.SQL|gate.CLEANUP),'php_version':'8.5.13',\n",
+          "parent": "  'check_count':15,'checks':sorted(gate.BOOTSTRAP|gate.SQL|gate.CLEANUP),'php_version':'8.5.12',\n"
+        }
+      ]
+    },
+    "tests/governance/test_recovery_partial_failure_diagnostic.py": {
+      "current_bytes": 10132,
+      "current_sha256": "15ba9bba9f4696a1955d319ad731fbe1af7f7759c00d170422daa3251e52deaa",
+      "target_bytes": 10132,
+      "target_sha256": "5c8d5d8f9d42d7b05e294489155e3cffbc4fface617a29ed79ee208055c07f8e",
+      "edits": [
+        {
+          "offset": 5605,
+          "current": "  # CI must execute the complete verifier under its required PHP 8.5.13.\n",
+          "parent": "  # CI must execute the complete verifier under its required PHP 8.5.12.\n"
+        },
+        {
+          "offset": 7444,
+          "current": "   self.skipTest('Full runtime verifier/contracts require PHP 8.5.13+; host is '+version.stdout)\n",
+          "parent": "   self.skipTest('Full runtime verifier/contracts require PHP 8.5.12+; host is '+version.stdout)\n"
+        }
+      ]
+    },
+    "tests/governance/test_recovery_policy_isolation.py": {
+      "current_bytes": 6532,
+      "current_sha256": "d68d16c59a2644911c117406e613859ddf26e66e2e2711d5e2460f5ba7587821",
+      "target_bytes": 6532,
+      "target_sha256": "05d7bda9a6e5a8a3e0d73a8f091c40cf5e18b9d535a245324145622609b91c05",
+      "edits": [
+        {
+          "offset": 498,
+          "current": " php_version='8.5.13',check_count=23,checks=sorted(gate.BOOTSTRAP|gate.SQL|gate.CLEANUP),failure=None,cleanup_failures=[],\n",
+          "parent": " php_version='8.5.12',check_count=23,checks=sorted(gate.BOOTSTRAP|gate.SQL|gate.CLEANUP),failure=None,cleanup_failures=[],\n"
+        }
+      ]
+    },
+    "tests/governance/test_task_wire_parent.py": {
+      "current_bytes": 60977,
+      "current_sha256": "768fa62e52a9fed10e7182de01b3420c473cbae521cdd0444e1906c3a3d1adc2",
+      "target_bytes": 60977,
+      "target_sha256": "b2a6e913d9522f6235b9a2e980195ea45fbb28c612970b0abd5f7f8c9ddc9b48",
+      "edits": [
+        {
+          "offset": 44459,
+          "current": "        receipt={'passed':True,'runtime':'8.5.13','expected_methods':len(ids),'results':rows}\n",
+          "parent": "        receipt={'passed':True,'runtime':'8.5.12','expected_methods':len(ids),'results':rows}\n"
+        }
+      ]
+    },
+    "tests/operations/php.Dockerfile": {
+      "current_bytes": 236,
+      "current_sha256": "3a7186daa933e6d1d2aa494e0938b1a82ec7c06aa8b269c462dc0fd1c0fcc7bb",
+      "target_bytes": 236,
+      "target_sha256": "fb3da2788bd8777c1f27ae19eb5be32d59ca9b0903671fd7053fac4f939a062d",
+      "edits": [
+        {
+          "offset": 77,
+          "current": "FROM php:8.5.13-cli\n",
+          "parent": "FROM php:8.5.12-cli\n"
+        }
+      ]
+    },
+    "tests/permissions/xlsx/composer.json": {
+      "current_bytes": 341,
+      "current_sha256": "3cd1e8721417a9468e2d25babb06940c0993002c243a3a26228d91e4848283b9",
+      "target_bytes": 341,
+      "target_sha256": "1966f6694646547f57608540e8400a135113bf9e0091072f1198dd4e5b9a0a00",
+      "edits": [
+        {
+          "offset": 262,
+          "current": "      \"php\": \"8.5.13\"\n",
+          "parent": "      \"php\": \"8.5.12\"\n"
+        }
+      ]
+    },
+    "tests/permissions/xlsx/composer.lock": {
+      "current_bytes": 16220,
+      "current_sha256": "1fd7c7df95cf3a2d17baf9c33592c922e51387e48f2736f33bdedd5c9a65333a",
+      "target_bytes": 16220,
+      "target_sha256": "75e863dfbc270f4366020f671ad3ed284bbc09d11efbb6b9ffbdf08242911860",
+      "edits": [
+        {
+          "offset": 254,
+          "current": "    \"content-hash\": \"e3573c27da46868b662a0eabdb22a120\",\n",
+          "parent": "    \"content-hash\": \"b5b7ff79349843dc5f4b82175e57256a\",\n"
+        },
+        {
+          "offset": 16153,
+          "current": "        \"php\": \"8.5.13\"\n",
+          "parent": "        \"php\": \"8.5.12\"\n"
+        }
+      ]
+    },
+    "tests/project-workspace/README.md": {
+      "current_bytes": 6933,
+      "current_sha256": "5565faf60bd367a74de7fdcf3e57f1957e34e215c67bf16b1b2ea782456d702a",
+      "target_bytes": 6933,
+      "target_sha256": "165bd1711d83bf7d6f088ab5d5d9c9c4e7bae50c792ae5105b270b5224dd4fea",
+      "edits": [
+        {
+          "offset": 3106,
+          "current": "SQL-formatter result before web startup on the PHP 8.5.13 CI runtime; a DB-free\n",
+          "parent": "SQL-formatter result before web startup on the PHP 8.5.12 CI runtime; a DB-free\n"
         }
       ]
     }

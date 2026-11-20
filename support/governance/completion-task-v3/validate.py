@@ -75,7 +75,7 @@ def check_capture(sealed,p,pin,phase):
  need(hmac.compare_digest(hmac.new(bytes.fromhex(p['hmac_key']),encoded(d),hashlib.sha256).hexdigest(),sealed['mac']))
  need(d['schema']=='Completion-schema-capture-v3'and d['profile_sha256']==pin and d['run_id']==p['run_id']and d['phase']==phase and re.fullmatch('[a-f0-9]{32}',d['capture_id'])is not None)
  for k in('source_root','source_revision','source_pins','namespace','server_uuid','fixture_nonce_sha256','standard_upgrade_receipt_sha256','patch_discovery'):need(d[k]==p[k])
- need(d['php_version']=='8.5.12'and d['mysql_version']==p['mysql_version'])
+ need(d['php_version']=='8.5.13'and d['mysql_version']==p['mysql_version'])
  need(d['task_feature_enabled']is False and d['read_only_transaction']is True and d['raw_user_rows_exported']is False)
  need(encoded(d['source_schema_spec'])==encoded(expected_schema())and encoded(d['observed_schema'])==encoded(expected_schema()))
  need(encoded(d['config_epoch'])==encoded([{'namespace':'default','config_key':'governance.task-content-grants.enabled','epoch':1}]))

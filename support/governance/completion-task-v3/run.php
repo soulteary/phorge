@@ -19,7 +19,7 @@ final class PhorgeCompletionRunV3 {
     self::need(realpath($p['source_root'])===$p['source_root']&&preg_match('/\A[a-f0-9]{40}\z/D',$p['source_revision'])===1&&preg_match('/\A[a-f0-9]{32}\z/D',$p['run_id'])===1&&preg_match('/\A[a-f0-9]{64}\z/D',$p['hmac_key'])===1&&preg_match('/\A[a-f0-9]{64}\z/D',$p['producer_template_sha256'])===1);
     $names=array_keys($p['source_pins']);sort($names,SORT_STRING);$required=array('resources/sql/autopatches/20261112.task.contentgrants.sql','src/infrastructure/governance/content/PhorgeTaskContentGrantSchemaSpec.php','support/governance/completion/fixture.php','resources/sql/quickstart.sql','support/governance/completion-task-v3/capture.php','support/governance/completion-task-v3/run.php','support/governance/completion-task-v3/prefix.php','support/governance/completion/fixture-run.php');sort($required,SORT_STRING);self::need($names===$required);
     foreach($p['source_pins']as$name=>$pin)self::need(is_string($pin)&&preg_match('/\A[a-f0-9]{64}\z/D',$pin)===1&&hash_file('sha256',$p['source_root'].'/'.$name)===$pin);
-    self::need(PHP_VERSION==='8.5.12'&&ini_get('opcache.jit')==='disable'&&ini_get('opcache.jit_buffer_size')==='0'&&ini_get('opcache.enable_cli')==='0');
+    self::need(PHP_VERSION==='8.5.13'&&ini_get('opcache.jit')==='disable'&&ini_get('opcache.jit_buffer_size')==='0'&&ini_get('opcache.enable_cli')==='0');
     self::need(is_string($p['output'])&&realpath(dirname($p['output']))===dirname($p['output'])&&!file_exists($p['output'])&&!is_link($p['output']));return$p;
   }
   public static function put($path,$raw) {

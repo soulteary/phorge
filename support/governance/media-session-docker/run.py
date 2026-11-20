@@ -161,7 +161,7 @@ def execute(config_path,output,cleanup=False):
    raw,err=j.call(c['docker'],['image','inspect',c[role+'_image']]);v=json.loads(raw);need(not err and len(v)==1 and v[0]['Id']==c[role+'_image'])
   prerequisite=create(j,c,'prerequisite',owner,c['php_image'],'none',None);resources['prerequisite']=prerequisite;j.write('resources-prerequisite.json',canon(resources))
   raw,err=j.call(c['docker'],['wait',prerequisite],timeout=30);need(not err and raw.strip()==b'0')
-  raw,err=j.call(c['docker'],['logs',prerequisite]);need(not err);pr=json.loads(raw);need(set(pr)=={'version','mysqli','mbstring','jit','buffer','cli','caps','pcntl_exec','posix_identity','fsync'}and pr['version']=='8.5.12'and pr['mysqli']is True and pr['mbstring']is True and pr['jit']=='disable'and pr['buffer']=='0'and pr['cli']=='0'and pr['pcntl_exec']is True and pr['posix_identity']is True and pr['fsync']is True);caps_accept(pr['caps'])
+  raw,err=j.call(c['docker'],['logs',prerequisite]);need(not err);pr=json.loads(raw);need(set(pr)=={'version','mysqli','mbstring','jit','buffer','cli','caps','pcntl_exec','posix_identity','fsync'}and pr['version']=='8.5.13'and pr['mysqli']is True and pr['mbstring']is True and pr['jit']=='disable'and pr['buffer']=='0'and pr['cli']=='0'and pr['pcntl_exec']is True and pr['posix_identity']is True and pr['fsync']is True);caps_accept(pr['caps'])
   pv=inspect(j,c,prerequisite,'prerequisite',owner,c['php_image'],'none');need(pv['State']['Running']is False and pv['State']['ExitCode']==0 and pv['State']['OOMKilled']is False);j.write('actual-image-prerequisite.json',canon(pr))
   archive,manifest=snapshot.build(Path(__file__).resolve().parents[3],j.path)
   j.check();source_volume='media-positive-code-'+owner;db_volume='media-positive-db-'+owner
@@ -191,7 +191,7 @@ def execute(config_path,output,cleanup=False):
   actual_caps(j,c,worker,True)
   source_readback(j,c,worker,manifest)
   probe="echo json_encode(['version'=>PHP_VERSION,'mysqli'=>extension_loaded('mysqli'),'mbstring'=>extension_loaded('mbstring'),'jit'=>ini_get('opcache.jit'),'buffer'=>ini_get('opcache.jit_buffer_size'),'cli'=>ini_get('opcache.enable_cli')]);"
-  raw,err=j.call(c['docker'],['exec',worker,'/usr/local/bin/php','-d','opcache.jit=disable','-d','opcache.jit_buffer_size=0','-d','opcache.enable_cli=0','-r',probe]);need(not err and json.loads(raw)=={'version':'8.5.12','mysqli':True,'mbstring':True,'jit':'disable','buffer':'0','cli':'0'})
+  raw,err=j.call(c['docker'],['exec',worker,'/usr/local/bin/php','-d','opcache.jit=disable','-d','opcache.jit_buffer_size=0','-d','opcache.enable_cli=0','-r',probe]);need(not err and json.loads(raw)=={'version':'8.5.13','mysqli':True,'mbstring':True,'jit':'disable','buffer':'0','cli':'0'})
   # Inspect shared isolated namespace and exact RO code mount before supplying
   # the only execution-ready marker/profile. The daemon sees no host bind.
   w=inspect(j,c,worker,'worker',owner,c['php_image'],'container:'+db);d=inspect(j,c,db,'db',owner,c['mysql_image'],'none')

@@ -432,8 +432,9 @@ class OAuthCI(unittest.TestCase):
     changed,_=operation.historical_task_inputs(ROOT,'060ac7f2b631cc5964f28cd783082dd6e2fb1565',changed,{name:context.current(name)for name in changed})
     unchanged_media={'support/governance/media-session-docker/README.md','support/governance/media-session-docker/snapshot.py','support/governance/media-session-ci/test_ci.py','support/governance/media-session-ci/project.py'}
     self.assertTrue(unchanged_media<=approved)
+    media_inverse=operation._modules['project_content_grant_source_delta'].media_source_delta()
     for name in unchanged_media:
-     self.assertEqual(context.parent(name),subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'show','060ac7f2b631cc5964f28cd783082dd6e2fb1565:'+name]))
+     self.assertEqual(media_inverse.reduce_if_selected(name,context.parent(name)),subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'show','060ac7f2b631cc5964f28cd783082dd6e2fb1565:'+name]))
     approved-=unchanged_media
     lifecycle_paths={p for p in lifecycle_delta.SOURCE_INPUTS if p.startswith(('src/','resources/','support/governance/'))}|set(lifecycle_delta.SOURCE_ADDITIONS)
     for name in REVIEWED_POLICY_FIXTURES:reviewed_policy_fixture(ROOT,name)

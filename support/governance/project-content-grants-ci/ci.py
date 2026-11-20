@@ -34,7 +34,7 @@ def select_service(rows,cid):
 
 def runtime(v):
     need(set(v)=={'php_version','mysql_version','server_uuid','opcache_jit','opcache_jit_buffer_size','opcache_enable_cli'})
-    need(v['php_version']=='8.5.12' and v['mysql_version']=='8.4.13')
+    need(v['php_version']=='8.5.13' and v['mysql_version']=='8.4.13')
     need(v['opcache_jit']=='disable' and v['opcache_jit_buffer_size']=='0' and v['opcache_enable_cli']=='0')
     need(type(v['server_uuid'])is str and re.fullmatch('[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}',v['server_uuid']))
     return v

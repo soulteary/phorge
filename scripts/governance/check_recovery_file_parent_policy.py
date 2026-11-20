@@ -153,7 +153,7 @@ def validate(data,root=ROOT,*,source_revision,file_digest):
  completion.fields(data,native.FIELDS,'Fileparent receipt shape refused')
  def exact(a,b):completion.exact(a,b,'Fileparent evidence refused')
  for k,v in {'batch':'native-File-parent-policy-endpoints','scope':'owned-native-File-parent-policy-endpoints-no-permit',
-  'passed':True,'php_version':'8.5.12','check_count':count,'failure':None,'cleanup_failures':[],
+  'passed':True,'php_version':'8.5.13','check_count':count,'failure':None,'cleanup_failures':[],
   'optional_source_reader_adapter_exercised':True,'isolated_optional_features_enabled':True,
   'successful_owned_file_service_startups':1,'terminal_failure_cleanup_rollbacks':0,
   'production_deployment':False,'production_executor':False,'production_optional_features_enabled':False,

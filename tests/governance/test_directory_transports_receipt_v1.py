@@ -8,7 +8,7 @@ FILE_DIGEST='b'*64
 def validate(data):return gate.validate(data,file_digest=FILE_DIGEST)
 def template():
     return dict(batch='native-directory-transports-v2-restore-progress',passed=True,scope='owned-native-directory-transport-matrix-with-paired-file-and-exact-restore-progress',
-        checks=sorted(gate.expected_checks()),check_count=len(gate.expected_checks()),php_version='8.5.12',
+        checks=sorted(gate.expected_checks()),check_count=len(gate.expected_checks()),php_version='8.5.13',
         source_restore=dict(quickstart_sha256=hashlib.sha256((ROOT/'resources/sql/quickstart.sql').read_bytes()).hexdigest(),
             app_schema_count=54,owned_schema_count=55,quickstart_source_table_count=500,current_table_count=549,
             restore_phase_workers_started=0,restore_phase_network_endpoints_configured=0,

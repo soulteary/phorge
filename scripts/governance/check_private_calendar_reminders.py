@@ -139,7 +139,7 @@ def validate(data, *, source_revision, file_digest, queue_digest, root=ROOT):
     expected = obligations()
     for key, value in {'batch': 'native-private-calendar-reminders',
         'scope': 'owned-native-calendar-reminders-no-SMTP', 'passed': True,
-        'php_version': '8.5.12', 'check_count': len(expected), 'failure': None,
+        'php_version': '8.5.13', 'check_count': len(expected), 'failure': None,
         'cleanup_failures': [], 'terminal_failure_cleanup_rollbacks': 0,
         'optional_source_reader_adapter_exercised': True, 'isolated_optional_features_enabled': True,
         'successful_owned_file_service_startups': 1, 'production_deployment': False,

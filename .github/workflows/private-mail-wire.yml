@@ -71,7 +71,7 @@ jobs:
           cache: false
       - uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.5.12'
+          php-version: '8.5.13'
           extensions: mysqli, mbstring, curl, gd, zip, dom, xmlreader, xmlwriter
           ini-values: opcache.jit=disable, opcache.jit_buffer_size=0
           coverage: none

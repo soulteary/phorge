@@ -10,7 +10,7 @@ try {
  nneed($p['base_root']===$root && $p['base_commit']==='4c2245300dc1d78d042b95190dd537eb6b1f9861' && $p['isolated_features_authorized']===true);
  nneed(realpath($out)===$out && preg_match('/\A[a-f0-9]{32}\z/D',$p['owner']) && $p['namespace']==='n05_grants_'.$p['owner']);
  $argv=array($script);$argc=1;require $root.'/scripts/init/init-script.php';nprofile($p);
- nneed(PHP_VERSION==='8.5.12' && ini_get('opcache.jit')==='disable' && ini_get('opcache.jit_buffer_size')==='0' && ini_get('opcache.enable_cli')==='0');
+ nneed(PHP_VERSION==='8.5.13' && ini_get('opcache.jit')==='disable' && ini_get('opcache.jit_buffer_size')==='0' && ini_get('opcache.enable_cli')==='0');
  nneed(queryfx_one(nconnection($p,new PhabricatorProject()),'SELECT VERSION() v')['v']==='8.4.13');
  PhabricatorWorker::setRunAllTasksInProcess(false);$unguarded=AphrontWriteGuard::beginScopedUnguardedWrites();
  try {

@@ -21,7 +21,7 @@ final class PhorgeTaskDirectoryRunV2 {
     self::need(is_string($p['native_role'])&&isset($role_paths[$p['native_role']])&&preg_match('/\A[a-f0-9]{64}\z/D',$p['producer_template_sha256'])===1);
     $pin_names=array_keys($p['source_pins']);sort($pin_names,SORT_STRING);$required_pins=array('resources/sql/autopatches/20261112.task.contentgrants.sql','src/infrastructure/governance/content/PhorgeTaskContentGrantSchemaSpec.php','support/governance/completion/fixture.php','resources/sql/quickstart.sql','support/governance/task-additive-schema-v2/capture.php','support/governance/task-additive-schema-v2/run.php','support/governance/task-additive-schema-v2/producer-roles-v2.json','support/governance/task-additive-schema-v2/producer-prefix.php',$role_paths[$p['native_role']]);sort($required_pins,SORT_STRING);self::need($pin_names===$required_pins);
     foreach($p['source_pins']as$name=>$pin)self::need(is_string($name)&&!str_contains($name,'..')&&!str_starts_with($name,'/')&&preg_match('/\A[a-f0-9]{64}\z/D',$pin)===1&&hash_file('sha256',$p['source_root'].'/'.$name)===$pin);
-    self::need(PHP_VERSION==='8.5.12'&&ini_get('opcache.jit')==='disable'&&ini_get('opcache.jit_buffer_size')==='0'&&ini_get('opcache.enable_cli')==='0');
+    self::need(PHP_VERSION==='8.5.13'&&ini_get('opcache.jit')==='disable'&&ini_get('opcache.jit_buffer_size')==='0'&&ini_get('opcache.enable_cli')==='0');
     self::need(is_string($p['output'])&&realpath(dirname($p['output']))===dirname($p['output'])&&!file_exists($p['output'])&&!is_link($p['output']));return$p;
   }
   public static function put($path,$raw) { $f=fopen($path,'x+b');self::need($f!==false);try{self::need(chmod($path,0600)&&fwrite($f,$raw)===strlen($raw)&&fflush($f));}finally{fclose($f);} }

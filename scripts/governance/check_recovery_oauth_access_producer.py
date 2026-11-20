@@ -58,7 +58,7 @@ def validate(data,root=ROOT,*,source_revision,file_digest):
  if type(source_revision)is not str or not re.fullmatch('[a-f0-9]{40}',source_revision):raise ValueError('source revision required')
  expected=obligations(root)
  completion.fields(data,native.FIELDS,'Conduit producer evidence shape refused')
- for k,v in {'batch':'native-oauth-access-producer-owner','scope':'owned-native-oauth-access-producer-owner-no-permit','passed':True,'php_version':'8.5.12','check_count':len(expected),'failure':None,'cleanup_failures':[],
+ for k,v in {'batch':'native-oauth-access-producer-owner','scope':'owned-native-oauth-access-producer-owner-no-permit','passed':True,'php_version':'8.5.13','check_count':len(expected),'failure':None,'cleanup_failures':[],
   'optional_source_reader_adapter_exercised':True,'isolated_optional_features_enabled':True,'successful_owned_file_service_startups':1,'terminal_failure_cleanup_rollbacks':0,
   'production_deployment':False,'production_executor':False,'production_optional_features_enabled':False,'native_permission_axes_changed':False}.items():exact(data[k],v)
  checks=data['checks']

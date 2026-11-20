@@ -110,4 +110,4 @@ class CurrentMainIntegration(MediaRemote):
    old=subprocess.check_output(['git','-C',str(ROOT),'show','5a3d412be4496d1b739d484fc4cd778b79d80f72:'+name])
    self.assertEqual(calendar_delta.reduce_reviewed_calendar_engine(context.parent(name)),old)
    prior=subprocess.check_output(['git','-C',str(ROOT),'show','5a3d412be4496d1b739d484fc4cd778b79d80f72:'+policy])
-   self.assertEqual(calendar_delta.reduce_reviewed_private_mail_settings((ROOT/policy).read_bytes()),prior)
+   self.assertEqual(calendar_delta.reduce_reviewed_private_mail_settings(context.parent(policy)),prior)
