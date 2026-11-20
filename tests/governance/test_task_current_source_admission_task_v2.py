@@ -21,12 +21,6 @@ class ExactHistoricalBridgeTaskV2(unittest.TestCase):
    for relative,pin in bridge.CURRENT_SHARED.items():
     with self.subTest(relative=relative):
      raw=(ROOT/relative).read_bytes();self.assertEqual(raw,context.current(relative))
-     if relative==source.task_admission.TASK_PREUPGRADE_FIXTURE:
-      recipe=context.current(source.task_admission.TASK_PREUPGRADE_RECIPE)
-      inverse=source.task_admission.task_preupgrade_fixture_inverse
-      with self.assertRaises(ValueError):inverse(relative,raw+b'\n',recipe)
-      with self.assertRaises(ValueError):inverse(relative,raw,recipe+b'\n')
-      raw=inverse(relative,raw,recipe)
      if relative in source.task_admission.RELEASE_HISTORY_PATHS:
       # Actual captured current DATA must first reach the exact original Task
       # intermediate; the original four-body reducer still runs below.
@@ -35,8 +29,14 @@ class ExactHistoricalBridgeTaskV2(unittest.TestCase):
       with self.assertRaises(ValueError):source.task_admission.load_release_history(history_raw+b'\n')
       with self.assertRaises(ValueError):source.task_admission.release_history_inverse(relative,raw+b'\n',history)
       raw=source.task_admission.release_history_inverse(relative,raw,history)
-      self.assertEqual(len(raw),pin['current_bytes'])
-      self.assertEqual(hashlib.sha256(raw).hexdigest(),pin['current_sha256'])
+     if relative==source.task_admission.TASK_PREUPGRADE_FIXTURE:
+      recipe=context.current(source.task_admission.TASK_PREUPGRADE_RECIPE)
+      inverse=source.task_admission.task_preupgrade_fixture_inverse
+      with self.assertRaises(ValueError):inverse(relative,raw+b'\n',recipe)
+      with self.assertRaises(ValueError):inverse(relative,raw,recipe+b'\n')
+      raw=inverse(relative,raw,recipe)
+     self.assertEqual(len(raw),pin['current_bytes'])
+     self.assertEqual(hashlib.sha256(raw).hexdigest(),pin['current_sha256'])
      prior=bridge.reduce_selected(relative,raw)
      self.assertEqual(hashlib.sha256(prior).hexdigest(),pin['parent_sha256'])
      self.assertEqual(len(prior),pin['parent_bytes'])

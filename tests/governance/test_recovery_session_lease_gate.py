@@ -161,6 +161,12 @@ class SourceOperationPlumbingUnit(unittest.TestCase):
   for call in [x for x in ast.walk(body)if isinstance(x,ast.Call)]:
    call.keywords=[x for x in call.keywords if x.arg!='_source_operation']
    if isinstance(call.func,ast.Name)and call.func.id=='summary':call.args=call.args[:1]
+  # Project only the historical security-version literal. Current validation
+  # must retain 8.5.13; a regression to 8.5.12 cannot pass this comparison.
+  old_versions=[n for n in ast.walk(a['validate']) if isinstance(n,ast.Constant) and n.value=='8.5.12']
+  self.assertEqual(len(old_versions),1)
+  self.assertEqual(sum(isinstance(n,ast.Constant) and n.value=='8.5.13' for n in ast.walk(body)),1)
+  old_versions[0].value='8.5.13'
   self.assertEqual(ast.dump(a['validate'],include_attributes=False),ast.dump(body,include_attributes=False))
 
 class SessionLeaseDiagnosticTests(unittest.TestCase):

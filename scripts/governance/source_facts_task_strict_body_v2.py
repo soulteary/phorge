@@ -1,9 +1,9 @@
 """Pinned CURRENT Config, Project and Space facts; explicit read and restore seams."""
 import ast,copy,hashlib,types
 PROFILES={
- 'application-config-facts':('check_recovery_application_config.py','547365bba9c5efa2d3832d4deaaca3cfc3454b2b8f435af7ea17638c95fecd2c',19,10),
- 'project-source-facts':('check_recovery_project_source.py','363ce505ba83516bc0d79b5a9bde9af316ef316a678dc66c75f39ddd4d761d2c',11,2),
- 'spaces-source-facts':('check_recovery_spaces_source.py','00cc1324227a6c70cf8677ffc8149c0b5f99db75d1f3a20926a3cd2722325761',20,11)}
+ 'application-config-facts':('check_recovery_application_config.py','3c97b93587e097accce34885d97f10ad625c244f3bb3015a7758add5677c329c',19,10),
+ 'project-source-facts':('check_recovery_project_source.py','923cb283a799964709a1c25b21b65bb48f5baa1920b9ee118b2b51d2629d7133',11,2),
+ 'spaces-source-facts':('check_recovery_spaces_source.py','9497624bf8d28e36b21d3ffb65a1b817fc45e06d998f2cc6572d93341cf6ec63',20,11)}
 SPACE_PATH='support/governance/recovery/spaces-source-focused.php'
 SPACE_SHA='d90d84b8e81c832d297dcfb6ca118de8983bdf94642c83c30c93f4e791b1ad03'
 IMPORTS=('import check_completion as completion','import check_native_organization as native')

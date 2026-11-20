@@ -79,7 +79,8 @@ class LegacyView(unittest.TestCase):
     def test_six_whole_sources_equal_real_prior_Git_without_changing_runtime_files(self):
         for path in self._legacy.CLOSED_PATHS:
             raw = (ROOT / path).read_bytes()
-            current = self._legacy.n05._normalize_metadata(path, raw) if path in self._legacy.n05.CURRENT_METADATA else raw
+            parent = self._legacy.parent_data(path)
+            current = self._legacy.n05._normalize_metadata(path, parent) if path in self._legacy.n05.CURRENT_METADATA else parent
             self.assertEqual(current, self._legacy.git_bytes(self._legacy.CURRENT_REVISION, path))
             self.assertEqual(self._legacy.historical_tooling_source(path), self._legacy.git_bytes(self._legacy.PRIOR_REVISION, path))
             self.assertEqual((ROOT / path).read_bytes(), raw)

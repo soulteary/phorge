@@ -3,7 +3,7 @@ import ast,copy,hashlib,types
 from pathlib import Path
 import source_operation_snapshot as source
 CHECKER='scripts/governance/check_private_calendar_reminders.py'
-CHECKER_SHA='bcdeb6e18e405fa81d7cb3ffea395b8bd523923927f20b45b897d599d4dbcd6f'
+CHECKER_SHA='95d0540f89b798d0045070c865b7e909819e0a871d378efc95f9a277a859f4c9'
 def need(value):
  if value is not True:raise ValueError('Calendar_CURRENT_strict_body_refused')
 def model(operation,root,captured,restore,completion,native):

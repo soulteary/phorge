@@ -1,6 +1,6 @@
 """Fixed CURRENT API credential strict body; only its restore interface is adapted."""
 import ast,copy,hashlib
-PIN='cc09eb17d675d458c57f1116d97228a92834fd227101086ec56ab4c392b4ea0c'
+PIN='13eec9ef904d996a8e09b836901a3933e72911548dee3baff06542ad27b18bea'
 IMPORTS=("spec = importlib.util.spec_from_file_location('native_credential_restore_gate', root / 'scripts/governance/check_native_organization.py')",'native = importlib.util.module_from_spec(spec)','spec.loader.exec_module(native)')
 def need(v):
  if v is not True:raise ValueError('api_credential_CURRENT_strict_body_refused')

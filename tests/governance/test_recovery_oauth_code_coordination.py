@@ -50,7 +50,7 @@ class CodeCoordination(unittest.TestCase):
     return out
    for path in coord.SOURCE_INPUTS:
     if path.endswith('.py'):
-     raw=(ROOT/path).read_bytes();project_view=legacy.n05.reduce_if_selected(path,raw);self.assertEqual(dictionaries(project_view),dictionaries(r3.historical_coordinator_source(path,raw)))
+     raw=(ROOT/path).read_bytes();project_view=legacy.n05.reduce_if_selected(path,legacy.parent_data(path));self.assertEqual(dictionaries(project_view),dictionaries(r3.historical_coordinator_source(path,raw)))
  def test_complete_current_or_complete_baseline_only_missing_mixed_unknown_refuse(self):
   with bound_views(ROOT)as(legacy,r3):
    modules=r3.checked_modules();prod=modules.code_delta;authorization_delta=modules.authorization_delta

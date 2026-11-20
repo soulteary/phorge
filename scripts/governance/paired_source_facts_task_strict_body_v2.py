@@ -1,9 +1,9 @@
 """Pinned CURRENT Partial, Task and File facts; original read and restore seams."""
 import ast,copy,hashlib,types
 PROFILES={
- 'recovery-partial-composition':('check_recovery_partial_composition.py','76930e99b57cb3a4488817fa88865f9b8a17df9c2cf8c501367f8779abb3e0ca',31,21,21,None,None),
- 'task-owner-source-facts':('check_recovery_task_owner_source.py','ec15053fa6f27cb5c358b5c54cb4ae254618da805b118ab53abf618df939ee25',30,19,21,'support/governance/recovery/task-owner-source-cases.php','56ccc81c0b5dcb664484862f93bc8e14df4dcd9a10db27de3f20469a2355d7a1'),
- 'file-source-facts':('check_recovery_file_source.py','9f7d9782dba24f9f14b4bfd7be9a6ebf39c567f4e6d197e705bfd76a8d08e375',39,29,30,'support/governance/recovery/file-source-cases.php','d106bc50447c9a6a62c1d115840d7272ee305d98b56d42f2fef0fd39558b2c10')}
+ 'recovery-partial-composition':('check_recovery_partial_composition.py','1a06ef08a91bc152ffee0d8810210a1e0536223bda683a4a4dbb2028fdf1660f',31,21,21,None,None),
+ 'task-owner-source-facts':('check_recovery_task_owner_source.py','0dd6bd11fad2e8cafa197e3b367105fb5039e7ad69297052761c3f2eac99659f',30,19,21,'support/governance/recovery/task-owner-source-cases.php','56ccc81c0b5dcb664484862f93bc8e14df4dcd9a10db27de3f20469a2355d7a1'),
+ 'file-source-facts':('check_recovery_file_source.py','c936c427c14d74febe987b4d26b4960e3bb72df205038471e3580251bfdba88d',39,29,30,'support/governance/recovery/file-source-cases.php','d106bc50447c9a6a62c1d115840d7272ee305d98b56d42f2fef0fd39558b2c10')}
 IMPORTS=('import check_completion as completion','import check_native_organization as native')
 def need(v):
  if v is not True:raise ValueError('paired_source_CURRENT_strict_body_refused')

@@ -57,5 +57,9 @@ class RestoreProgressTest(unittest.TestCase):
    def visit_Call(self,node):
     node.keywords=[x for x in node.keywords if x.arg!='restore_progress'];return self.generic_visit(node)
   old=next(x for x in before.body if isinstance(x,ast.FunctionDef)and x.name=='validate');new=next(x for x in after.body if isinstance(x,ast.FunctionDef)and x.name=='validate')
+  old_versions=[n for n in ast.walk(old) if isinstance(n,ast.Constant) and n.value=='8.5.12']
+  self.assertEqual(len(old_versions),1)
+  self.assertEqual(sum(isinstance(n,ast.Constant) and n.value=='8.5.13' for n in ast.walk(new)),1)
+  old_versions[0].value='8.5.13'
   self.assertEqual(ast.dump(old,include_attributes=False),ast.dump(Inverse().visit(new),include_attributes=False))
 if __name__=='__main__':unittest.main()

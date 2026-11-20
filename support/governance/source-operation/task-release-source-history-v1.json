@@ -2856,6 +2856,19 @@
           "parent": "SQL-formatter result before web startup on the PHP 8.5.12 CI runtime; a DB-free\n"
         }
       ]
+    },
+    "tests/governance/test_directory_restore_progress.py": {
+      "current_bytes": 7079,
+      "current_sha256": "8e9520a337c78d96db23b2d186886b69cd8a4d8acc446b64d91842ef4c251f30",
+      "target_bytes": 6813,
+      "target_sha256": "af8f44e98172d47f97cdbe416f0964f987b9def872d78cf823d302c70267e516",
+      "edits": [
+        {
+          "offset": 6658,
+          "current": "  old_versions=[n for n in ast.walk(old) if isinstance(n,ast.Constant) and n.value=='8.5.12']\n  self.assertEqual(len(old_versions),1)\n  self.assertEqual(sum(isinstance(n,ast.Constant) and n.value=='8.5.13' for n in ast.walk(new)),1)\n  old_versions[0].value='8.5.13'\n",
+          "parent": ""
+        }
+      ]
     }
   }
 }
