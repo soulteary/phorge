@@ -55,7 +55,7 @@ no cleanup or native project-depth change is performed (V10).
 
 ## Local and CI verification
 
-Use supported PHP 8.5.x, at least 8.5.12, with JIT disabled. These commands must
+Use supported PHP 8.5.x, at least 8.5.13, with JIT disabled. These commands must
 run in a clean development checkout without deployment configuration:
 
 ```sh

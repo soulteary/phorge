@@ -114,13 +114,13 @@
     },
     "docs/upstream/atomic-release-protocol.md": {
       "current_bytes": 5400,
-      "current_sha256": "b9e3156e587541eebd480061f08070f7805af6fca8d4bfb1040a094a78771d5d",
+      "current_sha256": "86197880f3284a7c6a49a8f5776f33a151ef16280452b2b7def4bb8474db1516",
       "target_bytes": 5233,
       "target_sha256": "66bdfeaccd79f8c83bc9c4937f69c8a82df3443988c205cce65a70b538199930",
       "edits": [
         {
           "offset": 4464,
-          "current": "identities, PHP version and result JSON with the applicable CI tier. Core checks\nrun for each PR; full optional integration qualification is mandatory before\npublication, as specified in [the CI policy](../ci/README.md). PHP 8.5.12 is the sole\n",
+          "current": "identities, PHP version and result JSON with the applicable CI tier. Core checks\nrun for each PR; full optional integration qualification is mandatory before\npublication, as specified in [the CI policy](../ci/README.md). PHP 8.5.13 is the sole\n",
           "parent": "identities, PHP version and result JSON with each PR. PHP 8.5.12 is the sole\n"
         }
       ]
@@ -2931,6 +2931,55 @@
           "offset": 16463,
           "current": "        // Retired databases have no active specification, but unknown tables\n        // must still reach the CLI error report. Retained tables are untouched.\n        if (!$expect_database && $actual_database &&\n            $database->getIsRetained()) {\n          foreach ($database->getTables() as $table_name => $table) {\n            foreach ($this->findErrors($table) as $issue) {\n              $errors[] = array(\n                'database' => $database_name,\n                'table' => $table_name,\n                'issue' => $issue,\n              );\n            }\n          }\n        }\n",
           "parent": "        // If there's a real issue here, skip this stuff.\n"
+        }
+      ]
+    },
+    "docs/governance/batch-1-implementation.md": {
+      "current_bytes": 6475,
+      "current_sha256": "cd4b64ce8790d98ed1a7596dcd1c4f7b089b6c0abfd19d17c2db9d441a31fad3",
+      "target_bytes": 6475,
+      "target_sha256": "b58f4fedb1a624b783ae9e77ede704351ead3acee1ea04cb484548234cd51af1",
+      "edits": [
+        {
+          "offset": 3372,
+          "current": "Use supported PHP 8.5.x, at least 8.5.13, with JIT disabled. These commands must\n",
+          "parent": "Use supported PHP 8.5.x, at least 8.5.12, with JIT disabled. These commands must\n"
+        }
+      ]
+    },
+    "docs/releases/php-8.5.12-upgrade.md": {
+      "current_bytes": 3180,
+      "current_sha256": "28266e6f90d85b6773101e7b61321ae24290badb29137ebbfee43aee57dab3c5",
+      "target_bytes": 2952,
+      "target_sha256": "75592cd0d509586ab75579c9ae5135ec2d885c9ae4a7b9074270f6cef6f5e4b0",
+      "edits": [
+        {
+          "offset": 33,
+          "current": "\n> Historical record: PHP 8.5.12 is retired. Its results do not qualify the current release or an operational rollback. Use the current PHP 8.5.13 baseline and validate any rollback target against current security requirements.\n",
+          "parent": ""
+        }
+      ]
+    },
+    "docs/upstream/atomic-required-gates-and-evidence.md": {
+      "current_bytes": 4893,
+      "current_sha256": "3fe7902dfed3427cd54a2720cd8b982867ef733ab8ccfb173339b033ff8a4fac",
+      "target_bytes": 4893,
+      "target_sha256": "51fa4777882bebf0690e4cf249490e352cdba764266b776b26dc49121638e8a4",
+      "edits": [
+        {
+          "offset": 207,
+          "current": "- `Native packages (PHP 8.5.13)` \u2014 all registered native packages, deterministic\n",
+          "parent": "- `Native packages (PHP 8.5.12)` \u2014 all registered native packages, deterministic\n"
+        },
+        {
+          "offset": 418,
+          "current": "- `runtime-compatibility (8.5.13)` \u2014 runtime safety and selective upstream fixes.\n",
+          "parent": "- `runtime-compatibility (8.5.12)` \u2014 runtime safety and selective upstream fixes.\n"
+        },
+        {
+          "offset": 1362,
+          "current": "the test pair requires a reviewed source-pin change and fresh check results. Use only PHP 8.5.13 with JIT explicitly disabled and zero\n",
+          "parent": "the test pair requires a reviewed source-pin change and fresh check results. Use only PHP 8.5.12 with JIT explicitly disabled and zero\n"
         }
       ]
     }

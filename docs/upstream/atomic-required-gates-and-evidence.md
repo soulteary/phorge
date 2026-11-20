@@ -5,10 +5,10 @@
 The repository's `main` branch requires these GitHub Actions checks, bound to
 App ID 15368, with the branch up to date before merging:
 
-- `Native packages (PHP 8.5.12)` — all registered native packages, deterministic
+- `Native packages (PHP 8.5.13)` — all registered native packages, deterministic
   maps, retained product cuts, fixture preflight and real HTTP persistence.
 - `contracts` — paired runtime/service contracts.
-- `runtime-compatibility (8.5.12)` — runtime safety and selective upstream fixes.
+- `runtime-compatibility (8.5.13)` — runtime safety and selective upstream fixes.
 
 Administrators are subject to the same rules. Pull requests and resolution of
 review conversations are required; force pushes and deletion are disabled.
@@ -22,7 +22,7 @@ alone does not protect a branch. Do not bypass the rules to merge this change.
 revision; it is not a formal release lock. Push and pull-request checks resolve
 this checked-in source directly, ignoring repository variables. An explicit
 manual dispatch override must equal the checked-in immutable revision. Updating
-the test pair requires a reviewed source-pin change and fresh check results. Use only PHP 8.5.12 with JIT explicitly disabled and zero
+the test pair requires a reviewed source-pin change and fresh check results. Use only PHP 8.5.13 with JIT explicitly disabled and zero
 buffer; historical minor-version matrices are not supported configurations.
 
 ## Counts and evidence boundaries
