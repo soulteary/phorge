@@ -1,5 +1,5 @@
 """Dedicated strict Completion source/schema consumer; no SQL or activation."""
-import argparse,copy,hashlib,json,re,types,os,subprocess
+import argparse,copy,hashlib,json,re,types,os,subprocess,stat
 from pathlib import Path
 import source_operation_snapshot as source
 ROOT=Path(__file__).resolve().parents[2]
@@ -147,6 +147,29 @@ def failure_location(error):
   trace=trace.tb_next
  return location
 
+def native_failure_location(directory):
+ # Diagnostic only. Read one bounded owned stderr file; never export its text.
+ try:
+  directory=Path(directory)
+  if not directory.is_absolute()or directory.resolve(strict=True)!=directory:return None
+  parent=directory.lstat()
+  if not stat.S_ISDIR(parent.st_mode)or parent.st_uid!=os.getuid()or stat.S_IMODE(parent.st_mode)!=0o700:return None
+  path=directory/'native.stderr.private';fd=os.open(path,os.O_RDONLY|os.O_NOFOLLOW|os.O_NONBLOCK)
+  try:
+   before=os.fstat(fd)
+   if not stat.S_ISREG(before.st_mode)or before.st_uid!=os.getuid()or before.st_nlink!=1 or stat.S_IMODE(before.st_mode)!=0o600 or not 0<before.st_size<=262144:return None
+   raw=os.read(fd,262145)
+   stamp=lambda v:(v.st_dev,v.st_ino,v.st_mode,v.st_uid,v.st_nlink,v.st_size,v.st_mtime_ns,v.st_ctime_ns)
+   if len(raw)!=before.st_size or stamp(before)!=stamp(os.fstat(fd))or stamp(before)!=stamp(path.lstat()):return None
+   after=directory.lstat()
+   if (parent.st_dev,parent.st_ino,parent.st_mode,parent.st_uid)!=(after.st_dev,after.st_ino,after.st_mode,after.st_uid):return None
+  finally:os.close(fd)
+  text=raw.decode('utf-8','replace')
+  if 'Fatal error:'not in text:return None
+  match=re.search(re.escape(str(ROOT)) + r'/((?:src|support)/[A-Za-z0-9_./-]+\.php)(?::| on line )(\d+)',text)
+  return {'kind':'php-fatal','source_file':match[1]if match else None,'source_line':int(match[2])if match else None}
+ except (OSError,ValueError):return None
+
 if __name__=='__main__':
  p=argparse.ArgumentParser();p.add_argument('--root',default=str(ROOT))
  for n in('expected-checkpoint','directory','file-binary','file-sha','taskqueue-binary','taskqueue-sha','observed-mysql-image'):p.add_argument('--'+n,required=True)
@@ -154,5 +177,5 @@ if __name__=='__main__':
  try:print(json.dumps(run_and_accept(a.root,a.expected_checkpoint,a.directory,a.file_binary,a.file_sha,a.taskqueue_binary,a.taskqueue_sha,a.observed_mysql_image,a.php),sort_keys=True))
  except Exception as error:
   status=error.shell_status()if type(error)is CompletionProcessExit else 1
-  try:print(json.dumps({'completion_v3_accepted':False,'producer_window_proven':False,'consumer_source_exit_verified':False,'actual_process_returncode':error.returncode if type(error)is CompletionProcessExit else None,'secondary_sink_error_count':len(error.sink_errors)if type(error)is CompletionProcessExit else None,'SQL_executed_by_checker':False,'failure_location':failure_location(error)},sort_keys=True))
+  try:print(json.dumps({'completion_v3_accepted':False,'producer_window_proven':False,'consumer_source_exit_verified':False,'actual_process_returncode':error.returncode if type(error)is CompletionProcessExit else None,'secondary_sink_error_count':len(error.sink_errors)if type(error)is CompletionProcessExit else None,'SQL_executed_by_checker':False,'failure_location':failure_location(error),'native_failure_location':native_failure_location(a.directory)},sort_keys=True))
   finally:raise SystemExit(status)

@@ -73,7 +73,7 @@ class CurrentMainIntegration(MediaRemote):
    retired={row['path'] for row in json.loads(context.current('docs/operations/retirement/wiki.json'))['removed_files']}
    self.assertEqual(len(retired),68)
    self.assertTrue(all(not(ROOT/path).exists() for path in retired))
-   self.assertEqual(set(physical_changed),set(changed)|task_delta|retired)
+   self.assertEqual(set(physical_changed),set(changed)|task_delta|{p for p in retired if p.startswith(('src/','resources/'))})
    name='src/applications/calendar/notifications/PhabricatorCalendarNotificationEngine.php'
    policy='src/infrastructure/governance/notification/PhorgePrivateMailPolicy.php'
    conduit_delta=operation._modules['recovery_conduit_source_delta']

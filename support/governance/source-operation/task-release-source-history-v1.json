@@ -426,7 +426,7 @@
     },
     "tests/governance/test_native_rr_ci_runner.py": {
       "current_bytes": 14505,
-      "current_sha256": "94a34c4e02806579f906c11f3d8a55058b58e7d33d37906f8c7fc478f43c8e65",
+      "current_sha256": "eb16e08b8415d839d6293ef7724cc3ff8e0a7d330d2c0157791b8f546bd6e42d",
       "target_bytes": 12654,
       "target_sha256": "d93d7205de9f0c23cf71e820b390ae11e5b6da96a0065fd85c37ba63121217c5",
       "edits": [
@@ -442,7 +442,7 @@
         },
         {
           "offset": 3674,
-          "current": "   sources=p.source_bindings(checkout,lambda path:(checkout/path).read_bytes());ids={f'Synthetic::test{i}'for i in range(285)}\n",
+          "current": "   sources=p.source_bindings(checkout,lambda path:(checkout/path).read_bytes());ids={f'Synthetic::test{i}'for i in range(276)}\n",
           "parent": "   sources=p.source_bindings(checkout,lambda path:(checkout/path).read_bytes());ids={f'Synthetic::test{i}'for i in range(280)}\n"
         },
         {
@@ -452,7 +452,7 @@
         },
         {
           "offset": 5853,
-          "current": "     if args[1].endswith('/tests/governance/run.php'):return json.dumps({'passed':True,'runtime':'8.5.12','expected_methods':285,'results':[{'id':i,'result':'pass'}for i in ids]}).encode()\n",
+          "current": "     if args[1].endswith('/tests/governance/run.php'):return json.dumps({'passed':True,'runtime':'8.5.12','expected_methods':276,'results':[{'id':i,'result':'pass'}for i in ids]}).encode()\n",
           "parent": "     if args[1].endswith('/tests/governance/run.php'):return json.dumps({'passed':True,'runtime':'8.5.12','expected_methods':280,'results':[{'id':i,'result':'pass'}for i in ids]}).encode()\n"
         },
         {
@@ -488,8 +488,8 @@
       ]
     },
     "tests/governance/test_native_user_rr_mdl_source.py": {
-      "current_bytes": 5412,
-      "current_sha256": "8e2c59d5bfbba38b8c9eaa7f5aee4553052fb62ae11c5beb8950a446987ccdfe",
+      "current_bytes": 5661,
+      "current_sha256": "afad5c5909113d6a6a5caa195d339579d06f8e94bbbf117bf1f62c75c1b13719",
       "target_bytes": 4045,
       "target_sha256": "a43047fd8a130ff2405cb1dc0297194a2ef52a2274334e0023c81c172abf708d",
       "edits": [
@@ -499,13 +499,13 @@
           "parent": "  classes,ids=inventory();self.assertEqual(49,len(classes));self.assertEqual(280,len(ids));self.assertEqual(len(ids),len(set(ids)))\n"
         },
         {
-          "offset": 1499,
-          "current": "  original_delta={'PhorgeRecoveryFileSourceFactsTestCase::testNativeFileAuthorAutomaticIsNotAccountOrPolicyAdmission',\n",
-          "parent": "  self.assertEqual({'PhorgeRecoveryFileSourceFactsTestCase::testNativeFileAuthorAutomaticIsNotAccountOrPolicyAdmission',\n"
+          "offset": 1427,
+          "current": "  from native_rr_ci.execution import RETIRED_PURE_IDS, RETIREMENT_PURE_ADDITIONS\n  self.assertEqual(266,len(old_ids));self.assertEqual(12,len(old_ids&RETIRED_PURE_IDS))\n  surviving=old_ids-RETIRED_PURE_IDS\n  self.assertTrue(surviving<=set(ids));self.assertFalse(RETIRED_PURE_IDS&set(ids))\n  original_delta={'PhorgeRecoveryFileSourceFactsTestCase::testNativeFileAuthorAutomaticIsNotAccountOrPolicyAdmission',\n",
+          "parent": "  self.assertEqual(266,len(old_ids));self.assertTrue(old_ids<=set(ids))\n  self.assertEqual({'PhorgeRecoveryFileSourceFactsTestCase::testNativeFileAuthorAutomaticIsNotAccountOrPolicyAdmission',\n"
         },
         {
-          "offset": 2832,
-          "current": "   'PhorgeRecoveryProjectSourceFactsTestCase::testPrimitiveAndLengthBoundsCannotInvokeSerializationCallbacks'}\n  additions={'PhorgeGovernanceMediaExchangeServiceTestCase::testIsolationRowsKeepExactNamesAndKnownNativeValues',\n   'PhorgeGovernanceMediaFileGuardTestCase::testDisabledFileGuardDeniesBeforeInterpretingRouteOrIdentity',\n   'PhorgeGovernanceMediaFileGuardTestCase::testPrivateResponsesDisableCachingAndConstrainActiveContent',\n   'PhorgeGovernanceMediaHTTPProtocolTestCase::testDisabledCandidateEndpointsDenyWithoutCreatingAuthority',\n   'PhorgeGovernanceMediaHTTPProtocolTestCase::testDisabledHTTPPreservesNativeCredentialsAndOmitsBootstrap'}\n  self.assertEqual(14,len(original_delta));self.assertEqual(5,len(additions));self.assertFalse(original_delta&additions)\n  def require_current(actual):\n   self.assertEqual(276,len(actual));self.assertEqual(len(actual),len(set(actual)))\n   self.assertTrue(old_ids<=set(actual));self.assertEqual(19,len(set(actual)-old_ids))\n   self.assertEqual(original_delta|additions,set(actual)-old_ids)\n  require_current(ids)\n  # Count alone cannot admit a missing/replaced baseline, original14, or new5 ID.\n  for method in ids:\n   missing=[value for value in ids if value!=method]\n   with self.subTest(method=method,mutation='missing'),self.assertRaises(AssertionError):require_current(missing)\n   with self.subTest(method=method,mutation='same-count-replacement'),self.assertRaises(AssertionError):require_current(missing+['Unreviewed::testReplacement'])\n",
+          "offset": 3049,
+          "current": "   'PhorgeRecoveryProjectSourceFactsTestCase::testPrimitiveAndLengthBoundsCannotInvokeSerializationCallbacks'}\n  additions={'PhorgeGovernanceMediaExchangeServiceTestCase::testIsolationRowsKeepExactNamesAndKnownNativeValues',\n   'PhorgeGovernanceMediaFileGuardTestCase::testDisabledFileGuardDeniesBeforeInterpretingRouteOrIdentity',\n   'PhorgeGovernanceMediaFileGuardTestCase::testPrivateResponsesDisableCachingAndConstrainActiveContent',\n   'PhorgeGovernanceMediaHTTPProtocolTestCase::testDisabledCandidateEndpointsDenyWithoutCreatingAuthority',\n   'PhorgeGovernanceMediaHTTPProtocolTestCase::testDisabledHTTPPreservesNativeCredentialsAndOmitsBootstrap'}\n  self.assertEqual(14,len(original_delta));self.assertEqual(5,len(additions));self.assertFalse(original_delta&additions)\n  def require_current(actual):\n   self.assertEqual(276,len(actual));self.assertEqual(len(actual),len(set(actual)))\n   self.assertTrue(surviving<=set(actual));self.assertEqual(22,len(set(actual)-surviving))\n   self.assertEqual(original_delta|additions|RETIREMENT_PURE_ADDITIONS,set(actual)-surviving)\n  require_current(ids)\n  # Count alone cannot admit a missing/replaced baseline, original14, or new5 ID.\n  for method in ids:\n   missing=[value for value in ids if value!=method]\n   with self.subTest(method=method,mutation='missing'),self.assertRaises(AssertionError):require_current(missing)\n   with self.subTest(method=method,mutation='same-count-replacement'),self.assertRaises(AssertionError):require_current(missing+['Unreviewed::testReplacement'])\n",
           "parent": "   'PhorgeRecoveryProjectSourceFactsTestCase::testPrimitiveAndLengthBoundsCannotInvokeSerializationCallbacks'},set(ids)-old_ids)\n"
         }
       ]

@@ -4,6 +4,7 @@ Historical Git is immutable DATA only. No old module/root or global substitution
 import hashlib,os,subprocess
 from pathlib import Path
 import source_operation_snapshot as source
+from check_directory_transports_task_source_v2 import parent_DATA
 RUNTIME=('src','resources','bin','scripts','externals','webroot','support/runtime','support/startup','support/phame','support/preamble.proxy-https.php','conf')
 OFFLINE=frozenset(('scripts/governance/check_recovery_oauth_authorization_producer_v1.py','scripts/governance/project_content_grant_source_delta.py','scripts/governance/project_content_grant_ci_source_delta.py','scripts/governance/project_description_admission_delta.py','scripts/governance/recovery_oauth_authorization_source_delta.py','scripts/governance/check_directory_transports_v1.py'))
 def need(ok):
@@ -21,7 +22,7 @@ def verify(root,expected_checkpoint,target):
    if relative in OFFLINE:continue
    need(kind=='blob'and relative not in names);names.add(relative);pin=context.parent_pins[relative]
    if pin['kind']=='symlink':need(mode=='120000'and context.entries[relative]==pin);body=pin['target'].encode()
-   else:need(mode==('100755'if pin['mode']==0o755 else'100644'));body=operation._task_parent_bytes(root/relative)
+   else:need(mode==('100755'if pin['mode']==0o755 else'100644'));body=parent_DATA(operation,root,relative)
    need(hashlib.sha1(b'blob '+str(len(body)).encode()+b'\0'+body).hexdigest()==oid)
   need(names=={p for p in context.parent_pins if selected(p)})
  return expected_checkpoint

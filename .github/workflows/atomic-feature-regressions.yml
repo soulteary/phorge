@@ -483,7 +483,7 @@ jobs:
           python3 -B scripts/governance/check_completion_task_receipt_v3.py --root "$GITHUB_WORKSPACE" --expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT" --directory "$RUNNER_TEMP/completion-v3-integration-private" --file-binary "$RUNNER_TEMP/gorge-file-storage" --file-sha "$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" --taskqueue-binary "$RUNNER_TEMP/gorge-taskqueue" --taskqueue-sha "$(sha256sum "$RUNNER_TEMP/gorge-taskqueue" | cut -d ' ' -f1)" --observed-mysql-image "$mysql_image" > "$RUNNER_TEMP/completion-v3-result.private.json" 2> "$RUNNER_TEMP/completion-v3-checker.stderr.private"; then
             :
           else
-            python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); print(json.dumps({k:d.get(k) for k in ("completion_v3_accepted","actual_process_returncode","failure_location")}))' "$RUNNER_TEMP/completion-v3-result.private.json"
+            python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); print(json.dumps({k:d.get(k) for k in ("completion_v3_accepted","actual_process_returncode","failure_location","native_failure_location")}))' "$RUNNER_TEMP/completion-v3-result.private.json"
             exit 1
           fi
           python3 -B scripts/governance/project_completion_ci_integration_v3.py --result "$RUNNER_TEMP/completion-v3-result.private.json" --expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT" > "$RUNNER_TEMP/governance-completion/completion.pending.json"

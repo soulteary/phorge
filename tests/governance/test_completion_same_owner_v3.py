@@ -24,6 +24,20 @@ class CompletionSameOwnerPureControls(unittest.TestCase):
  def setUpClass(cls):
   cls.controller=tree(CONTROLLER);cls.consumer=tree(CONSUMER);cls.validator=tree(BASE+'validate.py')
 
+ def test_native_failure_location_is_bounded_owned_and_never_exports_message(self):
+  ns=selected(self.consumer,{'native_failure_location'});ns['ROOT']=ROOT
+  project=ns['native_failure_location'];secret='SYNTHETIC_PRIVATE_SQL_CREDENTIAL'
+  with tempfile.TemporaryDirectory()as tmp:
+   directory=Path(tmp).resolve();directory.chmod(0o700);path=directory/'native.stderr.private'
+   raw=f'PHP Fatal error: {secret} in {ROOT}/support/governance/completion/fixture.php on line 123\n'
+   path.write_text(raw);path.chmod(0o600)
+   self.assertEqual(project(directory),{'kind':'php-fatal','source_file':'support/governance/completion/fixture.php','source_line':123})
+   self.assertNotIn(secret,json.dumps(project(directory)))
+   path.chmod(0o644);self.assertIsNone(project(directory));path.chmod(0o600)
+   path.unlink();target=directory/'other';target.write_text(raw);target.chmod(0o600);path.symlink_to(target)
+   self.assertIsNone(project(directory));path.unlink();path.write_bytes(b'x'*262145);path.chmod(0o600)
+   self.assertIsNone(project(directory))
+
  def test_failure_location_never_exports_messages_or_arguments(self):
   namespace=selected(self.consumer,{'failure_location'});namespace['ROOT']=ROOT
   project=namespace['failure_location'];secret='CANARY_PRIVATE_ACCOUNT_TOKEN_SQL'

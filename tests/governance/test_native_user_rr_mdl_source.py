@@ -20,7 +20,10 @@ class Source(unittest.TestCase):
    path=next((ROOT/'src').rglob(name+'.php')).relative_to(ROOT).as_posix()
    body=subprocess.check_output(['git','-C',str(ROOT),'show',baseline+':'+path],text=True)
    old_ids.update(name+'::'+m for m in re.findall(r'public function (test[A-Za-z0-9_]+)\(',body))
-  self.assertEqual(266,len(old_ids));self.assertTrue(old_ids<=set(ids))
+  from native_rr_ci.execution import RETIRED_PURE_IDS, RETIREMENT_PURE_ADDITIONS
+  self.assertEqual(266,len(old_ids));self.assertEqual(12,len(old_ids&RETIRED_PURE_IDS))
+  surviving=old_ids-RETIRED_PURE_IDS
+  self.assertTrue(surviving<=set(ids));self.assertFalse(RETIRED_PURE_IDS&set(ids))
   original_delta={'PhorgeRecoveryFileSourceFactsTestCase::testNativeFileAuthorAutomaticIsNotAccountOrPolicyAdmission',
    'PhorgeRecoveryFileSourceFactsTestCase::testNativeFileAttachmentModesAndAlreadyAuthorizedViewInputs',
    'PhorgeRecoveryFileSourceFactsTestCase::testNativeFileIndexesAndMetadataBuiltinProfileDistinction',
@@ -43,8 +46,8 @@ class Source(unittest.TestCase):
   self.assertEqual(14,len(original_delta));self.assertEqual(5,len(additions));self.assertFalse(original_delta&additions)
   def require_current(actual):
    self.assertEqual(276,len(actual));self.assertEqual(len(actual),len(set(actual)))
-   self.assertTrue(old_ids<=set(actual));self.assertEqual(19,len(set(actual)-old_ids))
-   self.assertEqual(original_delta|additions,set(actual)-old_ids)
+   self.assertTrue(surviving<=set(actual));self.assertEqual(22,len(set(actual)-surviving))
+   self.assertEqual(original_delta|additions|RETIREMENT_PURE_ADDITIONS,set(actual)-surviving)
   require_current(ids)
   # Count alone cannot admit a missing/replaced baseline, original14, or new5 ID.
   for method in ids:
