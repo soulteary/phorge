@@ -44,7 +44,8 @@ does not execute a rollback, reset a patch ledger or change active services.
 Retired cases are not counted as passing tests. The renamed mixed task-policy
 case retains its task assertions; the task/project cases remain active.
 
-Local checks completed:
+Historical checks on the retired PHP 8.5.12 baseline (superseded; not current
+release evidence):
 
 - 56 affected native unit cases passed in an isolated PHP 8.5.12 container.
 - Runtime discovery found no Wiki application or Wiki Conduit methods; task and
@@ -67,7 +68,8 @@ inverse is bidirectional and does not extend key trust or execute old Wiki code.
 
 ## Integration progress
 
-The current retirement implementation has additionally passed:
+Before the security-baseline update, scoped PHP 8.5.12 runs passed the
+following checks. These records remain historical and do not qualify 8.5.13:
 
 - the complete pure native governance suite (276 methods, PHP 8.5.12);
 - 81 native-source and 43 native-policy SQL checks;
@@ -86,3 +88,19 @@ results, not a substitute for the final exact-head CI and source-owner checks.
 The merged Almanac fix changes one existing caller candidate hash. The caller
 snapshot is updated to those reviewed bytes; candidate identities, static-only
 triage, blockers and activation constraints are unchanged.
+
+## Current security-baseline evidence
+
+The pinned PHP 8.5.13 runtime has passed 276 native governance unit methods,
+109 retained Completion SQL checks, six HTTP checks, prepared-mail quarantine
+with the optional policy off and on, and all seven historical PHP migration
+patches against synthetic data. The migration checks retained both documents,
+both content rows and both mail-property records. The runtime rejects 8.5.12;
+JIT is disabled. The 47 CI policy checks also passed.
+
+Workflow composition checks bind the current workflow hashes and reconstruct
+historical YAML only as inert comparison data. The four inherited media
+fixtures are checked against their actual admitted Task predecessor rather
+than an unrelated older OAuth baseline. Current source admission and all
+negative tests remain required. Full exact-head CI and final review are still
+pending; this record does not claim merge readiness or deployment.
