@@ -1083,8 +1083,8 @@
       ]
     },
     "src/infrastructure/governance/notification/PhorgePrivateMailPolicy.php": {
-      "current_bytes": 22342,
-      "current_sha256": "abf416c6dc464e65bb50d64853113c4c74440519d62bce1925d76c2d6a213894",
+      "current_bytes": 22466,
+      "current_sha256": "22ea72b678bddb26058b8268903c4a1c8a1cc000655a63f0db0377178b4e22d9",
       "target_bytes": 22070,
       "target_sha256": "67112136ba242de5c8ada4b22ee07958722fcf3fb93b34dabf08bc353364a361",
       "edits": [
@@ -1094,8 +1094,13 @@
           "parent": "    if(in_array($producer,array('PhabricatorBadgesEditor','PhabricatorCalendarEventEditor','PhabricatorCalendarNotificationEngine','ConpherenceEditor','PhabricatorCountdownEditor','PhabricatorFileEditor','FileCreateMailReceiver','HeraldRuleEditor','LegalpadDocumentEditor','PhabricatorMacroEditor','ManiphestTransactionEditor','PhameBlogEditor','PhamePostEditor','PholioMockEditor','PhrictionTransactionEditor','PhabricatorPhurlURLEditor','PhorgePolicyNamedPolicyTransactionEditor','PonderAnswerEditor','PonderQuestionEditor','PhabricatorProjectTransactionEditor','PhabricatorSlowvoteEditor'),true)){return 'business';}\n"
         },
         {
-          "offset": 2736,
-          "current": "    // Historical Wiki messages must not outlive the removed application's ACL.\n    if ($mail->getPrivateMailPolicyValue('governance.mail-producer') ===\n        'PhrictionTransactionEditor' ||\n        preg_match('/\\APHID-(?:WIKI|WRDS)-/', (string)$mail->getRelatedPHID())) {\n      return false;\n    }\n",
+          "offset": 2670,
+          "current": "  public static function isRetiredWikiMail(PhabricatorMetaMTAMail $mail) {\n    return $mail->getPrivateMailPolicyValue('governance.mail-producer') ===\n      'PhrictionTransactionEditor' ||\n      preg_match('/\\APHID-(?:WIKI|WRDS)-/', (string)$mail->getRelatedPHID()) === 1;\n  }\n",
+          "parent": ""
+        },
+        {
+          "offset": 3013,
+          "current": "    // Historical Wiki messages must not outlive the removed application's ACL.\n    if (self::isRetiredWikiMail($mail)) {\n      return false;\n    }\n",
           "parent": ""
         }
       ]
@@ -1293,7 +1298,7 @@
     },
     "docs/governance/private-notification-producers.json": {
       "current_bytes": 16775,
-      "current_sha256": "744a2fdcc74734dd8de6a80d495d4fdc4f762b30d27fe547b67e7b332064d383",
+      "current_sha256": "884a8c0e22a9151970b976c917e82986416be6e8ac0118caf1b3d9952eeb12b3",
       "target_bytes": 16769,
       "target_sha256": "ab493d356f6d90bab23c0c4bf7e72400171b80b25eec4c482e653068776c8ee1",
       "edits": [
@@ -1303,8 +1308,13 @@
           "parent": "      \"purpose_review\": \"business-producer\",\n"
         },
         {
+          "offset": 11532,
+          "current": "      \"sha256\": \"f2340c51cb66a17c841f8d17f5e1ba425d4294a7abfb5d376c2130113c186212\"\n",
+          "parent": "      \"sha256\": \"56016d144982aa284ac0afc2fd272f65a785af26d85c502782d45fc3cfa07c28\"\n"
+        },
+        {
           "offset": 12453,
-          "current": "      \"sha256\": \"abf416c6dc464e65bb50d64853113c4c74440519d62bce1925d76c2d6a213894\"\n",
+          "current": "      \"sha256\": \"22ea72b678bddb26058b8268903c4a1c8a1cc000655a63f0db0377178b4e22d9\"\n",
           "parent": "      \"sha256\": \"67112136ba242de5c8ada4b22ee07958722fcf3fb93b34dabf08bc353364a361\"\n"
         }
       ]
@@ -1656,6 +1666,19 @@
           "offset": 11153,
           "current": "            self.assertEqual(json.loads(result.stdout)['native_shapes'],17)\n",
           "parent": "            self.assertEqual(json.loads(result.stdout)['native_shapes'],24)\n"
+        }
+      ]
+    },
+    "src/applications/metamta/storage/PhabricatorMetaMTAMail.php": {
+      "current_bytes": 56103,
+      "current_sha256": "f2340c51cb66a17c841f8d17f5e1ba425d4294a7abfb5d376c2130113c186212",
+      "target_bytes": 55768,
+      "target_sha256": "56016d144982aa284ac0afc2fd272f65a785af26d85c502782d45fc3cfa07c28",
+      "edits": [
+        {
+          "offset": 22721,
+          "current": "    // Prepared messages predate retirement; this check is independent of the\n    // optional private-mail policy and precedes recipient-only authorization.\n    if (PhorgePrivateMailPolicy::isRetiredWikiMail($this)) {\n      $this->setParam('governance.delivery-quarantined', true)->save();\n      return array('changed' => true);\n    }\n",
+          "parent": ""
         }
       ]
     }

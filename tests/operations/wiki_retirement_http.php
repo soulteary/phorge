@@ -32,6 +32,8 @@ try {
     'gorge.taskqueue.owner'=>'gorge', 'cluster.search'=>array(),
     'gorge.taskqueue.uri'=>$queue_service['uri'], 'gorge.taskqueue.token'=>$queue_service['token'],
     'metamta.gorge-delivery-mode'=>'native',
+    'cluster.mailers'=>array(array('key'=>'isolated-serialization','type'=>'gorge',
+      'options'=>array('uri'=>$queue_service['uri'],'token'=>$queue_service['token']))),
     'gorge.file.uri'=>$file_service['uri'], 'gorge.file.token'=>$file_service['token']);
   $socket = stream_socket_server('tcp://127.0.0.1:0');
   $address = stream_socket_get_name($socket, false);
@@ -43,15 +45,32 @@ try {
   (new ReflectionProperty(PhabricatorEnv::class, 'sourceStack'))->setValue(null, $stack);
   (new ReflectionProperty(PhabricatorEnv::class, 'cache'))->setValue(null, array());
   $guard = new AphrontWriteGuard(static function() use ($fixture) { $fixture->assertOwned(); });
+  $user = (new PhabricatorUser())->setUsername('wikiacceptance')->setRealName('Synthetic acceptance')
+    ->setIsApproved(1)->setIsEmailVerified(1)->save();
+  $session = (new PhabricatorAuthSessionEngine())->establishSession(
+    PhabricatorAuthSession::TYPE_WEB, $user->getPHID(), false);
+  $task = ManiphestTask::initializeNewTask($user)->setTitle('Retained task smoke')->save();
+  (new PhabricatorUserEmail())->setUserPHID($user->getPHID())
+    ->setAddress('wiki-acceptance@example.invalid')->setIsPrimary(1)->setIsVerified(1)->save();
+  $file=PhabricatorFile::newFromFileData('Synthetic retained file',array(
+    'name'=>'retained.txt','authorPHID'=>$user->getPHID(),'viewPolicy'=>'users'));
   $queue_checks=0;
   foreach (array(false,true) as $policy) {
     $scope=PhabricatorEnv::beginScopedEnv()->overrideEnvConfig('governance.private-mail.enabled',$policy);
     try {
-      $old_snapshot=array('historicalPayload'=>'preserve-synthetic-evidence');
-      $mail=(new PhabricatorMetaMTAMail())->setParameters(array(
-        'gorge.delivery-owner'=>'gorge','gorge.delivery-snapshot'=>$old_snapshot))
-        ->setPrivateMailProducer('PhrictionTransactionEditor')
+      $mail=(new PhabricatorMetaMTAMail())->setPrivateMailProducer('PhabricatorFileEditor')
+        ->setRelatedPHID($file->getPHID())->setFrom($user->getPHID())
+        ->addTos(array($user->getPHID()))->setSubject('Synthetic historical mail')
+        ->setBody('Synthetic mail payload')->save();
+      $old_snapshot=$mail->prepareGorgeDelivery();
+      if (!isset($old_snapshot['deliveryID']) || $mail->authorizeGorgeDelivery()!==array('changed'=>false)) {
+        throw new RuntimeException('real prepared snapshot required');
+      }
+      $mail->setPrivateMailProducer('PhrictionTransactionEditor')
         ->setRelatedPHID('PHID-WIKI-aaaaaaaaaaaaaaaaaaaa')->save();
+      if ($mail->authorizeGorgeDelivery()!==array('changed'=>true)) {
+        throw new RuntimeException('retired prepared authorization accepted');
+      }
       if ($mail->prepareGorgeDelivery()!==array('state'=>'void')) {
         throw new RuntimeException('retired queue payload accepted');
       }
@@ -64,11 +83,6 @@ try {
       $queue_checks++;
     } finally { unset($scope); }
   }
-  $user = (new PhabricatorUser())->setUsername('wikiacceptance')->setRealName('Synthetic acceptance')
-    ->setIsApproved(1)->setIsEmailVerified(1)->save();
-  $session = (new PhabricatorAuthSessionEngine())->establishSession(
-    PhabricatorAuthSession::TYPE_WEB, $user->getPHID(), false);
-  $task = ManiphestTask::initializeNewTask($user)->setTitle('Retained task smoke')->save();
   $nonce = $fixture->getAdmin()->query('SELECT owner_nonce FROM '.$fixture->table('governance','fixture_guard').' WHERE id=1')->fetch_assoc()['owner_nonce'];
   $paths = array('/w/', '/w/retired/', '/phriction/', '/T'.$task->getID(), '/maniphest/', '/project/');
   file_put_contents($private.'/config.json', json_encode(array('dictionary'=>$dictionary,

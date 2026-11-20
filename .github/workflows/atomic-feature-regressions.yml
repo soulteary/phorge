@@ -484,6 +484,28 @@ jobs:
           python3 -B scripts/governance/project_completion_ci_integration_v3.py --result "$RUNNER_TEMP/completion-v3-result.private.json" --expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT" > "$RUNNER_TEMP/governance-completion/completion.pending.json"
           mv "$RUNNER_TEMP/governance-completion/completion.pending.json" "$RUNNER_TEMP/governance-completion/completion.json"
           cp "$RUNNER_TEMP/governance-completion/completion.json" "$RUNNER_TEMP/governance-completion/full-native.json"
+      - name: Verify Wiki retirement migrations, prepared mail and HTTP routes
+        id: wiki-retirement
+        env:
+          PHORGE_GOVERNANCE_ISOLATED_TEST: '1'
+          PHORGE_GOVERNANCE_FIXTURE_DSN: 'mysql:host=127.0.0.1;port=3306;dbname=governance_fixture_bootstrap;charset=utf8mb4'
+          PHORGE_GOVERNANCE_FIXTURE_USER: root
+          PHORGE_GOVERNANCE_FIXTURE_PASSWORD: ${{ env.GORGE_TEST_MYSQL_PASSWORD }}
+        run: |
+          export PHORGE_GOVERNANCE_GORGE_FILE_BINARY="$RUNNER_TEMP/gorge-file-storage"
+          export PHORGE_GOVERNANCE_GORGE_FILE_SHA256="$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)"
+          export PHORGE_GOVERNANCE_GORGE_TASKQUEUE_BINARY="$RUNNER_TEMP/gorge-taskqueue"
+          export PHORGE_GOVERNANCE_GORGE_TASKQUEUE_SHA256="$(sha256sum "$RUNNER_TEMP/gorge-taskqueue" | cut -d ' ' -f1)"
+          mkdir "$RUNNER_TEMP/wiki-retirement"
+          php tests/operations/wiki_retirement_native.php > "$RUNNER_TEMP/wiki-retirement/native.json"
+          php tests/operations/wiki_retirement_migrations.php > "$RUNNER_TEMP/wiki-retirement/migrations.json"
+          php tests/operations/wiki_retirement_http.php > "$RUNNER_TEMP/wiki-retirement/http.json"
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() && steps.wiki-retirement.outcome != 'skipped' }}
+        with:
+          name: wiki-retirement-php-${{ matrix.php }}
+          path: ${{ runner.temp }}/wiki-retirement
+          if-no-files-found: error
       - uses: actions/upload-artifact@v4
         if: always()
         with:

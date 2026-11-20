@@ -1320,7 +1320,7 @@
     ],
     "excluded_test_directory": "__tests__",
     "files_scanned": 4402,
-    "source_snapshot_sha256": "2a8c5c35c9ecf6af5e3d772ac9e79d0a86c6e2343884efa4704a2c5caeee5924",
+    "source_snapshot_sha256": "e53f7ac1aae106d0ae9983a7c043de66677e2cc219b8ebc8feb7ee8bf9753ada",
     "candidates": [
       {
         "id": "CALL-e71899f6e4e06c5b",
@@ -2895,7 +2895,7 @@
       {
         "id": "CALL-498284c44ec14d0b",
         "path": "src/applications/metamta/storage/PhabricatorMetaMTAMail.php",
-        "sha256": "56016d144982aa284ac0afc2fd272f65a785af26d85c502782d45fc3cfa07c28",
+        "sha256": "f2340c51cb66a17c841f8d17f5e1ba425d4294a7abfb5d376c2130113c186212",
         "matches": [
           {
             "pattern": "edge_writer",

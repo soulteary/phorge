@@ -27,11 +27,14 @@ final class PhorgePrivateMailPolicy extends Phobject {
     return self::enabled()&&$mail->getMessageType()===PhabricatorMailEmailMessage::MESSAGETYPE&&
       in_array(self::purpose($mail),array('business','private-error','admin-notice','governance-notice'),true);
   }
+  public static function isRetiredWikiMail(PhabricatorMetaMTAMail $mail) {
+    return $mail->getPrivateMailPolicyValue('governance.mail-producer') ===
+      'PhrictionTransactionEditor' ||
+      preg_match('/\APHID-(?:WIKI|WRDS)-/', (string)$mail->getRelatedPHID()) === 1;
+  }
   public static function authorize(PhabricatorMetaMTAMail $mail){
     // Historical Wiki messages must not outlive the removed application's ACL.
-    if ($mail->getPrivateMailPolicyValue('governance.mail-producer') ===
-        'PhrictionTransactionEditor' ||
-        preg_match('/\APHID-(?:WIKI|WRDS)-/', (string)$mail->getRelatedPHID())) {
+    if (self::isRetiredWikiMail($mail)) {
       return false;
     }
     if($mail->getMessageType()!==PhabricatorMailEmailMessage::MESSAGETYPE||!self::enabled()){return true;}
