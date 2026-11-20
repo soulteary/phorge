@@ -24,6 +24,19 @@ RAW_FUNCTIONS={'historical_metadata_source','historical_coordinator_source','his
 def need(value):
  if value is not True:raise ValueError('Task_historical_DATA_view_refused')
 def sha(raw):return hashlib.sha256(raw).hexdigest()
+def retired_source_DATA(context,name):
+ # Only static legacy scanners may consume this PHP/CSS/document data. It is
+ # never registered in the current library or exposed by context.current().
+ manifest=json.loads(context.current('docs/operations/retirement/wiki.json'))
+ rows={row['path']:row['sha256'] for row in manifest['removed_files']}
+ need(type(name)is str and name in rows and name in context.parent_pins)
+ pin=context.parent_pins[name]
+ need(pin['kind']=='file' and pin['sha256']==rows[name] and not(context.root/name).exists())
+ revision=manifest['basis_commit']
+ need(type(revision)is str and len(revision)==40 and all(c in '0123456789abcdef' for c in revision))
+ raw=subprocess.check_output(['git','--no-replace-objects','-C',str(context.root),'show',revision+':'+name],timeout=10)
+ need(len(raw)==pin['bytes'] and sha(raw)==pin['sha256'])
+ return raw
 def parent_row_DATA(current,parent,pin,provided):
  need(type(current)is bytes and type(parent)is bytes and type(provided)is bytes and provided==current)
  need(type(pin)is dict and set(pin)=={'kind','mode','bytes','sha256'}and pin['kind']=='file'and
@@ -260,7 +273,8 @@ class Session:
    need(type(paths)in(list,tuple,set,frozenset)and all(type(name)is str for name in paths));names.update(paths)
   rows={}
   for name in sorted(names):
-   need(name in self.context.parent_pins);raw=self.context.parent(name);pin=self.context.parent_pins[name]
+   need(name in self.context.parent_pins);pin=self.context.parent_pins[name]
+   raw=self.context.parent(name) if name in self.context.entries else retired_source_DATA(self.context,name)
    need(type(raw)is bytes and pin['kind']=='file')
    rows[name]=(raw,pin['mode'])
   write_fixture_DATA(root,rows)
