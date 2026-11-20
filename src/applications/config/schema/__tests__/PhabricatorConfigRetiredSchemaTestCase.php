@@ -105,8 +105,7 @@ final class PhabricatorConfigRetiredSchemaTestCase extends PhabricatorTestCase {
     sort($tables);
     $this->assertEqual(10, count($tables));
     $this->assertEqual($expected, $tables);
-    $this->assertFalse(class_exists('PhrictionDocument'));
-    $this->assertFalse(class_exists('PhabricatorPhrictionApplication'));
+    // Runtime absence checks run in tests/operations/wiki_retirement_native.php.
     $observed = $this->newDatabase('phriction');
     foreach ($tables as $table) {
       $observed->addTable($this->newTable($table));
