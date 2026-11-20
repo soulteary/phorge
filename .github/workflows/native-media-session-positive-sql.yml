@@ -63,14 +63,14 @@ jobs:
           php support/governance/media-session-positive/test-diagnostic.php
           python3 -B -m unittest discover -s tests/governance -p 'test_media_current_archive_owner_v2.py'
           python3 -B -m unittest discover -s tests/governance -p 'test_media_task_runtime_v2.py'
-      - name: Pull only the two fixed public runtime indexes
+      - name: Build current locked PHP runtime and pull fixed MySQL index
         run: |
           set -euo pipefail
           umask 077
           mkdir -m 700 "$RUNNER_TEMP/media-positive-pull-config"
-          env -i PATH=/usr/bin:/bin /usr/bin/docker --config "$RUNNER_TEMP/media-positive-pull-config" --host unix:///var/run/docker.sock pull ghcr.io/soulteary/phorge@sha256:6e5b5b230fa07c0d4b1b0c6a948791ed77eb1583c54a13d7c8b2f7927adc7dda
+          php_image_id="$(python3 -B support/governance/media-session-ci/prepare.py --build-root "$GITHUB_WORKSPACE" --iidfile "$RUNNER_TEMP/media-php.iid" --docker-config "$RUNNER_TEMP/media-positive-pull-config")"
           env -i PATH=/usr/bin:/bin /usr/bin/docker --config "$RUNNER_TEMP/media-positive-pull-config" --host unix:///var/run/docker.sock pull mysql@sha256:a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7
-          python3 -B support/governance/media-session-ci/prepare.py --output "$RUNNER_TEMP/media-positive-images"
+          python3 -B support/governance/media-session-ci/prepare.py --php-image-id "$php_image_id" --output "$RUNNER_TEMP/media-positive-images"
       - name: Fresh isolated selected SQL fixture and success-only disposal
         id: selected
         run: |

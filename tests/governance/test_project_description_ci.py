@@ -5,6 +5,21 @@ def load(path,name):
  s=importlib.util.spec_from_file_location(name,ROOT/path);m=importlib.util.module_from_spec(s);s.loader.exec_module(m);return m
 ci=load('support/governance/project-description-ci/ci.py','description_ci')
 class DescriptionCI(unittest.TestCase):
+ def test_metadata_projection_only_exports_fixed_shared_failure_fields(self):
+  import types
+  shared=load('support/governance/project-content-grants-ci/ci.py','metadata_diagnostic_only')
+  shared.stage('reviewed-manifests')
+  result=ci.metadata_failure(shared,ValueError('SECRET credential path'))
+  self.assertEqual(result,{'stage':'reviewed-manifests','error_code':'gate-refused','child_ordinal':None,'child_outcome':'not-observed','child_exit_code':None})
+  self.assertNotIn('SECRET',json.dumps(result))
+  baseline=shared.failure_summary(ValueError('SECRET'))
+  for key,value in [('stage','/private/SECRET'),('error_code','SECRET'),('child_ordinal',True),('child_ordinal',257),('child_outcome','SECRET'),('child_exit_code',True),('child_exit_code',1),('execution_authorized',True),('SQL_execution_status','passed'),('automatic_retry_or_cleanup',True)]:
+   bad=copy.deepcopy(baseline);bad[key]=value
+   fake=types.SimpleNamespace(failure_summary=lambda error,bad=bad:bad)
+   with self.subTest(key=key),self.assertRaises(ValueError):ci.metadata_failure(fake,ValueError('SECRET'))
+  shared.stage('prerequisites-native-users');shared.DIAGNOSTIC.update(child_ordinal=2,child_outcome='known-nonzero',child_exit_code=1)
+  self.assertEqual(ci.metadata_failure(shared,ValueError('SECRET'))['child_exit_code'],1)
+
  def test_task_php13_continuations_keep_exact_old_targets_and_refuse_mutations(self):
   for path,(current,parent,anchor) in ci.TASK_PHP13_CONTINUATIONS.items():
    raw=(ROOT/path).read_bytes()

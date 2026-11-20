@@ -12,6 +12,7 @@ sha=lambda b:hashlib.sha256(b).hexdigest()
 canon=lambda d:json.dumps(d,sort_keys=True,separators=(',',':')).encode()+b'\n'
 PHASE='entry'
 NATIVE_FAILURE=None
+METADATA_FAILURE=None
 CASES={'no-grant','user-positive','audit-fault-rollback','direct-modular-no-scope','revoked','team-positive','expired','credential-revoked','account-disabled'}
 def need(v):
  if not v:raise ValueError('description_ci_refused')
@@ -153,9 +154,27 @@ def native_cases(journal,argv,cwd):
   except Exception:NATIVE_FAILURE=None
   raise
 
+METADATA_STAGES={'entry','source-binding','reviewed-manifests','actual-service-inspect','runtime-before','private-profile-publication','prerequisites-bind','qualification-profile-publication','qualification-bind','runtime-after','public-summary'}
+METADATA_CHILD_LABELS={'child','standard-upgrade','user-approve','user-empower'}|{'native-'+x for x in {'empty','users','tokens','structure','readback','discover','before-upgrade','schema','target','submit-grant','submit-revoke','approve','deny-self','deny-replay'}}
+METADATA_STAGES|={phase+'-'+label for phase in ('prerequisites','qualification')for label in METADATA_CHILD_LABELS}
+def metadata_failure(shared,error):
+ # The shared recipe already projects exceptions. Revalidate a smaller fixed
+ # subset; no exception text, argv, path, credential or raw child output escapes.
+ value=shared.failure_summary(error)
+ need(type(value)is dict and value.get('passed')is False and value.get('retained')is True and value.get('automatic_retry_or_cleanup')is False and value.get('SQL_execution_status')=='unknown'and value.get('execution_authorized')is False)
+ code=value.get('error_code');phase=value.get('stage');ordinal=value.get('child_ordinal');outcome=value.get('child_outcome');exit_code=value.get('child_exit_code')
+ need(type(code)is str and code in {'gate-refused','child-terminal-unknown','source-command-failed','local-operation-failed','required-field-missing','invalid-json','unclassified-failure'})
+ need(type(phase)is str and phase in METADATA_STAGES)
+ need(ordinal is None or type(ordinal)is int and 1<=ordinal<=256)
+ need(type(outcome)is str and outcome in {'not-observed','unknown','known-zero','known-nonzero'})
+ need(exit_code is None or type(exit_code)is int and -255<=exit_code<=255)
+ need((outcome=='known-zero'and exit_code==0)or(outcome=='known-nonzero'and exit_code is not None and exit_code!=0)or(outcome in {'not-observed','unknown'}and exit_code is None))
+ return {'stage':phase,'error_code':code,'child_ordinal':ordinal,'child_outcome':outcome,'child_exit_code':exit_code}
+
 def execute(a):
- global PHASE,NATIVE_FAILURE
+ global PHASE,NATIVE_FAILURE,METADATA_FAILURE
  NATIVE_FAILURE=None
+ METADATA_FAILURE=None
  need(a.current.is_absolute()and a.current.resolve()==a.current)
  revision=a.expected_current_revision if a.task_source_v2 else os.environ.get('GITHUB_SHA','');need(type(revision)is str and re.fullmatch('[a-f0-9]{40}',revision))
  for p in ('ci.py','fixture.php','metadata-lock.json'):tracked(a.current,'support/governance/project-description-ci/'+p,revision)
@@ -163,7 +182,11 @@ def execute(a):
  # The real shared recipe guards the exact service, runtime, fresh owned DB and
  # all original current-source/provisioning/native standard-upgrade boundaries.
  PHASE='metadata-provision-and-qualification'
- meta=m.execute(a,description_fixture=True)
+ try:meta=m.execute(a,description_fixture=True)
+ except Exception as error:
+  try:METADATA_FAILURE=metadata_failure(m,error)
+  except Exception:METADATA_FAILURE=None
+  raise
  need(meta['target_revision']==TARGET and meta['target_tree']==TREE and meta['standard_native_upgrade']is True and meta['productionSchemaSpec']is True and meta['execution_authorized']is False)
  PHASE='private-description-profile'
  pmod=m.module('description_prerequisites',a.prerequisites/'provision.py',m.REVIEWED_PINS['prerequisites'])
@@ -192,7 +215,10 @@ def execute(a):
  need(re.fullmatch('PHID-PROJ-[A-Za-z0-9]{20}',prepared.get('target_phid',''))and prepared['target_phid']!=q['target_phid'])
  profile['target_phid']=prepared['target_phid'];pp=a.output/'description-profile.private.json';raw=canon(profile);m.private_new(pp,raw)
  # This one private copied helper changes ONLY the null profile pin, not source.
- native=dc/'native.php';template=tracked(a.current,'support/governance/project-description-qualification/native.php',revision);need(sha(template)=='0451da98e73b118cb066d5ef8a73bface226b8469dc199062521271d43834434');m.private_new(native,successor(template,sha(raw),'cases'))
+ native=dc/'native.php';template_path='support/governance/project-description-qualification/native.php';template=tracked(a.current,template_path,revision)
+ if a.task_source_v2:task_php13_continuation(template_path,template,'0451da98e73b118cb066d5ef8a73bface226b8469dc199062521271d43834434')
+ else:need(sha(template)=='0451da98e73b118cb066d5ef8a73bface226b8469dc199062521271d43834434')
+ m.private_new(native,successor(template,sha(raw),'cases'))
  (m.current_source_task_v2 if a.task_source_v2 else m.current_source)(a.current,revision)
  PHASE='native-nine-cases'
  result=result_ok(pmod.decode(native_cases(journal,[str(a.php),str(native),str(a.target),str(pp)],a.target)))
@@ -205,6 +231,7 @@ def execute(a):
 def failure():
  result={'schema':'N05-description-CI-failure-v1','passed':False,'phase':PHASE,'SQL_execution_status':'unknown','retained':True,'automatic_retry_or_cleanup':False,'execution_authorized':False}
  if NATIVE_FAILURE is not None:result['native_failure']=NATIVE_FAILURE
+ if METADATA_FAILURE is not None:result['metadata_failure']=METADATA_FAILURE
  return result
 if __name__=='__main__':
  p=argparse.ArgumentParser();p.add_argument('--task-source-v2',action='store_true');p.add_argument('--expected-current-revision')

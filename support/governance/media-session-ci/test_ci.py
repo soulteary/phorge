@@ -30,6 +30,8 @@ CURRENT_BIND = '''      - name: Require exact full-tier caller checkpoint
 '''
 CURRENT_PROOF_FLAG = ' --external-proof-tag "source-proof/$EXPECTED_SOURCE_CHECKPOINT"'
 CURRENT_PROOF_ENV = '          echo "PHORGE_CI_MERGE_SOURCE_PROOF=source-proof/$EXPECTED_SOURCE_CHECKPOINT" >> "$GITHUB_ENV"\n'
+CURRENT_BUILD_BLOCK='      - name: Build current locked PHP runtime and pull fixed MySQL index\n        run: |\n          set -euo pipefail\n          umask 077\n          mkdir -m 700 "$RUNNER_TEMP/media-positive-pull-config"\n          php_image_id="$(python3 -B support/governance/media-session-ci/prepare.py --build-root "$GITHUB_WORKSPACE" --iidfile "$RUNNER_TEMP/media-php.iid" --docker-config "$RUNNER_TEMP/media-positive-pull-config")"\n          env -i PATH=/usr/bin:/bin /usr/bin/docker --config "$RUNNER_TEMP/media-positive-pull-config" --host unix:///var/run/docker.sock pull mysql@sha256:a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7\n          python3 -B support/governance/media-session-ci/prepare.py --php-image-id "$php_image_id" --output "$RUNNER_TEMP/media-positive-images"\n'
+PRIOR_PULL_BLOCK='      - name: Pull only the two fixed public runtime indexes\n        run: |\n          set -euo pipefail\n          umask 077\n          mkdir -m 700 "$RUNNER_TEMP/media-positive-pull-config"\n          env -i PATH=/usr/bin:/bin /usr/bin/docker --config "$RUNNER_TEMP/media-positive-pull-config" --host unix:///var/run/docker.sock pull ghcr.io/soulteary/phorge@sha256:6e5b5b230fa07c0d4b1b0c6a948791ed77eb1583c54a13d7c8b2f7927adc7dda\n          env -i PATH=/usr/bin:/bin /usr/bin/docker --config "$RUNNER_TEMP/media-positive-pull-config" --host unix:///var/run/docker.sock pull mysql@sha256:a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7\n          python3 -B support/governance/media-session-ci/prepare.py --output "$RUNNER_TEMP/media-positive-images"\n'
 def require_current_workflow(s):
  def need(value):
   if value is not True:raise ValueError('media_current_workflow_contract_refused')
@@ -45,6 +47,8 @@ def require_current_workflow(s):
  need(hashlib.sha256(golden).hexdigest()=='df876a1606950fc0960bc0a136cd0ee4673f1acd6d15b6c1803a007a7761c519')
  old=golden.decode();old_intro=old.split('concurrency:',1)[0]
  normalized=s.replace(CURRENT_INTRO,old_intro,1).replace(CURRENT_BIND,'',1)
+ need(normalized.count(CURRENT_BUILD_BLOCK)==1)
+ normalized=normalized.replace(CURRENT_BUILD_BLOCK,PRIOR_PULL_BLOCK,1)
  normalized=normalized.replace(CURRENT_PROOF_FLAG,'',1).replace(CURRENT_PROOF_ENV,'',1)
  # Only this reviewed stable baseline continuation inverses to the immutable
  # golden DATA. Reject old/current substitutions before restoring history.
@@ -70,9 +74,9 @@ def require_current_workflow(s):
  expected_selected='        run: |\n          set -euo pipefail\n          umask 077\n          export HOME="$RUNNER_TEMP/media-current-source-verifier"\n          '+CURRENT_DRIVER+'\n'
  need(selected==expected_selected)
  need(s.count('if: always()')==2 and 'continue-on-error'not in s and '|| true'not in s and '; true'not in s)
- need(s.count(' pull ')==2 and prepare.PHP in s and prepare.MYSQL in s)
+ need(s.count(' pull ')==2 and prepare.LEGACY_PHP_DATA in s and prepare.MYSQL in s)
  pulls=[x.strip()for x in s.splitlines()if ' pull 'in x]
- expected=['env -i PATH=/usr/bin:/bin /usr/bin/docker --config "$RUNNER_TEMP/media-positive-pull-config" --host unix:///var/run/docker.sock pull '+image for image in (prepare.PHP,prepare.MYSQL)]
+ expected=['env -i PATH=/usr/bin:/bin /usr/bin/docker --config "$RUNNER_TEMP/media-positive-pull-config" --host unix:///var/run/docker.sock pull '+image for image in (prepare.LEGACY_PHP_DATA,prepare.MYSQL)]
  need(pulls==expected)
  need('services:'not in s and '--publish'not in s and 'path: $'not in s)
  need(s.count('path: media-positive-safe/selected-safe.json')==1 and 'if-no-files-found: error'in s)
@@ -130,10 +134,41 @@ class Controls(unittest.TestCase):
     held=self.root/(name+'-retained');(repo/name).rename(held);(repo/name).symlink_to(held,target_is_directory=True)
     with self.assertRaisesRegex(ValueError,'protected prefix alias'):freshness.verify(repo)
     (repo/name).unlink();held.rename(repo/name)
+ def test_build_runtime_uses_iidfile_full_lock_and_no_push(self):
+  root=Path(__file__).resolve().parents[3];iid=self.root/'runtime.iid';calls=[]
+  def fake(argv,**kw):
+   calls.append((argv,kw));iid.write_text('sha256:'+'a'*64+'\n')
+  with patch.object(prepare.subprocess,'run',side_effect=fake):
+   self.assertEqual(prepare.build_runtime(root,iid,self.root/'empty-config'),'sha256:'+'a'*64)
+  self.assertEqual(len(calls),1);argv,kw=calls[0]
+  self.assertIn('--iidfile',argv);self.assertNotIn('--push',argv)
+  self.assertEqual(argv[-3:],['--file',str(root/'Dockerfile'),str(root)])
+  self.assertEqual(kw['timeout'],1200);self.assertTrue(kw['check'])
+  for arg in prepare.build_arguments(root):self.assertIn(arg,argv)
+  with patch.object(prepare.subprocess,'run'):
+   iid.write_text('latest')
+   with self.assertRaises(ValueError):prepare.build_runtime(root,iid,self.root/'empty-config')
+
+ def test_build_lock_and_exact_image_id_fail_closed(self):
+  root=Path(__file__).resolve().parents[3]
+  args=prepare.build_arguments(root)
+  lock=json.loads((root/'deploy/acceptance/build-lock.json').read_bytes())
+  for key,value in [('PHP_BASE_IMAGE',lock['images']['php']),('APCU_VERSION',lock['apcu']),('APCU_SHA256',lock['apcuSHA256']),('DEBIAN_SNAPSHOT',lock['debianSnapshot'])]:self.assertIn(key+'='+value,args)
+  fake_root=self.root/'bad-root';(fake_root/'deploy/acceptance').mkdir(parents=True)
+  (fake_root/'deploy/acceptance/build-lock.json').write_text(json.dumps(lock)+' ')
+  with self.assertRaises(ValueError):prepare.build_arguments(fake_root)
+  for value in (None,'','latest',prepare.LEGACY_PHP_DATA,'sha256:'+'a'*63,'sha256:'+'A'*64):
+   with patch.object(prepare.subprocess,'run')as runner:
+    with self.assertRaises(ValueError):prepare.bind(self.root/'bad',value)
+    runner.assert_not_called()
+  def wrong(*a,**kw):return type('R',(),{'stdout':b'sha256:'+b'b'*64+b'\n','stderr':b''})()
+  with patch.object(prepare.subprocess,'run',side_effect=wrong):
+   with self.assertRaisesRegex(ValueError,'built image ID mismatch'):prepare.bind(self.root/'mismatch','sha256:'+'a'*64)
+
  def test_fixed_image_binding_no_pull_or_inherited_context(self):
   calls=[]
   def fake(argv,**kw):calls.append((argv,kw));return type('R',(),{'stdout':b'sha256:'+b'a'*64+b'\n','stderr':b''})()
-  with patch.object(prepare.subprocess,'run',side_effect=fake),patch.dict(os.environ,{'DOCKER_HOST':'tcp://private-canary:2375'}):d=prepare.bind(self.root/'images')
+  with patch.object(prepare.subprocess,'run',side_effect=fake),patch.dict(os.environ,{'DOCKER_HOST':'tcp://private-canary:2375'}):d=prepare.bind(self.root/'images','sha256:'+'a'*64)
   self.assertEqual(set(d),{'docker','php_image','mysql_image'});self.assertEqual(len(calls),2)
   for argv,kw in calls:self.assertIn('unix:///var/run/docker.sock',argv);self.assertNotIn('DOCKER_HOST',kw['env']);self.assertIn('inspect',argv);self.assertNotIn('pull',argv)
   self.assertEqual((self.root/'images/config.private.json').stat().st_mode&0o7777,0o600)
@@ -253,7 +288,7 @@ class Controls(unittest.TestCase):
    for changed in (command+' || true',command+'; true',command.replace('$EXPECTED_SOURCE_CHECKPOINT','$GITHUB_SHA')):
     if changed==command:continue
     with self.assertRaises(ValueError):require_current_workflow(s.replace(command,changed,1))
-  for old,new in [('        id: selected\n','        id: selected\n        if: false\n'),('          set -euo pipefail','          set +e'),('timeout-minutes: 30','timeout-minutes: 60'),('steps.selected.outcome','steps.preparation.outcome'),('path: media-positive-safe/selected-safe.json','path: ${{ runner.temp }}/media-positive-run'),('if: always()','if: success()'),(prepare.PHP,prepare.PHP[:-1]+'0'),('"cleanup_verified":False','"cleanup_verified":True')]:
+  for old,new in [('        id: selected\n','        id: selected\n        if: false\n'),('          set -euo pipefail','          set +e'),('timeout-minutes: 30','timeout-minutes: 60'),('steps.selected.outcome','steps.preparation.outcome'),('path: media-positive-safe/selected-safe.json','path: ${{ runner.temp }}/media-positive-run'),('if: always()','if: success()'),('--iidfile', '--unknown-iidfile'),('"cleanup_verified":False','"cleanup_verified":True')]:
    with self.subTest(old=old),self.assertRaises(ValueError):require_current_workflow(s.replace(old,new,1))
   for old,new in [(CURRENT_INTRO,CURRENT_INTRO.replace('  workflow_call:','  pull_request:')),
                  (CURRENT_INTRO,CURRENT_INTRO.replace('  workflow_dispatch:','  push:')),
