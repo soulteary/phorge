@@ -430,12 +430,13 @@ class OAuthCI(unittest.TestCase):
      self.assertEqual(retired_source_DATA(context,name),subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'show','060ac7f2b631cc5964f28cd783082dd6e2fb1565:'+name]))
     changed=set(changed)-retired
     changed,_=operation.historical_task_inputs(ROOT,'060ac7f2b631cc5964f28cd783082dd6e2fb1565',changed,{name:context.current(name)for name in changed})
-    unchanged_media={'support/governance/media-session-docker/README.md','support/governance/media-session-docker/snapshot.py','support/governance/media-session-ci/test_ci.py','support/governance/media-session-ci/project.py'}
-    self.assertTrue(unchanged_media<=approved)
-    media_inverse=operation._modules['project_content_grant_source_delta'].media_source_delta()
-    for name in unchanged_media:
-     self.assertEqual(media_inverse.reduce_if_selected(name,context.parent(name)),subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'show','060ac7f2b631cc5964f28cd783082dd6e2fb1565:'+name]))
-    approved-=unchanged_media
+    inherited_media={'support/governance/media-session-docker/README.md','support/governance/media-session-docker/snapshot.py','support/governance/media-session-ci/test_ci.py','support/governance/media-session-ci/project.py'}
+    self.assertTrue(inherited_media<=approved)
+    # These four fixtures changed in the already admitted CoreA recipe. Prove
+    # their exact Task predecessor instead of treating the old pre-CoreA
+    # reducer's no-op as an inverse to the unrelated OAuth baseline.
+    for name in inherited_media:
+     self.assertEqual(context.parent(name),subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'show','5903d98b14926401f0be49cb0a9d6168026a2642:'+name]))
     lifecycle_paths={p for p in lifecycle_delta.SOURCE_INPUTS if p.startswith(('src/','resources/','support/governance/'))}|set(lifecycle_delta.SOURCE_ADDITIONS)
     for name in REVIEWED_POLICY_FIXTURES:reviewed_policy_fixture(ROOT,name)
     from test_project_description_source_inverse_task_v2 import reviewed_i18n_sources
