@@ -79,6 +79,8 @@ jobs:
           php bin/unit --no-coverage \
             src/applications/auth/__tests__/PhabricatorTraefikSessionIdentityTestCase.php \
             src/applications/auth/__tests__/PhabricatorTraefikAuthProviderTestCase.php
+      - name: Verify native Almanac inventory boundaries
+        run: php bin/unit --no-coverage src/applications/almanac/__tests__/AlmanacInventoryBoundaryTestCase.php
   runtime-compatibility:
     runs-on: ubuntu-latest
     strategy:

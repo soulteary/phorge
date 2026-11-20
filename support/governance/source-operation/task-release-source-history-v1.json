@@ -26,14 +26,14 @@
       ]
     },
     ".github/workflows/gorge-runtime-contracts.yml": {
-      "current_bytes": 17530,
-      "current_sha256": "d9851b8d7bb8b0a37d76e346adeb30ed1bd89b692fd3a0e2561e9a913a8068e2",
+      "current_bytes": 17699,
+      "current_sha256": "0318bd00cca44e47d155ab1a682c2629cff16efa78b47d5e072ad56397f9a1d7",
       "target_bytes": 14318,
       "target_sha256": "1fac4ce6d96459d41d5f86f618c987b0e9678a180afe19111888a369d623ef77",
       "edits": [
         {
           "offset": 414,
-          "current": "  media-isolation:\n    runs-on: ubuntu-latest\n    timeout-minutes: 10\n    strategy:\n      fail-fast: false\n      matrix:\n        include:\n          - family: mysql\n            image: mysql:8.4.13@sha256:a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7\n          - family: mariadb\n            image: mariadb@sha256:d769e37960821dfdcf096954f6e7ac89f747e116c1bba98e48edd265dfc7deae\n    services:\n      database:\n        image: ${{ matrix.image }}\n        env:\n          MYSQL_ROOT_PASSWORD: media-isolation-test-only\n          MYSQL_ROOT_HOST: '%'\n        ports: ['3306:3306']\n        options: --health-cmd \"mysqladmin --protocol=tcp --host=127.0.0.1 ping --silent\" --health-interval 5s --health-timeout 3s --health-retries 30\n    steps:\n      - uses: actions/checkout@v6\n      - uses: shivammathur/setup-php@v2\n        with:\n          php-version: '8.5.12'\n          ini-values: opcache.jit=disable, opcache.jit_buffer_size=0\n          extensions: mysqli, mbstring, curl\n          coverage: none\n      - name: Verify isolation row validation without database access\n        run: |\n          php -r 'require \"tests/contract/bootstrap.php\"; $test = new PhorgeGovernanceMediaExchangeServiceTestCase(); $test->testIsolationRowsKeepExactNamesAndKnownNativeValues(); $assertions = new ReflectionProperty(PhutilTestCase::class, \"assertions\"); if ($assertions->getValue($test) !== 22) { throw new RuntimeException(\"Unexpected assertion count.\"); }'\n      - name: Verify isolated media transactions and cleanup\n        env:\n          PHORGE_MEDIA_ISOLATION_TEST: '1'\n          PHORGE_MEDIA_DATABASE_FAMILY: ${{ matrix.family }}\n          PHORGE_MEDIA_MYSQL_HOST: 127.0.0.1\n          PHORGE_MEDIA_MYSQL_PASSWORD: media-isolation-test-only\n        run: php tests/contract/runtime/media-isolation.php\n  proxy-session-identity:\n    runs-on: ubuntu-latest\n    services:\n      mysql:\n        image: mysql:8.0\n        env:\n          MYSQL_ROOT_PASSWORD: proxy-session-test-only\n          MYSQL_ROOT_HOST: '%'\n        ports: ['3306:3306']\n        options: --health-cmd \"mysqladmin ping -pproxy-session-test-only\" --health-interval 5s --health-timeout 3s --health-retries 30\n    steps:\n      - uses: actions/checkout@v6\n      - uses: shivammathur/setup-php@v2\n        with:\n          php-version: '8.5.12'\n          ini-values: opcache.jit=disable, opcache.jit_buffer_size=0\n          extensions: mysqli, mbstring, curl, dom\n          coverage: none\n      - name: Prepare isolated authentication test database\n        run: |\n          php scripts/runtime/build.php all\n          mkdir -p conf/local\n          php -r '$db=new mysqli(\"127.0.0.1\",\"root\",\"proxy-session-test-only\",\"\",3306); $db->query(\"SET GLOBAL sql_mode = '\\''STRICT_ALL_TABLES'\\''\"); file_put_contents(\"conf/local/local.json\",json_encode([\"mysql.host\"=>\"127.0.0.1\",\"mysql.port\"=>\"3306\",\"mysql.user\"=>\"root\",\"mysql.pass\"=>\"proxy-session-test-only\"]));'\n      - name: Verify proxy identity and explicit account linking\n        run: |\n          php bin/unit --no-coverage \\\n            src/applications/auth/__tests__/PhabricatorTraefikSessionIdentityTestCase.php \\\n            src/applications/auth/__tests__/PhabricatorTraefikAuthProviderTestCase.php\n",
+          "current": "  media-isolation:\n    runs-on: ubuntu-latest\n    timeout-minutes: 10\n    strategy:\n      fail-fast: false\n      matrix:\n        include:\n          - family: mysql\n            image: mysql:8.4.13@sha256:a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7\n          - family: mariadb\n            image: mariadb@sha256:d769e37960821dfdcf096954f6e7ac89f747e116c1bba98e48edd265dfc7deae\n    services:\n      database:\n        image: ${{ matrix.image }}\n        env:\n          MYSQL_ROOT_PASSWORD: media-isolation-test-only\n          MYSQL_ROOT_HOST: '%'\n        ports: ['3306:3306']\n        options: --health-cmd \"mysqladmin --protocol=tcp --host=127.0.0.1 ping --silent\" --health-interval 5s --health-timeout 3s --health-retries 30\n    steps:\n      - uses: actions/checkout@v6\n      - uses: shivammathur/setup-php@v2\n        with:\n          php-version: '8.5.12'\n          ini-values: opcache.jit=disable, opcache.jit_buffer_size=0\n          extensions: mysqli, mbstring, curl\n          coverage: none\n      - name: Verify isolation row validation without database access\n        run: |\n          php -r 'require \"tests/contract/bootstrap.php\"; $test = new PhorgeGovernanceMediaExchangeServiceTestCase(); $test->testIsolationRowsKeepExactNamesAndKnownNativeValues(); $assertions = new ReflectionProperty(PhutilTestCase::class, \"assertions\"); if ($assertions->getValue($test) !== 22) { throw new RuntimeException(\"Unexpected assertion count.\"); }'\n      - name: Verify isolated media transactions and cleanup\n        env:\n          PHORGE_MEDIA_ISOLATION_TEST: '1'\n          PHORGE_MEDIA_DATABASE_FAMILY: ${{ matrix.family }}\n          PHORGE_MEDIA_MYSQL_HOST: 127.0.0.1\n          PHORGE_MEDIA_MYSQL_PASSWORD: media-isolation-test-only\n        run: php tests/contract/runtime/media-isolation.php\n  proxy-session-identity:\n    runs-on: ubuntu-latest\n    services:\n      mysql:\n        image: mysql:8.0\n        env:\n          MYSQL_ROOT_PASSWORD: proxy-session-test-only\n          MYSQL_ROOT_HOST: '%'\n        ports: ['3306:3306']\n        options: --health-cmd \"mysqladmin ping -pproxy-session-test-only\" --health-interval 5s --health-timeout 3s --health-retries 30\n    steps:\n      - uses: actions/checkout@v6\n      - uses: shivammathur/setup-php@v2\n        with:\n          php-version: '8.5.12'\n          ini-values: opcache.jit=disable, opcache.jit_buffer_size=0\n          extensions: mysqli, mbstring, curl, dom\n          coverage: none\n      - name: Prepare isolated authentication test database\n        run: |\n          php scripts/runtime/build.php all\n          mkdir -p conf/local\n          php -r '$db=new mysqli(\"127.0.0.1\",\"root\",\"proxy-session-test-only\",\"\",3306); $db->query(\"SET GLOBAL sql_mode = '\\''STRICT_ALL_TABLES'\\''\"); file_put_contents(\"conf/local/local.json\",json_encode([\"mysql.host\"=>\"127.0.0.1\",\"mysql.port\"=>\"3306\",\"mysql.user\"=>\"root\",\"mysql.pass\"=>\"proxy-session-test-only\"]));'\n      - name: Verify proxy identity and explicit account linking\n        run: |\n          php bin/unit --no-coverage \\\n            src/applications/auth/__tests__/PhabricatorTraefikSessionIdentityTestCase.php \\\n            src/applications/auth/__tests__/PhabricatorTraefikAuthProviderTestCase.php\n      - name: Verify native Almanac inventory boundaries\n        run: php bin/unit --no-coverage src/applications/almanac/__tests__/AlmanacInventoryBoundaryTestCase.php\n",
           "parent": ""
         }
       ]
@@ -106,18 +106,28 @@
       ]
     },
     "src/__phutil_library_map__.php": {
-      "current_bytes": 871377,
-      "current_sha256": "fedf4562d50c59db02b7bc460ba431c2efae8eeef36375479ed8f0e1094af01d",
+      "current_bytes": 871555,
+      "current_sha256": "2e45be2fd79de20a0e233bc19486ac1322475caf4b3459d39203700b5aa94ecd",
       "target_bytes": 871175,
       "target_sha256": "081e5cf740a2aa893274774885a949f3d90fd233370517ce08f7f6ab007765a2",
       "edits": [
         {
-          "offset": 418943,
+          "offset": 11194,
+          "current": "    'AlmanacInventoryBoundaryTestCase' => 'applications/almanac/__tests__/AlmanacInventoryBoundaryTestCase.php',\n",
+          "parent": ""
+        },
+        {
+          "offset": 419056,
           "current": "    'PhabricatorTraefikSessionIdentityTestCase' => 'applications/auth/__tests__/PhabricatorTraefikSessionIdentityTestCase.php',\n",
           "parent": ""
         },
         {
-          "offset": 804888,
+          "offset": 535225,
+          "current": "    'AlmanacInventoryBoundaryTestCase' => 'PhabricatorTestCase',\n",
+          "parent": ""
+        },
+        {
+          "offset": 805066,
           "current": "    'PhabricatorTraefikSessionIdentityTestCase' => 'PhabricatorTestCase',\n",
           "parent": ""
         }
@@ -558,6 +568,68 @@
         {
           "offset": 198,
           "current": "  public function testAnonymousWebserverChecksRespectEnabledForwardAuth() {\n    $proxy = id(new PhabricatorAuthProviderConfig())\n      ->setProviderClass('PhabricatorTraefikAuthProvider')\n      ->setIsEnabled(true);\n    $password = id(new PhabricatorAuthProviderConfig())\n      ->setProviderClass('PhabricatorPasswordAuthProvider')\n      ->setIsEnabled(true);\n    $this->assertFalse(\n      PhabricatorWebServerSetupCheck::shouldSkipAnonymousChecks(array()));\n    $this->assertFalse(\n      PhabricatorWebServerSetupCheck::shouldSkipAnonymousChecks(array($password)));\n    $this->assertTrue(\n      PhabricatorWebServerSetupCheck::shouldSkipAnonymousChecks(array($proxy)));\n    $this->assertTrue(\n      PhabricatorWebServerSetupCheck::shouldSkipAnonymousChecks(array($password, $proxy)));\n    $proxy->setIsEnabled(false);\n    $this->assertFalse(\n      PhabricatorWebServerSetupCheck::shouldSkipAnonymousChecks(array($proxy)));\n  }\n\n",
+          "parent": ""
+        }
+      ]
+    },
+    "src/applications/almanac/controller/AlmanacBindingEditController.php": {
+      "current_bytes": 4011,
+      "current_sha256": "5c19f7ae517789eb9607dcfd47450453a1b1138836455cd3abc798378fb43b6f",
+      "target_bytes": 3968,
+      "target_sha256": "b0696a535116063c6dffbc9c04adaa2930cdfdd4bec6fd5ef42e4467b11c2566",
+      "edits": [
+        {
+          "offset": 1158,
+          "current": "\n      if (!$service) {\n        return new Aphront404Response();\n      }\n",
+          "parent": ""
+        },
+        {
+          "offset": 3501,
+          "current": "        ->setHeader($title)\n",
+          "parent": "        ->setHeader(pht('Create Binding'))\n"
+        },
+        {
+          "offset": 3676,
+          "current": "        ->setHeader($title)\n",
+          "parent": "        ->setHeader(pht('Create Binding'))\n"
+        }
+      ]
+    },
+    "src/applications/almanac/query/AlmanacDeviceSearchEngine.php": {
+      "current_bytes": 4754,
+      "current_sha256": "eba3e4287ad5612d7c060b9e4054c426ea3baa4b25d61436624e6e4f856c823c",
+      "target_bytes": 4758,
+      "target_sha256": "893581d87cd06ef5c85dc212f663b6ca596decd95dc923be94b7499e1b57d677",
+      "edits": [
+        {
+          "offset": 4542,
+          "current": "          'Use Almanac devices to catalogue physical and virtual hosts '.\n          'and their network interfaces.'))\n",
+          "parent": "          'Use Almanac devices to catalogue your build hosts '.\n          'and their SSH ports your network, and more.'))\n"
+        }
+      ]
+    },
+    "src/applications/almanac/query/AlmanacServiceSearchEngine.php": {
+      "current_bytes": 4089,
+      "current_sha256": "ba13461f0dd5ca0664753c87c144e74b35a67d64f8447f4f774eca4c7561c786",
+      "target_bytes": 4101,
+      "target_sha256": "91bfdb921d45225875f88386eb446cacbfb34437c07d18eaad98abda7b86b4ac",
+      "edits": [
+        {
+          "offset": 3888,
+          "current": "          'Use Almanac services to catalogue services and bind them to '.\n          'device interfaces.'))\n",
+          "parent": "          'Services describe pools of devices, and '.\n          'they are available to Drydock for CI/CD, and more.'))\n"
+        }
+      ]
+    },
+    "src/infrastructure/internationalization/translation/PhabricatorChineseTranslation.php": {
+      "current_bytes": 1211970,
+      "current_sha256": "c8107058d5a0d1f830187067a9f8d6fe48e9b522b3dace4269c114ead70bb075",
+      "target_bytes": 1211627,
+      "target_sha256": "63655fedfcae251c561efac738d70b7617def93f9a72889449b02ce3050a4213",
+      "edits": [
+        {
+          "offset": 986359,
+          "current": "      'Use Almanac services to catalogue services and bind them to device interfaces.' => '\u4f7f\u7528 Almanac \u670d\u52a1\u767b\u8bb0\u670d\u52a1\uff0c\u5e76\u5c06\u5176\u7ed1\u5b9a\u5230\u8bbe\u5907\u63a5\u53e3\u3002',\n      'Use Almanac devices to catalogue physical and virtual hosts and their network interfaces.' => '\u4f7f\u7528 Almanac \u8bbe\u5907\u767b\u8bb0\u7269\u7406\u4e3b\u673a\u3001\u865a\u62df\u4e3b\u673a\u53ca\u5176\u7f51\u7edc\u63a5\u53e3\u3002',\n",
           "parent": ""
         }
       ]

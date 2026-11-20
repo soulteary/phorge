@@ -116,6 +116,7 @@ phutil_register_library_map(array(
     'AlmanacNamespaceTransactionQuery' => 'applications/almanac/query/AlmanacNamespaceTransactionQuery.php',
     'AlmanacNamespaceTransactionType' => 'applications/almanac/xaction/AlmanacNamespaceTransactionType.php',
     'AlmanacNamespaceViewController' => 'applications/almanac/controller/AlmanacNamespaceViewController.php',
+    'AlmanacInventoryBoundaryTestCase' => 'applications/almanac/__tests__/AlmanacInventoryBoundaryTestCase.php',
     'AlmanacNetwork' => 'applications/almanac/storage/AlmanacNetwork.php',
     'AlmanacNetworkController' => 'applications/almanac/controller/AlmanacNetworkController.php',
     'AlmanacNetworkEditConduitAPIMethod' => 'applications/almanac/conduit/AlmanacNetworkEditConduitAPIMethod.php',
@@ -4997,6 +4998,7 @@ phutil_register_library_map(array(
     'AlmanacNamespaceTransactionQuery' => 'PhabricatorApplicationTransactionQuery',
     'AlmanacNamespaceTransactionType' => 'AlmanacTransactionType',
     'AlmanacNamespaceViewController' => 'AlmanacNamespaceController',
+    'AlmanacInventoryBoundaryTestCase' => 'PhabricatorTestCase',
     'AlmanacNetwork' => array(
       'AlmanacDAO',
       'PhabricatorApplicationTransactionInterface',

@@ -12181,6 +12181,8 @@ MySQL 需要复制表数据以完成部分调整，因此这些迁移可能需�
       'Use %s to listen for gesture events. Note that you must be in device mode for this to work (you can narrow your browser window if you are on a desktop).' => '使用 %s 监听手势事件。请注意，必须处于设备模式才能正常工作（如果在桌面上，可以缩小浏览器窗口）。',
       'Use --as <format> to select a target encoding format. Available formats are: %s.' => '使用 --as <format> 选择目标编码格式。可用格式为：%s。',
       'Use Almanac devices to catalogue your build hosts and their SSH ports your network, and more.' => '使用 Almanac 设备来编录构建主机及其 SSH 端口、网络等信息。',
+      'Use Almanac services to catalogue services and bind them to device interfaces.' => '使用 Almanac 服务登记服务，并将其绑定到设备接口。',
+      'Use Almanac devices to catalogue physical and virtual hosts and their network interfaces.' => '使用 Almanac 设备登记物理主机、虚拟主机及其网络接口。',
       'Use Almanac networks to catalogue private and public computer networks.' => '使用 Almanac 网络来编录私有和公共计算机网络。',
       'Use Maniphest to track bugs, features, todos, or anything else you need to get done. Tasks assigned to you will appear here.' => '使用 Maniphest 跟踪错误、功能、待办事项或任何其他需要完成的任务。分配给您的任务将显示在此处。',
       'Use constraint flags (like "--id" or "--class") to select which tasks to affect. Use "--help" for a list of supported constraint flags.' => '使用约束标志（如 "--id" 或 "--class"）来选择要影响哪些任务。使用 "--help" 查看支持的约束标志列表。',
