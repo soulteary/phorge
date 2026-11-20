@@ -107,12 +107,12 @@
     },
     "src/__phutil_library_map__.php": {
       "current_bytes": 871555,
-      "current_sha256": "2e45be2fd79de20a0e233bc19486ac1322475caf4b3459d39203700b5aa94ecd",
+      "current_sha256": "9735576a0332ebf09cd094526b0f616d01a5c85c94e3afb64861eab46646507f",
       "target_bytes": 871175,
       "target_sha256": "081e5cf740a2aa893274774885a949f3d90fd233370517ce08f7f6ab007765a2",
       "edits": [
         {
-          "offset": 11194,
+          "offset": 8543,
           "current": "    'AlmanacInventoryBoundaryTestCase' => 'applications/almanac/__tests__/AlmanacInventoryBoundaryTestCase.php',\n",
           "parent": ""
         },
@@ -122,7 +122,7 @@
           "parent": ""
         },
         {
-          "offset": 535225,
+          "offset": 533289,
           "current": "    'AlmanacInventoryBoundaryTestCase' => 'PhabricatorTestCase',\n",
           "parent": ""
         },
