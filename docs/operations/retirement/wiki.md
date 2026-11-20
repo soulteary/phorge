@@ -17,8 +17,8 @@ unchanged. Optional governance features remain disabled.
 
 Historical Wiki mail is rejected at authorization, including when the optional
 private-mail policy is disabled. Existing messages already delivered to a mail
-recipient cannot be recalled. Queue and transport integration still require
-verification; the unit fixture is not evidence of completed queue acceptance.
+recipient cannot be recalled. Prepared-delivery quarantine is covered by the isolated SQL/HTTP fixture
+with the optional policy off and on. This does not prove external SMTP delivery.
 
 Ponder's answer-Wiki transaction is unrelated to Phriction and remains.
 
@@ -27,7 +27,8 @@ Ponder's answer-Wiki transaction is unrelated to Phriction and remains.
 No database, document, attachment, audit row or backup is deleted. Historical
 SQL patch identifiers remain. The seven PHP patches use fixed SQL table names
 instead of removed application classes, retaining the original transformations.
-They need fresh-schema and restored-schema integration tests before release.
+The isolated restored-schema fixture executes all seven against nonempty
+synthetic tables; final exact-head integration remains a merge gate.
 
 The existing schema checker may report preserved Wiki tables as surplus. Do
 not remove those tables to silence the warning. The release procedure must

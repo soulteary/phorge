@@ -346,15 +346,16 @@
     }
   ],
   "retired_native_unit_cases": [
-    "testCreationWrongEnvelopeAndUnknownBatchBlock",
-    "testWikiBatchMoveAndDeletePreserveNativeOrder",
-    "testWikiBatchNativeCanonicalVersionHydration",
-    "testWikiBatchPreludeUsesAttachedNativeContent",
-    "testWikiBatchRejectsMissingOrMismatchedContent",
-    "testWikiEmptyBodyActuallyExpandsToDelete",
-    "testWikiMoveActuallyAddsDestinationPolicies",
-    "testWikiMoveCannotInjectAnArbitraryObject",
-    "testWikiNonemptyBodyDoesNotClaimPublicationValidated"
+    "PhorgeGovernanceCapabilityMapTestCase::testWikiContentRequiresValueAndExpansionReview",
+    "PhorgeGovernanceNativeObservationTestCase::testCreationWrongEnvelopeAndUnknownBatchBlock",
+    "PhorgeGovernanceNativeObservationTestCase::testWikiBatchMoveAndDeletePreserveNativeOrder",
+    "PhorgeGovernanceNativeObservationTestCase::testWikiBatchNativeCanonicalVersionHydration",
+    "PhorgeGovernanceNativeObservationTestCase::testWikiBatchPreludeUsesAttachedNativeContent",
+    "PhorgeGovernanceNativeObservationTestCase::testWikiBatchRejectsMissingOrMismatchedContent",
+    "PhorgeGovernanceNativeObservationTestCase::testWikiEmptyBodyActuallyExpandsToDelete",
+    "PhorgeGovernanceNativeObservationTestCase::testWikiMoveActuallyAddsDestinationPolicies",
+    "PhorgeGovernanceNativeObservationTestCase::testWikiMoveCannotInjectAnArbitraryObject",
+    "PhorgeGovernanceNativeObservationTestCase::testWikiNonemptyBodyDoesNotClaimPublicationValidated"
   ],
   "preserved_data": [
     "Wiki database tables and rows",
@@ -388,5 +389,18 @@
     "read-view-real-native-wiki-view-allow",
     "read-view-real-native-wiki-loader-profile-owned-writer-routing-restored",
     "read-view-wiki-private-ancestor-local-allow-actor-query-deny"
+  ],
+  "renamed_native_unit_cases": [
+    {
+      "from": "PhorgeGovernanceNativeObservationTestCase::testTaskAndWikiPolicyItemsAreOnlyLocalPassThrough",
+      "to": "PhorgeGovernanceNativeObservationTestCase::testTaskPolicyItemsAreOnlyLocalPassThrough"
+    },
+    {
+      "from": "PhorgeGovernanceReadSetTestCase::testTaskAndWikiGroupDependenciesAreNotOmitted",
+      "to": "PhorgeGovernanceReadSetTestCase::testTaskGroupDependenciesAreNotOmitted"
+    }
+  ],
+  "added_native_unit_cases": [
+    "PhorgeGovernanceCapabilityMapTestCase::testRetiredWikiCannotAcquireContentOrManagementCapabilities"
   ]
 }
