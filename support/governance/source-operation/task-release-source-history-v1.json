@@ -3,24 +3,24 @@
   "base_checkpoint": "e3c4632f5ca63b79fb8ec08875a651080cba3d7c",
   "files": {
     ".github/workflows/container-image.yml": {
-      "current_bytes": 8824,
-      "current_sha256": "f0031d78b65f9bd697c94c1a74bdb81d70b459fbf4ab84b02bb72dc549c78c83",
+      "current_bytes": 9212,
+      "current_sha256": "a695d3036f9d355cbf60aae1cfbe80af8796c9dfe278421fd0fe0b4e0a11f04c",
       "target_bytes": 7025,
       "target_sha256": "aa476d68759dd7bbf38193f585b1480b168a8218dc7d1927d1ea575a5ca1b5a2",
       "edits": [
         {
           "offset": 397,
-          "current": "  release-identity:\n    runs-on: ubuntu-latest\n    timeout-minutes: 5\n    steps:\n      - uses: actions/checkout@v6\n        with:\n          ref: ${{ github.sha }}\n          fetch-depth: 0\n          persist-credentials: false\n      - name: Require publication workflow and source from the exact release tag\n        env:\n          WORKFLOW_REF: ${{ github.workflow_ref }}\n          WORKFLOW_SHA: ${{ github.workflow_sha }}\n        run: |\n          python3 deploy/release/ci_policy.py --repository \"$GITHUB_REPOSITORY\" \\\n            --tag \"$RELEASE_TAG\" --sha \"$GITHUB_SHA\" --ref \"$GITHUB_REF\" \\\n            --workflow-ref \"$WORKFLOW_REF\" --workflow-sha \"$WORKFLOW_SHA\" \\\n            --output \"$RUNNER_TEMP/phorge-release-ci-identity.json\"\n      - name: Verify release rejection paths\n        run: python3 -m unittest discover -s tests/release -p 'test_*.py' -v\n  full-regressions:\n    needs: release-identity\n    uses: ./.github/workflows/release-full.yml\n    with:\n      expected_head: ${{ github.sha }}\n",
+          "current": "  release-identity:\n    runs-on: ubuntu-latest\n    timeout-minutes: 5\n    steps:\n      - uses: actions/checkout@v6\n        with:\n          ref: ${{ github.sha }}\n          fetch-depth: 0\n          persist-credentials: false\n      - name: Require publication workflow and source from the exact release tag\n        env:\n          WORKFLOW_REF: ${{ github.workflow_ref }}\n          WORKFLOW_SHA: ${{ github.workflow_sha }}\n        run: |\n          python3 deploy/release/ci_policy.py --repository \"$GITHUB_REPOSITORY\" \\\n            --tag \"$RELEASE_TAG\" --sha \"$GITHUB_SHA\" --ref \"$GITHUB_REF\" \\\n            --workflow-ref \"$WORKFLOW_REF\" --workflow-sha \"$WORKFLOW_SHA\" \\\n            --output \"$RUNNER_TEMP/phorge-release-ci-identity.json\"\n      - name: Set up PHP for release predicate tests\n        uses: shivammathur/setup-php@v2\n        with:\n          php-version: '8.5.13'\n          extensions: opcache\n          coverage: none\n      - name: Verify release rejection paths\n        run: python3 -m unittest discover -s tests/release -p 'test_*.py' -v\n  full-regressions:\n    needs: release-identity\n    uses: ./.github/workflows/release-full.yml\n    with:\n      expected_head: ${{ github.sha }}\n",
           "parent": ""
         },
         {
-          "offset": 1410,
+          "offset": 1604,
           "current": "    needs: [release-identity, full-regressions]\n",
           "parent": ""
         },
         {
-          "offset": 1676,
-          "current": "          ref: ${{ github.sha }}\n          fetch-depth: 0\n          persist-credentials: false\n      - name: Require successful full qualification of this exact release source\n        env:\n          WORKFLOW_REF: ${{ github.workflow_ref }}\n          WORKFLOW_SHA: ${{ github.workflow_sha }}\n          FULL_HEAD: ${{ needs.full-regressions.outputs.qualified_head }}\n          FULL_RESULT: ${{ needs.full-regressions.result }}\n        run: |\n          python3 deploy/release/ci_policy.py --repository \"$GITHUB_REPOSITORY\" \\\n            --tag \"$RELEASE_TAG\" --sha \"$GITHUB_SHA\" --ref \"$GITHUB_REF\" \\\n            --workflow-ref \"$WORKFLOW_REF\" --workflow-sha \"$WORKFLOW_SHA\" \\\n            --full-head \"$FULL_HEAD\" --full-result \"$FULL_RESULT\" \\\n            --output \"$RUNNER_TEMP/phorge-release-ci.json\"\n",
+          "offset": 1870,
+          "current": "          ref: ${{ github.sha }}\n          fetch-depth: 0\n          persist-credentials: false\n      - name: Require successful full qualification of this exact release source\n        env:\n          WORKFLOW_REF: ${{ github.workflow_ref }}\n          WORKFLOW_SHA: ${{ github.workflow_sha }}\n          FULL_HEAD: ${{ needs.full-regressions.outputs.qualified_head }}\n          FULL_RESULT: ${{ needs.full-regressions.result }}\n        run: |\n          python3 deploy/release/ci_policy.py --repository \"$GITHUB_REPOSITORY\" \\\n            --tag \"$RELEASE_TAG\" --sha \"$GITHUB_SHA\" --ref \"$GITHUB_REF\" \\\n            --workflow-ref \"$WORKFLOW_REF\" --workflow-sha \"$WORKFLOW_SHA\" \\\n            --full-head \"$FULL_HEAD\" --full-result \"$FULL_RESULT\" \\\n            --output \"$RUNNER_TEMP/phorge-release-ci.json\"\n      - name: Set up PHP for release predicate tests\n        uses: shivammathur/setup-php@v2\n        with:\n          php-version: '8.5.13'\n          extensions: opcache\n          coverage: none\n",
           "parent": "          ref: refs/tags/${{ inputs.release_tag }}\n"
         }
       ]
@@ -1892,8 +1892,8 @@
       ]
     },
     ".github/workflows/php-core-security.yml": {
-      "current_bytes": 2860,
-      "current_sha256": "cd591b495a20319861aeb3db9c74f84e878b97b1ff0b9c73aff065db0d5b6991",
+      "current_bytes": 3027,
+      "current_sha256": "068c4b1affba81909da33a1da8d93802b20fb312351247fc747bc12e25d9a7e3",
       "target_bytes": 2860,
       "target_sha256": "c712fc74eea5f742509e50266af8047b604892c4a2523169487afaae5165bcbd",
       "edits": [
@@ -1901,6 +1901,11 @@
           "offset": 1039,
           "current": "          if [[ ! \"$image\" =~ ^php:8\\.5\\.13-apache$ ]]; then\n            echo \"::error::Expected the PHP 8.5.13 Apache production baseline, found: $image\"\n",
           "parent": "          if [[ ! \"$image\" =~ ^php:8\\.5\\.12-apache$ ]]; then\n            echo \"::error::Expected the PHP 8.5.12 Apache production baseline, found: $image\"\n"
+        },
+        {
+          "offset": 1710,
+          "current": "              -v \"$PWD/deploy/acceptance/php_security.php:/opt/acceptance/deploy/acceptance/php_security.php:ro\" \\\n              -v \"$PWD/support/runtime/php-version.php:/opt/acceptance/support/runtime/php-version.php:ro\" \\\n              \"$ref\" php /opt/acceptance/deploy/acceptance/php_security.php\n",
+          "parent": "              -v \"$PWD/deploy/acceptance/php_security.php:/tmp/php_security.php:ro\" \\\n              \"$ref\" php /tmp/php_security.php\n"
         }
       ]
     },
@@ -1985,15 +1990,15 @@
       ]
     },
     "deploy/acceptance/php_security.php": {
-      "current_bytes": 773,
-      "current_sha256": "da291c330a1045894a5133e56669b8d9ed06effabe03618dfe85d79a3228c5cb",
+      "current_bytes": 786,
+      "current_sha256": "7fb5b6688576de7cb68c55ab5c7710cbeb64bdaa37c4512dce6da256932e06d6",
       "target_bytes": 773,
       "target_sha256": "13b834fc85bfad6d67702e41eaf8fe2d40deaf6114fb26d88924344b37577ea3",
       "edits": [
         {
-          "offset": 143,
-          "current": "    version_compare(PHP_VERSION, '8.5.13', '<')) {\n  fwrite(STDERR, \"Unsupported PHP runtime; require PHP 8.5.13+ on the 8.5 branch: \".PHP_VERSION.\"\\n\");\n",
-          "parent": "    version_compare(PHP_VERSION, '8.5.12', '<')) {\n  fwrite(STDERR, \"Unsupported PHP runtime; require PHP 8.5.12+ on the 8.5 branch: \".PHP_VERSION.\"\\n\");\n"
+          "offset": 85,
+          "current": "require_once dirname(__DIR__, 2).'/support/runtime/php-version.php';\nif (!phorge_php_version_is_supported(PHP_VERSION)) {\n  fwrite(STDERR, \"Unsupported PHP runtime; require PHP 8.5.13+ on the 8.5 branch: \".PHP_VERSION.\"\\n\");\n",
+          "parent": "if (PHP_MAJOR_VERSION !== 8 || PHP_MINOR_VERSION !== 5 ||\n    version_compare(PHP_VERSION, '8.5.12', '<')) {\n  fwrite(STDERR, \"Unsupported PHP runtime; require PHP 8.5.12+ on the 8.5 branch: \".PHP_VERSION.\"\\n\");\n"
         }
       ]
     },
