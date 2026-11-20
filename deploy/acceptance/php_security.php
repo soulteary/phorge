@@ -1,7 +1,7 @@
 <?php
 // Run inside the actual Phorge acceptance image with its installed INI files.
-if (PHP_MAJOR_VERSION !== 8 || PHP_MINOR_VERSION !== 5 ||
-    version_compare(PHP_VERSION, '8.5.13', '<')) {
+require_once dirname(__DIR__, 2).'/support/runtime/php-version.php';
+if (!phorge_php_version_is_supported(PHP_VERSION)) {
   fwrite(STDERR, "Unsupported PHP runtime; require PHP 8.5.13+ on the 8.5 branch: ".PHP_VERSION."\n");
   exit(1);
 }

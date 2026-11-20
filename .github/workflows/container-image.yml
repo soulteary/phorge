@@ -38,6 +38,12 @@ jobs:
             --tag "$RELEASE_TAG" --sha "$GITHUB_SHA" --ref "$GITHUB_REF" \
             --workflow-ref "$WORKFLOW_REF" --workflow-sha "$WORKFLOW_SHA" \
             --output "$RUNNER_TEMP/phorge-release-ci-identity.json"
+      - name: Set up PHP for release predicate tests
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5.13'
+          extensions: opcache
+          coverage: none
       - name: Verify release rejection paths
         run: python3 -m unittest discover -s tests/release -p 'test_*.py' -v
   full-regressions:
@@ -72,6 +78,12 @@ jobs:
             --workflow-ref "$WORKFLOW_REF" --workflow-sha "$WORKFLOW_SHA" \
             --full-head "$FULL_HEAD" --full-result "$FULL_RESULT" \
             --output "$RUNNER_TEMP/phorge-release-ci.json"
+      - name: Set up PHP for release predicate tests
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5.13'
+          extensions: opcache
+          coverage: none
       - name: Verify release gate rejection paths
         run: python3 -m unittest discover -s tests/release -p 'test_*.py' -v
       - name: Require exact tag identity and refuse immutable tag overwrite
