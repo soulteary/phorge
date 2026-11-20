@@ -106,3 +106,19 @@ gates. It does not qualify a sensitive-data rollout or production load.
 
 No RPO or RTO is established by this document. Measure both in a representative
 restore rehearsal; retain any business-integrity or external-store gaps explicitly.
+
+## Stargate / ForwardAuth setup checks
+
+An enabled Traefik Auth provider causes the anonymous external webserver probes
+(JSON response, gzip, Basic Auth forwarding, rewrite and query preservation) to
+be skipped automatically. Stargate deliberately redirects those requests to
+login. Disabled providers and ordinary native providers retain the original
+checks. The decision uses persisted server-side provider configuration, never
+identity or self-check request headers, and does not instantiate login adapters.
+
+Pagespeed detection and the separate EC2 check remain active. No gateway bypass,
+public exception route or extra session credential is introduced. A skipped probe
+is not successful proxy acceptance: retain controlled authenticated gateway tests
+for encoding, compression and request handling. Internal container health probes
+remain separate. Clear stale setup-check caches after adopting the fix; do not
+remove unrelated ignored issues or use ignored warnings as proof of acceptance.

@@ -87,7 +87,7 @@
       "edits": [
         {
           "offset": 1430,
-          "current": "## 开发与交付验收范围\n\n- [CI 分层与发布门禁](ci/README.md)：核心开发检查、发布完整回归和必需检查汇总。\n- [原生核心试用范围](upstream/native-trial-acceptance-scope.md)：关闭功能、Owlmail 分工、恢复与版本回退、单一 Linux 媒体验收环境及当前状态记录。\n\n",
+          "current": "## \u5f00\u53d1\u4e0e\u4ea4\u4ed8\u9a8c\u6536\u8303\u56f4\n\n- [CI \u5206\u5c42\u4e0e\u53d1\u5e03\u95e8\u7981](ci/README.md)\uff1a\u6838\u5fc3\u5f00\u53d1\u68c0\u67e5\u3001\u53d1\u5e03\u5b8c\u6574\u56de\u5f52\u548c\u5fc5\u9700\u68c0\u67e5\u6c47\u603b\u3002\n- [\u539f\u751f\u6838\u5fc3\u8bd5\u7528\u8303\u56f4](upstream/native-trial-acceptance-scope.md)\uff1a\u5173\u95ed\u529f\u80fd\u3001Owlmail \u5206\u5de5\u3001\u6062\u590d\u4e0e\u7248\u672c\u56de\u9000\u3001\u5355\u4e00 Linux \u5a92\u4f53\u9a8c\u6536\u73af\u5883\u53ca\u5f53\u524d\u72b6\u6001\u8bb0\u5f55\u3002\n\n",
           "parent": ""
         }
       ]
@@ -507,6 +507,57 @@
         {
           "offset": 5331,
           "current": "  # Exercise the actual private caller predicate in PHP, without minting a\n  # profile or fabricating the fixed Linux binary/source paths on this host.\n  script='require $argv[1];$v=json_decode(stream_get_contents(STDIN),true,32,JSON_THROW_ON_ERROR);try{if($v[\"open\"]){GovernanceNativeRRCIProfile::open($v[\"control\"]);}else{(new ReflectionMethod(GovernanceNativeRRCIProfile::class,\"requireCaller\"))->invoke(null,$v[\"control\"]);}echo json_encode(array(\"caller_accepted\"=>true,\"profile_opened\"=>false));}catch(Throwable $e){echo json_encode(array(\"refused\"=>true,\"reason\"=>$e->getMessage()));exit(3);}'\n  release_control=dict(control,source_kind='workflow-dispatch-checkout',directory='/not-a-profile')\n  ref='refs/tags/2026.11.19-r3'\n  release_env={'GITHUB_JOB':'owner-build','GITHUB_RUN_ID':'12','GITHUB_RUN_ATTEMPT':'1',\n   'GITHUB_REPOSITORY':'soulteary/phorge','GITHUB_EVENT_NAME':'workflow_dispatch','GITHUB_REF':ref,\n   'GITHUB_WORKFLOW_REF':'soulteary/phorge/.github/workflows/container-image.yml@'+ref,\n   'GITHUB_SHA':REV,'GITHUB_WORKFLOW_SHA':REV,'NATIVE_RR_WORKFLOW_SHA':REV,\n   'NATIVE_RR_EXPECTED_HEAD':REV,'NATIVE_RR_RELEASE_TAG':'2026.11.19-r3'}\n  base_env={k:v for k,v in os.environ.items()if not k.startswith(('GITHUB_','NATIVE_RR_','PHORGE_GOVERNANCE_'))}\n  def caller(env,ctl=release_control,opened=False):\n   actual=dict(base_env,**env)\n   if opened:actual.update(GITHUB_ACTIONS='true',PHORGE_GOVERNANCE_NATIVE_RR_EXECUTION_PROFILE=a.PROFILE,PHORGE_GOVERNANCE_ISOLATED_TEST='1',PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION=REV)\n   out=subprocess.run(['php','-r',script,str(ROOT/'support/governance/recovery/native-writer-rr-ci-profile.php')],input=json.dumps({'control':ctl,'open':opened}),env=actual,capture_output=True,text=True,timeout=5)\n   self.assertEqual('',out.stderr);return out,json.loads(out.stdout)\n  def accepted(env,ctl=release_control):\n   out,result=caller(env,ctl);self.assertEqual(out.returncode,0,result);self.assertEqual(result,{'caller_accepted':True,'profile_opened':False})\n  accepted(release_env)\n  out,result=caller(release_env,opened=True)\n  self.assertEqual(out.returncode,3);self.assertEqual(result,{'refused':True,'reason':'native_rr_CI_directory_refused'})\n  for event,kind,direct_ref in [('pull_request','pull-request-synthetic-merge','refs/pull/12/merge'),('workflow_dispatch','workflow-dispatch-checkout','refs/heads/main'),('workflow_dispatch','workflow-dispatch-checkout','refs/tags/2026.11.19-r3')]:\n   direct={'GITHUB_JOB':'owner-build','GITHUB_RUN_ID':'12','GITHUB_RUN_ATTEMPT':'1','GITHUB_EVENT_NAME':event,'GITHUB_REF':direct_ref,'GITHUB_WORKFLOW_REF':'soulteary/phorge/.github/workflows/native-rr-owner-build.yml@'+direct_ref}\n   accepted(direct,dict(release_control,source_kind=kind))  # No new release vars required.\n   bad=dict(direct,GITHUB_EVENT_NAME='push');out,result=caller(bad,dict(release_control,source_kind=kind))\n   self.assertEqual(out.returncode,3);self.assertEqual(result['reason'],'native_rr_CI_event_unknown')\n  for key in release_env:\n   for value in ('foreign',''):\n    env=dict(release_env);env[key]=value\n    with self.subTest(caller_key=key,value=value):\n     out,result=caller(env);self.assertEqual(out.returncode,3);self.assertTrue(result['refused'])\n   env=dict(release_env);env.pop(key)\n   with self.subTest(missing=key):out,result=caller(env);self.assertEqual(out.returncode,3)\n  for key,value in [('source_revision','b'*40),('source_kind','pull-request-synthetic-merge'),('source_kind','unknown'),('run_id','13'),('run_attempt','2')]:\n   with self.subTest(control=key):out,result=caller(release_env,dict(release_control,**{key:value}));self.assertEqual(out.returncode,3)\n  for tag in ('2026.02.29-r1','2026.04.31-r1','2026.13.01-r1','2026.11.19-r0','2026.11.19-r01','2026.11.19-r1/other','2026.11.19-r1\\n','2026.11.19-R1','latest'):\n   bad=dict(release_env,NATIVE_RR_RELEASE_TAG=tag,GITHUB_REF='refs/tags/'+tag,GITHUB_WORKFLOW_REF='soulteary/phorge/.github/workflows/container-image.yml@refs/tags/'+tag)\n   with self.subTest(tag=tag):out,result=caller(bad);self.assertEqual(out.returncode,3)\n  for tag in ('2024.02.29-r1','2026.11.19-r1','2026.11.19-r123'):\n   accepted(dict(release_env,NATIVE_RR_RELEASE_TAG=tag,GITHUB_REF='refs/tags/'+tag,GITHUB_WORKFLOW_REF='soulteary/phorge/.github/workflows/container-image.yml@refs/tags/'+tag))\n  for workflow in ('other.yml','release-full.yml','container-image.yml.extra'):\n   out,result=caller(dict(release_env,GITHUB_WORKFLOW_REF='soulteary/phorge/.github/workflows/'+workflow+'@'+ref));self.assertEqual(out.returncode,3)\n  for field in ('run_id','run_attempt'):\n   env=dict(release_env);env['GITHUB_RUN_ID'if field=='run_id'else'GITHUB_RUN_ATTEMPT']='0'\n   out,result=caller(env,dict(release_control,**{field:'0'}));self.assertEqual(out.returncode,3)\n",
+          "parent": ""
+        }
+      ]
+    },
+    "src/applications/config/check/PhabricatorWebServerSetupCheck.php": {
+      "current_bytes": 14564,
+      "current_sha256": "f6b50dbc108009554222c886ed2d476183b266cf6c60a47f581ffa5b7104a651",
+      "target_bytes": 13571,
+      "target_sha256": "52b480b2b1bd2629e08a394c10f7f069b4dcefb341de7cbd079d940bba408d11",
+      "edits": [
+        {
+          "offset": 151,
+          "current": "  }\n\n  public static function shouldSkipAnonymousChecks(array $configs) {\n    foreach ($configs as $config) {\n      if ($config->getIsEnabled() &&\n          $config->getProviderClass() === 'PhabricatorTraefikAuthProvider') {\n        // Stargate/ForwardAuth intentionally redirects anonymous requests.\n        // This is not evidence that the webserver rewrites or gzip are broken.\n        return true;\n      }\n    }\n    return false;\n",
+          "parent": ""
+        },
+        {
+          "offset": 1883,
+          "current": "    // Read persisted provider configuration without constructing adapters: setup\n    // checks may run before redirect/login URI configuration is complete.\n    $configs = id(new PhabricatorAuthProviderConfigQuery())\n      ->setViewer(PhabricatorUser::getOmnipotentUser())\n      ->execute();\n    $skip_anonymous = self::shouldSkipAnonymousChecks($configs);\n    $self_future = null;\n    $gzip_future = null;\n    if (!$skip_anonymous) {\n      $self_future = id(new HTTPSFuture($base_uri))\n",
+          "parent": "    $self_future = id(new HTTPSFuture($base_uri))\n      ->addHeader('X-Setup-SelfCheck', '1')\n      ->addHeader('Accept-Encoding', 'gzip')\n      ->setDisableContentDecoding(true)\n      ->setHTTPBasicAuthCredentials(\n        $expect_user,\n        new PhutilOpaqueEnvelope($expect_pass))\n      ->setTimeout(5);\n\n    if (AphrontRequestStream::supportsGzip()) {\n      $gzip_uncompressed = str_repeat('Quack! ', 128);\n      $gzip_compressed = gzencode($gzip_uncompressed);\n\n      $gzip_future = id(new HTTPSFuture($base_uri))\n"
+        },
+        {
+          "offset": 2416,
+          "current": "        ->addHeader('Accept-Encoding', 'gzip')\n        ->setDisableContentDecoding(true)\n        ->setHTTPBasicAuthCredentials(\n          $expect_user,\n          new PhutilOpaqueEnvelope($expect_pass))\n        ->setTimeout(5);\n",
+          "parent": "        ->addHeader('Content-Encoding', 'gzip')\n        ->setMethod('POST')\n        ->setTimeout(5)\n        ->setData($gzip_compressed);\n"
+        },
+        {
+          "offset": 2644,
+          "current": "      if (AphrontRequestStream::supportsGzip()) {\n        $gzip_uncompressed = str_repeat('Quack! ', 128);\n        $gzip_compressed = gzencode($gzip_uncompressed);\n\n        $gzip_future = id(new HTTPSFuture($base_uri))\n          ->addHeader('X-Setup-SelfCheck', '1')\n          ->addHeader('Content-Encoding', 'gzip')\n          ->setMethod('POST')\n          ->setTimeout(5)\n          ->setData($gzip_compressed);\n\n      } else {\n        $gzip_future = null;\n      }\n",
+          "parent": "    } else {\n      $gzip_future = null;\n"
+        },
+        {
+          "offset": 3482,
+          "current": "    $futures = array($ec2_future);\n    if ($self_future) {\n      $futures[] = $self_future;\n    }\n",
+          "parent": "    $futures = array(\n      $self_future,\n      $ec2_future,\n    );\n"
+        },
+        {
+          "offset": 4681,
+          "current": "    }\n\n    if ($skip_anonymous) {\n      return;\n",
+          "parent": ""
+        }
+      ]
+    },
+    "src/applications/config/check/__tests__/PhabricatorSetupCheckTestCase.php": {
+      "current_bytes": 1129,
+      "current_sha256": "7cb21038295bcc10cc92d7927dd1369521ba1b2783438b14adcbcf03193450f2",
+      "target_bytes": 200,
+      "target_sha256": "0bd67d3bc048d4aac847188843e16300de009a1a4187db4ec0c04f04e9844d05",
+      "edits": [
+        {
+          "offset": 198,
+          "current": "  public function testAnonymousWebserverChecksRespectEnabledForwardAuth() {\n    $proxy = id(new PhabricatorAuthProviderConfig())\n      ->setProviderClass('PhabricatorTraefikAuthProvider')\n      ->setIsEnabled(true);\n    $password = id(new PhabricatorAuthProviderConfig())\n      ->setProviderClass('PhabricatorPasswordAuthProvider')\n      ->setIsEnabled(true);\n    $this->assertFalse(\n      PhabricatorWebServerSetupCheck::shouldSkipAnonymousChecks(array()));\n    $this->assertFalse(\n      PhabricatorWebServerSetupCheck::shouldSkipAnonymousChecks(array($password)));\n    $this->assertTrue(\n      PhabricatorWebServerSetupCheck::shouldSkipAnonymousChecks(array($proxy)));\n    $this->assertTrue(\n      PhabricatorWebServerSetupCheck::shouldSkipAnonymousChecks(array($password, $proxy)));\n    $proxy->setIsEnabled(false);\n    $this->assertFalse(\n      PhabricatorWebServerSetupCheck::shouldSkipAnonymousChecks(array($proxy)));\n  }\n\n",
           "parent": ""
         }
       ]
