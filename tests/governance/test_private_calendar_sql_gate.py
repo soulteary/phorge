@@ -297,6 +297,9 @@ class CalendarWireSourceProvenanceTests(CalendarTaskCase):
                 dest = root / name
                 dest.parent.mkdir(parents=True, exist_ok=True)
                 raw = (ROOT / name).read_bytes()
+                if name in {'src/applications/metamta/storage/PhabricatorMetaMTAMail.php', 'src/infrastructure/governance/notification/PhorgePrivateMailPolicy.php'}:
+                    raw = self.calendar.context.parent(name)
+                    self.assertEqual(hashlib.sha256(raw).hexdigest(), self.calendar.gate.SOURCE_INPUTS[name])
                 if name == path:
                     # Build the historical fixture from its actual immutable Git
                     # object, never by admitting an incomplete current root.
