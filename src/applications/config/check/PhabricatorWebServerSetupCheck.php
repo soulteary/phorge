@@ -6,6 +6,18 @@ final class PhabricatorWebServerSetupCheck extends PhabricatorSetupCheck {
     return self::GROUP_OTHER;
   }
 
+  public static function shouldSkipAnonymousChecks(array $configs) {
+    foreach ($configs as $config) {
+      if ($config->getIsEnabled() &&
+          $config->getProviderClass() === 'PhabricatorTraefikAuthProvider') {
+        // Stargate/ForwardAuth intentionally redirects anonymous requests.
+        // This is not evidence that the webserver rewrites or gzip are broken.
+        return true;
+      }
+    }
+    return false;
+  }
+
   protected function executeChecks() {
     // The documentation says these headers exist, but it's not clear if they
     // are entirely reliable in practice.
@@ -42,28 +54,38 @@ final class PhabricatorWebServerSetupCheck extends PhabricatorSetupCheck {
       ->setPath($send_path)
       ->replaceQueryParam($expect_key, $expect_value);
 
-    $self_future = id(new HTTPSFuture($base_uri))
-      ->addHeader('X-Setup-SelfCheck', '1')
-      ->addHeader('Accept-Encoding', 'gzip')
-      ->setDisableContentDecoding(true)
-      ->setHTTPBasicAuthCredentials(
-        $expect_user,
-        new PhutilOpaqueEnvelope($expect_pass))
-      ->setTimeout(5);
-
-    if (AphrontRequestStream::supportsGzip()) {
-      $gzip_uncompressed = str_repeat('Quack! ', 128);
-      $gzip_compressed = gzencode($gzip_uncompressed);
-
-      $gzip_future = id(new HTTPSFuture($base_uri))
+    // Read persisted provider configuration without constructing adapters: setup
+    // checks may run before redirect/login URI configuration is complete.
+    $configs = id(new PhabricatorAuthProviderConfigQuery())
+      ->setViewer(PhabricatorUser::getOmnipotentUser())
+      ->execute();
+    $skip_anonymous = self::shouldSkipAnonymousChecks($configs);
+    $self_future = null;
+    $gzip_future = null;
+    if (!$skip_anonymous) {
+      $self_future = id(new HTTPSFuture($base_uri))
         ->addHeader('X-Setup-SelfCheck', '1')
-        ->addHeader('Content-Encoding', 'gzip')
-        ->setMethod('POST')
-        ->setTimeout(5)
-        ->setData($gzip_compressed);
+        ->addHeader('Accept-Encoding', 'gzip')
+        ->setDisableContentDecoding(true)
+        ->setHTTPBasicAuthCredentials(
+          $expect_user,
+          new PhutilOpaqueEnvelope($expect_pass))
+        ->setTimeout(5);
 
-    } else {
-      $gzip_future = null;
+      if (AphrontRequestStream::supportsGzip()) {
+        $gzip_uncompressed = str_repeat('Quack! ', 128);
+        $gzip_compressed = gzencode($gzip_uncompressed);
+
+        $gzip_future = id(new HTTPSFuture($base_uri))
+          ->addHeader('X-Setup-SelfCheck', '1')
+          ->addHeader('Content-Encoding', 'gzip')
+          ->setMethod('POST')
+          ->setTimeout(5)
+          ->setData($gzip_compressed);
+
+      } else {
+        $gzip_future = null;
+      }
     }
 
     // Make a request to the metadata service available on EC2 instances,
@@ -73,10 +95,10 @@ final class PhabricatorWebServerSetupCheck extends PhabricatorSetupCheck {
     $ec2_future = id(new HTTPSFuture($ec2_uri))
       ->setTimeout(1);
 
-    $futures = array(
-      $self_future,
-      $ec2_future,
-    );
+    $futures = array($ec2_future);
+    if ($self_future) {
+      $futures[] = $self_future;
+    }
 
     if ($gzip_future) {
       $futures[] = $gzip_future;
@@ -109,6 +131,10 @@ final class PhabricatorWebServerSetupCheck extends PhabricatorSetupCheck {
       }
     } catch (Exception $ex) {
       // If this fails, just continue. We're probably not running in EC2.
+    }
+
+    if ($skip_anonymous) {
+      return;
     }
 
     try {

@@ -119,7 +119,9 @@ class DeclaredSourceInventory(unittest.TestCase):
             'docs/operations/upgrade-and-rollback.md',
             'scripts/operations/upgrade_check.py',
             'tests/operations/test_upgrade_check.py',
-            'scripts/operations/README.upgrade-check.md'}
+            'scripts/operations/README.upgrade-check.md',
+            'tests/operations/webserver_selfcheck_fixture.php',
+            'tests/operations/test_webserver_selfcheck.py'}
   self.assertTrue(reviewed<=module.CI_V2_NEW_PATHS)
   for rows in [current|{'tests/contract/runtime/unreviewed.php'}]+[current-{p}for p in reviewed]:
    with self.assertRaises(ValueError):check(rows)
@@ -135,9 +137,9 @@ class ReleaseHistoryLiteralData(unittest.TestCase):
   spec=importlib.util.spec_from_file_location('unchanged_Task_reducer_DATA',path)
   cls.delta=importlib.util.module_from_spec(spec);spec.loader.exec_module(cls.delta)
  def test_all_21_current_payloads_roundtrip_and_original_parent_pins_still_match(self):
-  # Retain the original 21 targets and exactly two reviewed caller inputs.
-  self.assertEqual(len(self.doc['files']),23)
-  extra={'support/governance/recovery/native-writer-rr-ci-profile.php', 'tests/governance/test_native_rr_ci_anchor.py'}
+  # Retain the original 21 targets and the reviewed caller and self-check inputs.
+  self.assertEqual(len(self.doc['files']),25)
+  extra={'support/governance/recovery/native-writer-rr-ci-profile.php', 'tests/governance/test_native_rr_ci_anchor.py', 'src/applications/config/check/PhabricatorWebServerSetupCheck.php', 'src/applications/config/check/__tests__/PhabricatorSetupCheckTestCase.php'}
   self.assertTrue(extra <= set(self.doc['files']))
   self.assertEqual(hashlib.sha256(json.dumps(sorted(set(self.doc['files'])-extra),separators=(',',':')).encode()).hexdigest(),'2fc0c75cbf1640a24ee30a9c241d2636d555f9b64fa891df2df9cc2bfd1be38c')
   parent=json.loads((ROOT/self.scope.BASELINE).read_bytes())['entries']
