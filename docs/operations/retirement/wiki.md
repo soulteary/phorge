@@ -116,3 +116,9 @@ repeated upgrade with populated historical Wiki tables, and upgrade after a
 logical restore. The document, content and audit rows remained byte-identical.
 The retirement native runner passed 66 methods, including the closed table
 manifest, rejection of unknown Wiki tables and active-schema precedence.
+
+A real CLI negative check also created one unknown table in the disposable
+retired Wiki database. Ordinary `storage upgrade` reported that table as
+surplus and returned 2. Removing that test-only table restored exit 0, with
+all historical sample rows unchanged. The planner now propagates unknown
+table errors even when the retired database has no current SchemaSpec.

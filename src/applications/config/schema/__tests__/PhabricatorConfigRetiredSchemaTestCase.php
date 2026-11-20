@@ -117,6 +117,11 @@ final class PhabricatorConfigRetiredSchemaTestCase extends PhabricatorTestCase {
     $this->assertTrue($database->getIsRetained());
     $this->assertEqual(array(), $comp->getAllIssues());
     $this->assertEqual(10, $comp->getRetainedTableCount());
+    $planner = new ReflectionMethod(
+      PhabricatorStorageManagementWorkflow::class, 'planSchemaAdjustments');
+    $this->assertEqual(array(array(), array()), $planner->invoke(
+      new PhabricatorStorageManagementUpgradeWorkflow(), $comp,
+      $this->newServer(), $this->newServer()->addDatabase($observed)));
     $this->assertFalse($observed->getIsRetained());
     $this->assertFalse(PhabricatorConfigRetiredSchema::isRetiredDatabase(
       'another_phriction', 'current'));
@@ -130,6 +135,17 @@ final class PhabricatorConfigRetiredSchemaTestCase extends PhabricatorTestCase {
       $this->newServer()->addDatabase($observed));
     $database = $comp->getDatabase($observed->getName());
     $this->assertEqual(1, $comp->getRetainedTableCount());
+    $planner = new ReflectionMethod(
+      PhabricatorStorageManagementWorkflow::class, 'planSchemaAdjustments');
+    list($adjustments, $errors) = $planner->invoke(
+      new PhabricatorStorageManagementUpgradeWorkflow(), $comp,
+      $this->newServer(), $this->newServer()->addDatabase($observed));
+    $this->assertEqual(array(), $adjustments);
+    $this->assertEqual(array(array(
+      'database' => $observed->getName(),
+      'table' => 'phriction_unreviewed',
+      'issue' => PhabricatorConfigStorageSchema::ISSUE_SURPLUS,
+    )), $errors);
     $this->assertTrue($database->getTable('phriction_unreviewed')->hasIssue(
       PhabricatorConfigStorageSchema::ISSUE_SURPLUS));
     $this->assertEqual(PhabricatorConfigStorageSchema::STATUS_FAIL,
