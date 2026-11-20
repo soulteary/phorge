@@ -6,7 +6,7 @@ stand in for another.
 ## Core development
 
 Pull requests and pushes to `main` run the core tier. The stable required context
-`Native packages (PHP 8.5.12)` must reach a terminal result from real core checks;
+`Native packages (PHP 8.5.13)` must reach a terminal result from real core checks;
 it must not wait for adapters which are disabled in native deployments. Core
 checks retain source identity, policy and security contracts, native runtime
 preparation, and the applicable Phorge/Gorge contracts. The existing runtime,
@@ -66,7 +66,7 @@ CI results describe those snapshots, not the current deployment.
 
 ## Supported baseline and retirement
 
-PHP 8.5.12 is the sole current production/CI baseline, with JIT disabled and a zero
+PHP 8.5.13 is the sole current production/CI baseline, with JIT disabled and a zero
 JIT buffer. Historical PHP 8.3/8.4 evidence remains archival. Production MySQL is
 8.4.13. MySQL 8.0 in `gorge-runtime-contracts.yml` is a test-only carrier for
 historical application-schema migration fixtures. Those tests provide no evidence

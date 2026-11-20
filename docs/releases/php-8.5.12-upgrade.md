@@ -1,5 +1,7 @@
 # PHP 8.5.12 production baseline
 
+> Historical record: PHP 8.5.12 is retired. Its results do not qualify the current release or an operational rollback. Use the current PHP 8.5.13 baseline and validate any rollback target against current security requirements.
+
 PHP 8.5 is the only supported minor branch. The minimum security release and
 the Docker/CI baseline are 8.5.12. Both native Web startup and CLI runtime
 bootstrap reject other branches and earlier 8.5 patches. Historical release
