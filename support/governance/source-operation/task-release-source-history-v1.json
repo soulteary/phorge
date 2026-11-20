@@ -3038,6 +3038,52 @@
           "parent": " p=argparse.ArgumentParser();p.add_argument('--output',required=True);a=p.parse_args();bind(a.output);print('{\"immutable_local_images_bound\":true}')\n"
         }
       ]
+    },
+    "docs/governance/batch-1-contracts.md": {
+      "current_bytes": 13282,
+      "current_sha256": "8f3138575d141ecdc67b38ffbd718d60c7986270acdcf0b9b04678df752fc5b6",
+      "target_bytes": 12884,
+      "target_sha256": "79a0154a598fbf36ed010b323fdfeab9bc870f73c624607b69ac7d04f2510e6e",
+      "edits": [
+        {
+          "offset": 40,
+          "current": "\nWiki has been retired from the current application. Wiki entries below describe the historical inventory, not available features or pending implementation. Their source links use the fixed pre-retirement commit `50c6205cc162aca6724b8ff45220a5a858dc5b39`. Historical documents, attachments and audit data remain retained.\n",
+          "parent": ""
+        },
+        {
+          "offset": 11127,
+          "current": "- `CONTENT.WIKI`: [src/applications/phriction/editor/PhrictionTransactionEditor.php](https://github.com/soulteary/phorge/blob/50c6205cc162aca6724b8ff45220a5a858dc5b39/src/applications/phriction/editor/PhrictionTransactionEditor.php), symbol `PhrictionTransactionEditor`; wiki transaction mapping candidate, hierarchy needs audit. Static reference only; partial and activation blocked.\n",
+          "parent": "- `CONTENT.WIKI`: [src/applications/phriction/editor/PhrictionTransactionEditor.php](../../src/applications/phriction/editor/PhrictionTransactionEditor.php), symbol `PhrictionTransactionEditor`; wiki transaction mapping candidate, hierarchy needs audit. Static reference only; partial and activation blocked.\n"
+        }
+      ]
+    },
+    "docs/governance/batch-2-callers.md": {
+      "current_bytes": 25294,
+      "current_sha256": "7135a0beeb843d0e5c186d68c448127d89d19a766a2a47ec3c1c69560e0f6ce1",
+      "target_bytes": 24218,
+      "target_sha256": "780da4772d24f290dc9fc736cc92462c069e57a28cab5db0495380fc96a15dde",
+      "edits": [
+        {
+          "offset": 47,
+          "current": "\nWiki has been retired from the current application. Wiki entries below describe the historical inventory, not available features or pending implementation. Their source links use the fixed pre-retirement commit `50c6205cc162aca6724b8ff45220a5a858dc5b39`. Historical documents, attachments and audit data remain retained.\n",
+          "parent": ""
+        },
+        {
+          "offset": 1305,
+          "current": "- `PhrictionEditEngineController` is comments-only in this baseline. Wiki body edit had a legacy web controller and legacy API; a single edit-engine route is not complete Wiki coverage.\n",
+          "parent": "- `PhrictionEditEngineController` is comments-only in this baseline. Wiki body edit still has a legacy web controller and legacy API; a single edit-engine route is not complete Wiki coverage.\n"
+        },
+        {
+          "offset": 8096,
+          "current": "- `WIKI.EDIT.WEB.LEGACY`: [src/applications/phriction/controller/PhrictionEditController.php](https://github.com/soulteary/phorge/blob/50c6205cc162aca6724b8ff45220a5a858dc5b39/src/applications/phriction/controller/PhrictionEditController.php), `PhrictionEditController::handleRequest`; kind=web; partial/static-reference-only.\n- `WIKI.COMMENT.ENGINE`: [src/applications/phriction/controller/PhrictionEditEngineController.php](https://github.com/soulteary/phorge/blob/50c6205cc162aca6724b8ff45220a5a858dc5b39/src/applications/phriction/controller/PhrictionEditEngineController.php), `PhrictionEditEngineController::handleRequest`; kind=comments-only-web; partial/static-reference-only.\n- `WIKI.EDIT.ENGINE`: [src/applications/phriction/editor/PhrictionDocumentEditEngine.php](https://github.com/soulteary/phorge/blob/50c6205cc162aca6724b8ff45220a5a858dc5b39/src/applications/phriction/editor/PhrictionDocumentEditEngine.php), `PhrictionDocumentEditEngine`; kind=engine; partial/static-reference-only.\n- `WIKI.EDIT.EDITOR`: [src/applications/phriction/editor/PhrictionTransactionEditor.php](https://github.com/soulteary/phorge/blob/50c6205cc162aca6724b8ff45220a5a858dc5b39/src/applications/phriction/editor/PhrictionTransactionEditor.php), `PhrictionTransactionEditor`; kind=transaction-editor; partial/static-reference-only.\n- `WIKI.EDIT.CONDUIT`: [src/applications/phriction/conduit/PhrictionDocumentEditConduitAPIMethod.php](https://github.com/soulteary/phorge/blob/50c6205cc162aca6724b8ff45220a5a858dc5b39/src/applications/phriction/conduit/PhrictionDocumentEditConduitAPIMethod.php), `PhrictionDocumentEditConduitAPIMethod::newEditEngine`; kind=API; partial/static-reference-only.\n- `WIKI.EDIT.CONDUIT.LEGACY`: [src/applications/phriction/conduit/PhrictionEditConduitAPIMethod.php](https://github.com/soulteary/phorge/blob/50c6205cc162aca6724b8ff45220a5a858dc5b39/src/applications/phriction/conduit/PhrictionEditConduitAPIMethod.php), `PhrictionEditConduitAPIMethod`; kind=legacy-API; partial/static-reference-only.\n- `WIKI.CREATE.CONDUIT.LEGACY`: [src/applications/phriction/conduit/PhrictionCreateConduitAPIMethod.php](https://github.com/soulteary/phorge/blob/50c6205cc162aca6724b8ff45220a5a858dc5b39/src/applications/phriction/conduit/PhrictionCreateConduitAPIMethod.php), `PhrictionCreateConduitAPIMethod`; kind=legacy-API; partial/static-reference-only.\n- `WIKI.TITLE.MODULAR`: [src/applications/phriction/xaction/PhrictionDocumentTitleTransaction.php](https://github.com/soulteary/phorge/blob/50c6205cc162aca6724b8ff45220a5a858dc5b39/src/applications/phriction/xaction/PhrictionDocumentTitleTransaction.php), `PhrictionDocumentTitleTransaction`; kind=modular-type; partial/static-reference-only.\n- `WIKI.CONTENT.MODULAR`: [src/applications/phriction/xaction/PhrictionDocumentContentTransaction.php](https://github.com/soulteary/phorge/blob/50c6205cc162aca6724b8ff45220a5a858dc5b39/src/applications/phriction/xaction/PhrictionDocumentContentTransaction.php), `PhrictionDocumentContentTransaction`; kind=modular-type; partial/static-reference-only.\n",
+          "parent": "- `WIKI.EDIT.WEB.LEGACY`: [src/applications/phriction/controller/PhrictionEditController.php](../../src/applications/phriction/controller/PhrictionEditController.php), `PhrictionEditController::handleRequest`; kind=web; partial/static-reference-only.\n- `WIKI.COMMENT.ENGINE`: [src/applications/phriction/controller/PhrictionEditEngineController.php](../../src/applications/phriction/controller/PhrictionEditEngineController.php), `PhrictionEditEngineController::handleRequest`; kind=comments-only-web; partial/static-reference-only.\n- `WIKI.EDIT.ENGINE`: [src/applications/phriction/editor/PhrictionDocumentEditEngine.php](../../src/applications/phriction/editor/PhrictionDocumentEditEngine.php), `PhrictionDocumentEditEngine`; kind=engine; partial/static-reference-only.\n- `WIKI.EDIT.EDITOR`: [src/applications/phriction/editor/PhrictionTransactionEditor.php](../../src/applications/phriction/editor/PhrictionTransactionEditor.php), `PhrictionTransactionEditor`; kind=transaction-editor; partial/static-reference-only.\n- `WIKI.EDIT.CONDUIT`: [src/applications/phriction/conduit/PhrictionDocumentEditConduitAPIMethod.php](../../src/applications/phriction/conduit/PhrictionDocumentEditConduitAPIMethod.php), `PhrictionDocumentEditConduitAPIMethod::newEditEngine`; kind=API; partial/static-reference-only.\n- `WIKI.EDIT.CONDUIT.LEGACY`: [src/applications/phriction/conduit/PhrictionEditConduitAPIMethod.php](../../src/applications/phriction/conduit/PhrictionEditConduitAPIMethod.php), `PhrictionEditConduitAPIMethod`; kind=legacy-API; partial/static-reference-only.\n- `WIKI.CREATE.CONDUIT.LEGACY`: [src/applications/phriction/conduit/PhrictionCreateConduitAPIMethod.php](../../src/applications/phriction/conduit/PhrictionCreateConduitAPIMethod.php), `PhrictionCreateConduitAPIMethod`; kind=legacy-API; partial/static-reference-only.\n- `WIKI.TITLE.MODULAR`: [src/applications/phriction/xaction/PhrictionDocumentTitleTransaction.php](../../src/applications/phriction/xaction/PhrictionDocumentTitleTransaction.php), `PhrictionDocumentTitleTransaction`; kind=modular-type; partial/static-reference-only.\n- `WIKI.CONTENT.MODULAR`: [src/applications/phriction/xaction/PhrictionDocumentContentTransaction.php](../../src/applications/phriction/xaction/PhrictionDocumentContentTransaction.php), `PhrictionDocumentContentTransaction`; kind=modular-type; partial/static-reference-only.\n"
+        },
+        {
+          "offset": 24327,
+          "current": "- `WIKI.POLICY.SOURCE`: [src/applications/phriction/storage/PhrictionDocument.php](https://github.com/soulteary/phorge/blob/50c6205cc162aca6724b8ff45220a5a858dc5b39/src/applications/phriction/storage/PhrictionDocument.php), `PhrictionDocument`; partial/static reference only.\n",
+          "parent": "- `WIKI.POLICY.SOURCE`: [src/applications/phriction/storage/PhrictionDocument.php](../../src/applications/phriction/storage/PhrictionDocument.php), `PhrictionDocument`; partial/static reference only.\n"
+        }
+      ]
     }
   }
 }

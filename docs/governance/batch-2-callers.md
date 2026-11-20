@@ -1,5 +1,7 @@
 # Batch 2: partial source and caller inventory
 
+Wiki has been retired from the current application. Wiki entries below describe the historical inventory, not available features or pending implementation. Their source links use the fixed pre-retirement commit `50c6205cc162aca6724b8ff45220a5a858dc5b39`. Historical documents, attachments and audit data remain retained.
+
 Baseline: `4f36f58a5ed658c7d39bf0a58e67f5be5ca2fb0b`. Selected ADR v1.2 branches are pinned. All runtime activation remains blocked. This inventory adds a conservative drift alarm and explicit graph, not native behavioral certification.
 
 ## Stable contracts
@@ -12,7 +14,7 @@ Read-set categories: `app.capability`, `auth.session`, `org.appointment`, `org.m
 
 ## Important source distinctions
 
-- `PhrictionEditEngineController` is comments-only in this baseline. Wiki body edit still has a legacy web controller and legacy API; a single edit-engine route is not complete Wiki coverage.
+- `PhrictionEditEngineController` is comments-only in this baseline. Wiki body edit had a legacy web controller and legacy API; a single edit-engine route is not complete Wiki coverage.
 - `PhorgeProjectLegacyMembersTransaction` is historical rendering, not proof of a current membership write route.
 - Project forward and inverse edges reference each other; every external edge caller is not yet certified.
 - Generic shared editor combines builtin policy/edge branches with modular transaction type dispatch. A file list alone does not prove all per-object policy checks.
@@ -43,15 +45,15 @@ Read-set categories: `app.capability`, `auth.session`, `org.appointment`, `org.m
 - `TASK.BULK.ENGINE`: [src/applications/maniphest/bulk/ManiphestTaskBulkEngine.php](../../src/applications/maniphest/bulk/ManiphestTaskBulkEngine.php), `ManiphestTaskBulkEngine::newEditEngine`; kind=bulk-engine; partial/static-reference-only.
 - `TASK.TITLE.MODULAR`: [src/applications/maniphest/xaction/ManiphestTaskTitleTransaction.php](../../src/applications/maniphest/xaction/ManiphestTaskTitleTransaction.php), `ManiphestTaskTitleTransaction`; kind=modular-type; partial/static-reference-only.
 - `TASK.DESCRIPTION.MODULAR`: [src/applications/maniphest/xaction/ManiphestTaskDescriptionTransaction.php](../../src/applications/maniphest/xaction/ManiphestTaskDescriptionTransaction.php), `ManiphestTaskDescriptionTransaction`; kind=modular-type; partial/static-reference-only.
-- `WIKI.EDIT.WEB.LEGACY`: [src/applications/phriction/controller/PhrictionEditController.php](../../src/applications/phriction/controller/PhrictionEditController.php), `PhrictionEditController::handleRequest`; kind=web; partial/static-reference-only.
-- `WIKI.COMMENT.ENGINE`: [src/applications/phriction/controller/PhrictionEditEngineController.php](../../src/applications/phriction/controller/PhrictionEditEngineController.php), `PhrictionEditEngineController::handleRequest`; kind=comments-only-web; partial/static-reference-only.
-- `WIKI.EDIT.ENGINE`: [src/applications/phriction/editor/PhrictionDocumentEditEngine.php](../../src/applications/phriction/editor/PhrictionDocumentEditEngine.php), `PhrictionDocumentEditEngine`; kind=engine; partial/static-reference-only.
-- `WIKI.EDIT.EDITOR`: [src/applications/phriction/editor/PhrictionTransactionEditor.php](../../src/applications/phriction/editor/PhrictionTransactionEditor.php), `PhrictionTransactionEditor`; kind=transaction-editor; partial/static-reference-only.
-- `WIKI.EDIT.CONDUIT`: [src/applications/phriction/conduit/PhrictionDocumentEditConduitAPIMethod.php](../../src/applications/phriction/conduit/PhrictionDocumentEditConduitAPIMethod.php), `PhrictionDocumentEditConduitAPIMethod::newEditEngine`; kind=API; partial/static-reference-only.
-- `WIKI.EDIT.CONDUIT.LEGACY`: [src/applications/phriction/conduit/PhrictionEditConduitAPIMethod.php](../../src/applications/phriction/conduit/PhrictionEditConduitAPIMethod.php), `PhrictionEditConduitAPIMethod`; kind=legacy-API; partial/static-reference-only.
-- `WIKI.CREATE.CONDUIT.LEGACY`: [src/applications/phriction/conduit/PhrictionCreateConduitAPIMethod.php](../../src/applications/phriction/conduit/PhrictionCreateConduitAPIMethod.php), `PhrictionCreateConduitAPIMethod`; kind=legacy-API; partial/static-reference-only.
-- `WIKI.TITLE.MODULAR`: [src/applications/phriction/xaction/PhrictionDocumentTitleTransaction.php](../../src/applications/phriction/xaction/PhrictionDocumentTitleTransaction.php), `PhrictionDocumentTitleTransaction`; kind=modular-type; partial/static-reference-only.
-- `WIKI.CONTENT.MODULAR`: [src/applications/phriction/xaction/PhrictionDocumentContentTransaction.php](../../src/applications/phriction/xaction/PhrictionDocumentContentTransaction.php), `PhrictionDocumentContentTransaction`; kind=modular-type; partial/static-reference-only.
+- `WIKI.EDIT.WEB.LEGACY`: [src/applications/phriction/controller/PhrictionEditController.php](https://github.com/soulteary/phorge/blob/50c6205cc162aca6724b8ff45220a5a858dc5b39/src/applications/phriction/controller/PhrictionEditController.php), `PhrictionEditController::handleRequest`; kind=web; partial/static-reference-only.
+- `WIKI.COMMENT.ENGINE`: [src/applications/phriction/controller/PhrictionEditEngineController.php](https://github.com/soulteary/phorge/blob/50c6205cc162aca6724b8ff45220a5a858dc5b39/src/applications/phriction/controller/PhrictionEditEngineController.php), `PhrictionEditEngineController::handleRequest`; kind=comments-only-web; partial/static-reference-only.
+- `WIKI.EDIT.ENGINE`: [src/applications/phriction/editor/PhrictionDocumentEditEngine.php](https://github.com/soulteary/phorge/blob/50c6205cc162aca6724b8ff45220a5a858dc5b39/src/applications/phriction/editor/PhrictionDocumentEditEngine.php), `PhrictionDocumentEditEngine`; kind=engine; partial/static-reference-only.
+- `WIKI.EDIT.EDITOR`: [src/applications/phriction/editor/PhrictionTransactionEditor.php](https://github.com/soulteary/phorge/blob/50c6205cc162aca6724b8ff45220a5a858dc5b39/src/applications/phriction/editor/PhrictionTransactionEditor.php), `PhrictionTransactionEditor`; kind=transaction-editor; partial/static-reference-only.
+- `WIKI.EDIT.CONDUIT`: [src/applications/phriction/conduit/PhrictionDocumentEditConduitAPIMethod.php](https://github.com/soulteary/phorge/blob/50c6205cc162aca6724b8ff45220a5a858dc5b39/src/applications/phriction/conduit/PhrictionDocumentEditConduitAPIMethod.php), `PhrictionDocumentEditConduitAPIMethod::newEditEngine`; kind=API; partial/static-reference-only.
+- `WIKI.EDIT.CONDUIT.LEGACY`: [src/applications/phriction/conduit/PhrictionEditConduitAPIMethod.php](https://github.com/soulteary/phorge/blob/50c6205cc162aca6724b8ff45220a5a858dc5b39/src/applications/phriction/conduit/PhrictionEditConduitAPIMethod.php), `PhrictionEditConduitAPIMethod`; kind=legacy-API; partial/static-reference-only.
+- `WIKI.CREATE.CONDUIT.LEGACY`: [src/applications/phriction/conduit/PhrictionCreateConduitAPIMethod.php](https://github.com/soulteary/phorge/blob/50c6205cc162aca6724b8ff45220a5a858dc5b39/src/applications/phriction/conduit/PhrictionCreateConduitAPIMethod.php), `PhrictionCreateConduitAPIMethod`; kind=legacy-API; partial/static-reference-only.
+- `WIKI.TITLE.MODULAR`: [src/applications/phriction/xaction/PhrictionDocumentTitleTransaction.php](https://github.com/soulteary/phorge/blob/50c6205cc162aca6724b8ff45220a5a858dc5b39/src/applications/phriction/xaction/PhrictionDocumentTitleTransaction.php), `PhrictionDocumentTitleTransaction`; kind=modular-type; partial/static-reference-only.
+- `WIKI.CONTENT.MODULAR`: [src/applications/phriction/xaction/PhrictionDocumentContentTransaction.php](https://github.com/soulteary/phorge/blob/50c6205cc162aca6724b8ff45220a5a858dc5b39/src/applications/phriction/xaction/PhrictionDocumentContentTransaction.php), `PhrictionDocumentContentTransaction`; kind=modular-type; partial/static-reference-only.
 - `ACCOUNT.ENABLE.WEB`: [src/applications/people/controller/PhabricatorPeopleDisableController.php](../../src/applications/people/controller/PhabricatorPeopleDisableController.php), `PhabricatorPeopleDisableController::handleRequest`; kind=web; partial/static-reference-only.
 - `ACCOUNT.ENABLE.API`: [src/applications/people/conduit/UserEditConduitAPIMethod.php](../../src/applications/people/conduit/UserEditConduitAPIMethod.php), `UserEditConduitAPIMethod::newEditEngine`; kind=API; partial/static-reference-only.
 - `ACCOUNT.ENABLE.CLI`: [src/applications/people/management/PhabricatorPeopleManagementEnableWorkflow.php](../../src/applications/people/management/PhabricatorPeopleManagementEnableWorkflow.php), `PhabricatorPeopleManagementEnableWorkflow::execute`; kind=CLI; partial/static-reference-only.
@@ -135,7 +137,7 @@ Run `python3 -m unittest discover -s tests/governance -p test_callers.py`. Tests
 
 - `PROJECT.DESCRIPTION.CUSTOMFIELD`: [src/applications/project/customfield/PhabricatorProjectDescriptionField.php](../../src/applications/project/customfield/PhabricatorProjectDescriptionField.php), `PhabricatorProjectDescriptionField::createFields`; partial/static reference only.
 - `TASK.POLICY.SOURCE`: [src/applications/maniphest/storage/ManiphestTask.php](../../src/applications/maniphest/storage/ManiphestTask.php), `ManiphestTask`; partial/static reference only.
-- `WIKI.POLICY.SOURCE`: [src/applications/phriction/storage/PhrictionDocument.php](../../src/applications/phriction/storage/PhrictionDocument.php), `PhrictionDocument`; partial/static reference only.
+- `WIKI.POLICY.SOURCE`: [src/applications/phriction/storage/PhrictionDocument.php](https://github.com/soulteary/phorge/blob/50c6205cc162aca6724b8ff45220a5a858dc5b39/src/applications/phriction/storage/PhrictionDocument.php), `PhrictionDocument`; partial/static reference only.
 
 The engine custom-field link and task/wiki object policy sources are explicit review anchors; they do not certify automatic-capability behavior. Generated scan/triage rows are compact for review; no evidence fields are removed.
 

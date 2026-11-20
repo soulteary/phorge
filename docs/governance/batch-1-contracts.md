@@ -1,5 +1,7 @@
 # Batch 1 isolated governance contracts
 
+Wiki has been retired from the current application. Wiki entries below describe the historical inventory, not available features or pending implementation. Their source links use the fixed pre-retirement commit `50c6205cc162aca6724b8ff45220a5a858dc5b39`. Historical documents, attachments and audit data remain retained.
+
 This inventory records the user-selected ADR v1.2 design. It does not activate or certify any permission, route, schema patch, media credential, account recovery gate, or production application.
 
 ## Stable interfaces
@@ -66,7 +68,7 @@ V03-A recovery must include application sessions, API and media credentials; uns
 - `MAIL.ADAPTER`: [src/applications/metamta/adapter/PhabricatorMailGorgeAdapter.php](../../src/applications/metamta/adapter/PhabricatorMailGorgeAdapter.php), symbol `PhabricatorMailGorgeAdapter`; Gorge transport boundary; not all producers. Static reference only; partial and activation blocked.
 - `MAIL.HERALD`: [src/applications/metamta/herald/PhabricatorMailOutboundMailHeraldAdapter.php](../../src/applications/metamta/herald/PhabricatorMailOutboundMailHeraldAdapter.php), symbol `PhabricatorMailOutboundMailHeraldAdapter`; outbound Herald modifications. Static reference only; partial and activation blocked.
 - `CONTENT.TASK`: [src/applications/maniphest/editor/ManiphestEditEngine.php](../../src/applications/maniphest/editor/ManiphestEditEngine.php), symbol `ManiphestEditEngine`; task field mapping candidate, automatic capabilities need audit. Static reference only; partial and activation blocked.
-- `CONTENT.WIKI`: [src/applications/phriction/editor/PhrictionTransactionEditor.php](../../src/applications/phriction/editor/PhrictionTransactionEditor.php), symbol `PhrictionTransactionEditor`; wiki transaction mapping candidate, hierarchy needs audit. Static reference only; partial and activation blocked.
+- `CONTENT.WIKI`: [src/applications/phriction/editor/PhrictionTransactionEditor.php](https://github.com/soulteary/phorge/blob/50c6205cc162aca6724b8ff45220a5a858dc5b39/src/applications/phriction/editor/PhrictionTransactionEditor.php), symbol `PhrictionTransactionEditor`; wiki transaction mapping candidate, hierarchy needs audit. Static reference only; partial and activation blocked.
 
 ## Unverified scope
 
