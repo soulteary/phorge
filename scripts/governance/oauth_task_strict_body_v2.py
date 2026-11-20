@@ -27,7 +27,7 @@ def native_pair_parent_DATA(raw,expected_parent_sha):
  try:
   if stamp(os.fstat(fd))!=stamp(before):raise ValueError('current_native_pair_helper_refused')
   helper=os.read(fd,4097)
-  if len(helper)!=before.st_size or stamp(os.fstat(fd))!=stamp(before)or stamp(path.lstat())!=stamp(before)or hashlib.sha256(helper).hexdigest()!='aff2a7fba2bc05b0c6acb0a3e6144a06f69a5ff87f8c88fc7593518ed319e032':raise ValueError('current_native_pair_helper_refused')
+  if len(helper)!=before.st_size or stamp(os.fstat(fd))!=stamp(before)or stamp(path.lstat())!=stamp(before)or hashlib.sha256(helper).hexdigest()!='1c6819778c80599aad955a2c0861c82e8683c70aaee32a01e50d138ad9b967dd':raise ValueError('current_native_pair_helper_refused')
  finally:os.close(fd)
  namespace={'__file__':str(path),'__name__':'CURRENT_native_pair_metadata_DATA'}
  exec(compile(helper,str(path),'exec'),namespace)

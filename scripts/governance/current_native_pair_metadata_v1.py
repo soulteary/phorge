@@ -19,3 +19,15 @@ def parent_DATA(raw,expected_parent_sha):
  prior=raw.replace(CURRENT_LITERAL,PARENT_LITERAL,1)
  if len(prior)!=RESTORED_BYTES or hashlib.sha256(prior).hexdigest()!=PARENT_SHA:raise ValueError('current_native_pair_metadata_refused')
  return prior
+
+def current_DATA(parent):
+ if type(parent)is not bytes or len(parent)!=RESTORED_BYTES or hashlib.sha256(parent).hexdigest()!=PARENT_SHA:raise ValueError('current_native_pair_metadata_refused')
+ restored=parent.replace(PARENT_LITERAL,CURRENT_LITERAL,1)
+ parts=[];cursor=delta=0
+ for offset,now,previous in RETIREMENT_EDITS:
+  now=now.encode();previous=previous.encode();start=offset+delta
+  if restored[start:start+len(previous)]!=previous:raise ValueError('current_native_retirement_refused')
+  parts.extend((restored[cursor:start],now));cursor=start+len(previous);delta+=len(previous)-len(now)
+ current=b''.join(parts)+restored[cursor:]
+ if len(current)!=BYTES or hashlib.sha256(current).hexdigest()!=CURRENT_SHA:raise ValueError('current_native_pair_metadata_refused')
+ return current
