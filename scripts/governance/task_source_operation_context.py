@@ -417,6 +417,54 @@ def directory_product_cohort(current,raw):
  need(type(current)is dict and set(current)==DIRECTORY_PRODUCT_PATHS)
  return {name:directory_product_inverse(name,current[name],raw)for name in sorted(DIRECTORY_PRODUCT_PATHS)}
 
+# Exact project-handoff compatibility DATA. This grants no source permit;
+# CURRENT code still requires the unchanged project signature and whole-tree
+# capture. Historical strings are only compared/reconstructed, never executed.
+HANDOFF_HISTORY='support/governance/source-operation/project-handoff-inverse-v1.json'
+HANDOFF_HISTORY_SHA='479c6be4caaaa642e5143d3b4cadadeef5ff4bc79e323237c9825bdae6a85ba2'
+HANDOFF_HISTORY_BYTES=28839
+HANDOFF_PATHS=frozenset(('.github/workflows/atomic-feature-regressions.yml', 'docs/governance/batch-2-callers.json', 'docs/governance/private-notification-producers.json', 'scripts/governance/check_native_directory_task_source_v2.py', 'src/__phutil_library_map__.php', 'src/applications/conduit/controller/PhabricatorConduitAPIController.php', 'src/applications/project/application/PhabricatorProjectApplication.php', 'src/applications/project/controller/PhabricatorProjectManageController.php', 'src/applications/project/editor/PhabricatorProjectTransactionEditor.php', 'src/infrastructure/internationalization/translation/PhabricatorChineseTranslation.php', 'tests/governance/test_directory_product_source_cohort.py', 'tests/governance/test_native_directory_task_static_v2.py'))
+HANDOFF_NEW_PINS={'docs/governance/project-permission-handoff.md': {'bytes': 4790, 'sha256': '9a8da50bd6a7dc1c75239e0a9548267dfa6f2db7d16bfa7d819375b41b12f446', 'mode': 420}, 'src/applications/project/__tests__/PhorgeProjectHandoffRequestTestCase.php': {'bytes': 2791, 'sha256': '3c313c1207cf2d07b538246f757d7d7474685e90ce174b5859f026e549039ab8', 'mode': 420}, 'src/applications/project/conduit/ProjectHandoffConduitAPIMethod.php': {'bytes': 1203, 'sha256': '6cc137b1f7dc9d29417bc4949e5a0ba3c7dd53377823df65587d2133f5d8446c', 'mode': 420}, 'src/applications/project/controller/PhorgeProjectHandoffController.php': {'bytes': 4782, 'sha256': '8615fe8a70808bc66872f9bbbcaafc09aa9397226f3df323f7c3d9d9fd3160fb', 'mode': 420}, 'src/applications/project/handoff/PhorgeProjectHandoffConfigOptions.php': {'bytes': 779, 'sha256': 'ecc3acb0eebf850006b6bb8c6b634cb72dc130406ae4a1ca6016553ebf0e57a2', 'mode': 420}, 'src/applications/project/handoff/PhorgeProjectHandoffRequest.php': {'bytes': 1545, 'sha256': '09f191d0cb7870ead4798a21dcc4289015679997de449616c9b1e8d880a833ea', 'mode': 420}, 'src/applications/project/handoff/PhorgeProjectHandoffService.php': {'bytes': 21137, 'sha256': '0f817510665a61f793cb22faad749419fa3c01f1a4347345a0dfd25b52edb057', 'mode': 420}, 'src/applications/project/xaction/PhorgeProjectPermissionHandoffTransaction.php': {'bytes': 1384, 'sha256': '4858fd697afd2b6cbc34026787713ec1c13685e3b1b15605eca8b838d0186f43', 'mode': 420}, 'support/governance/native-organization/project-handoff-browser-fixture.php': {'bytes': 5288, 'sha256': '6cb58a759c8e6ca97828c43ae8e73494f62fad23dc34c65d60c033ee33c423af', 'mode': 420}, 'support/governance/native-organization/project-handoff-cases.php': {'bytes': 18444, 'sha256': '09eaeb186b8f3d0dbe5f7ff11f6a2e6483b603f7b66fae0aa99ddbc374ba72be', 'mode': 420}, 'support/governance/native-organization/project-handoff-http-router.php': {'bytes': 6602, 'sha256': '20553a51eb74ed43e5eb7d0e921d450cd2009487d3c5801104ba16849d1e7a99', 'mode': 420}, 'support/governance/native-organization/project-handoff-run.php': {'bytes': 11531, 'sha256': '3146cfd04409a57db40157a2af25377ecbba9fb844f116ed4d6f8dd2ce839aa8', 'mode': 420}, 'support/governance/source-operation/project-handoff-inverse-v1.json': {'bytes': 28839, 'sha256': '479c6be4caaaa642e5143d3b4cadadeef5ff4bc79e323237c9825bdae6a85ba2', 'mode': 420}, 'tests/governance/project_handoff/browser.cjs': {'bytes': 6209, 'sha256': '7cd872eddee86155a1d59575231c90264c754601b2f2951e35c890cc14b3ae56', 'mode': 420}, 'tests/governance/project_handoff/run.py': {'bytes': 9461, 'sha256': '10087722b7bc6a7f22dfc4f740f0c34edaf45adb7280df831c027a028183276c', 'mode': 420}, 'tests/governance/project_handoff/test_runner.py': {'bytes': 2913, 'sha256': 'a908b6d456bc0dbbbef69adc2e9bd7e74b66f2e68bcb236b2faa097573b0b350', 'mode': 420}, 'tests/governance/test_project_handoff_source_cohort.py': {'bytes': 2493, 'sha256': '44741adea9e681980e0a2a4e2d42a2183b7be2e4b53a21fe389c315c2e87cf34', 'mode': 420}}
+
+def handoff_history(raw):
+ need(type(raw)is bytes and len(raw)==HANDOFF_HISTORY_BYTES and sha(raw)==HANDOFF_HISTORY_SHA)
+ doc=decode(raw)
+ need(type(doc)is dict and set(doc)=={'schema','base_checkpoint','not_runtime_authority','files'})
+ need(doc['schema']=='project-handoff-source-inverse-v1'and doc['base_checkpoint']=='212eb2a65d12a0fc3d07edc3acff9077de3437d7'and doc['not_runtime_authority']is True)
+ need(type(doc['files'])is dict and set(doc['files'])==HANDOFF_PATHS)
+ for item in doc['files'].values():
+  need(type(item)is dict and set(item)=={'parent_bytes','parent_sha256','current_bytes','current_sha256','edits'})
+  need(type(item['edits'])is list and bool(item['edits']))
+  for edit in item['edits']:
+   need(type(edit)is dict and set(edit)=={'parent_offset','current_offset','parent','current'})
+   need(type(edit['parent_offset'])is int and edit['parent_offset']>=0 and type(edit['current_offset'])is int and edit['current_offset']>=0)
+   need(type(edit['parent'])is str and type(edit['current'])is str and edit['parent']!=edit['current'])
+ return doc
+
+def _handoff_apply(relative,value,raw,reverse):
+ doc=handoff_history(raw)
+ need(relative in HANDOFF_PATHS and type(value)is bytes)
+ item=doc['files'][relative];origin='current'if reverse else'parent';target='parent'if reverse else'current'
+ need(len(value)==item[origin+'_bytes']and sha(value)==item[origin+'_sha256'])
+ pieces=[];offset=0
+ for edit in item['edits']:
+  start=edit[origin+'_offset'];old=edit[origin].encode('utf-8');new=edit[target].encode('utf-8')
+  need(offset<=start<=len(value)and value[start:start+len(old)]==old)
+  pieces.extend((value[offset:start],new));offset=start+len(old)
+ pieces.append(value[offset:]);result=b''.join(pieces)
+ need(len(result)==item[target+'_bytes']and sha(result)==item[target+'_sha256']);return result
+
+def handoff_roundtrip(relative,parent,raw):
+ return _handoff_apply(relative,parent,raw,False)
+
+def handoff_inverse(relative,current,raw):
+ parent=_handoff_apply(relative,current,raw,True)
+ need(handoff_roundtrip(relative,parent,raw)==current);return parent
+
+def handoff_cohort(current,raw):
+ need(type(current)is dict and set(current)==HANDOFF_PATHS)
+ return {name:handoff_inverse(name,current[name],raw)for name in sorted(HANDOFF_PATHS)}
+
 def git_tree(root,expected_checkpoint):
  need(type(expected_checkpoint)is str and re.fullmatch('[a-f0-9]{40}',expected_checkpoint)is not None)
  env={'PATH':'/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin','HOME':str(Path.home()),'LANG':'C','GIT_NO_REPLACE_OBJECTS':'1','GIT_OPTIONAL_LOCKS':'0'}
@@ -491,16 +539,19 @@ class TaskContext:
   need(sha(self.current_raw[CI_INVERSE])==CI_INVERSE_SHA)
   ci=decode(self.current_raw[CI_INVERSE]);need(set(ci)=={'schema','parent_revision','files'}and ci['schema']=='Task-CI-modified-parent5903-v1'and ci['parent_revision']=='5903d98b14926401f0be49cb0a9d6168026a2642')
   self.ci_inverse=ci['files'];need(set(self.ci_inverse)=={'tests/governance/test_recovery_spaces_source_gate.py', 'tests/governance/test_restore_current_schema_profile.py', 'tests/governance/test_recovery_borrowed_native_producer.py', 'tests/governance/test_application_config_atomic_ci.py', 'scripts/governance/check_native_organization.py', '.github/workflows/atomic-feature-regressions.yml', 'tests/atomic/test_current_pair_consumers.py', 'tests/governance/test_recovery_session_lease_ci.py', 'tests/governance/recovery_oauth_code_test_cohort.py', 'tests/governance/test_task_owner_atomic_ci.py', 'tests/governance/test_recovery_oauth_access_sql.py', 'src/applications/auth/__tests__/PhabricatorTraefikAuthProviderTestCase.php', 'deploy/acceptance/build-lock.json', 'tests/governance/test_recovery_oauth_authorization_coordination.py', 'support/governance/notification/wiki-render-service.php', 'tests/governance/test_private_calendar_sql_gate.py', 'tests/governance/test_notice_native_admin_wire_source.py', 'tests/governance/test_callers.py', 'tests/governance/test_n05_r3_historical_test_view.py', 'tests/governance/test_directory_transports_receipt_v1.py', 'tests/governance/test_recovery_session_lease_gate.py', 'tests/governance/test_recovery_conduit_participant.py', 'tests/governance/test_native_directory.py', 'tests/governance/test_media_fixture_contentgrant_migration.py', 'tests/governance/test_directory_terminal_failure_v1.py', 'tests/governance/test_directory_transport_failure_v1.py', 'tests/governance/test_organization_approval_workbench_atomic_ci.py', 'tests/governance/test_recovery_borrowed_wiring.py', 'tests/governance/test_project_content_grant_source_cohort.py', 'tests/governance/test_source_operation_snapshot.py', 'tests/governance/test_recovery_oauth_code_ci.py', '.github/workflows/private-mail-wire.yml', '.github/workflows/native-media-session-positive-sql.yml', 'tests/governance/test_project_content_grant_ci_runtime.py', 'tests/governance/test_recovery_assessment_current.py', 'tests/governance/test_project_content_grant_ci_workflow.py', 'tests/governance/test_recovery_oauth_authorization_mysql84.py', 'tests/governance/test_file_source_atomic_ci.py', 'tests/atomic/packages/D01.json', 'tests/governance/test_recovery_oauth_authorization_sql.py', 'scripts/governance/project_description_admission_delta.py', 'tests/governance/test_recovery_borrowed_session.py', 'tests/atomic/paired-gorge.json', 'src/applications/config/schema/PhabricatorConfigSchemaSpec.php', 'tests/governance/test_native_worker_terminal.py', '.github/workflows/oauth-access-producer-focused.yml', '.github/workflows/project-content-grants-focused.yml', 'tests/governance/test_recovery_conduit_wiring.py', 'tests/governance/test_private_calendar_wire.py', 'tests/governance/test_recovery_borrowed_worker_diagnostic.py', 'support/governance/project-content-grants-ci/ci.py', 'tests/governance/test_recovery_assessment_credentials.py', 'tests/governance/test_recovery_oauth_access_source.py', 'tests/governance/test_recovery_oauth_authorization_ci.py', 'tests/governance/test_recovery_session_actor_order.py', 'tests/governance/test_notice_history_lifecycle.py', 'tests/governance/test_recovery_file_parent_ci.py', '.github/workflows/oauth-authorization-producer-focused.yml', 'tests/atomic/extract_native_renderer.py', '.github/workflows/conduit-producer-focused.yml', 'tests/governance/test_project_content_grant_target_binding.py', 'tests/governance/test_calendar_conduit_union.py', 'docs/governance/batch-2-callers.json', 'tests/governance/test_api_concurrency_atomic_ci.py', '.github/workflows/project-description-focused.yml', 'tests/governance/test_recovery_oauth_code_sql.py', '.github/workflows/native-directory-transports-v1.yml', 'tests/governance/test_project_source_atomic_ci.py', 'tests/governance/test_media_remote_native_profile.py', 'tests/governance/test_recovery_oauth_code_media_binding.py', '.github/workflows/oauth-code-producer-focused.yml', 'tests/governance/test_private_calendar_failure_diagnostic.py', 'tests/governance/test_recovery_assessment_credential_sql.py', 'tests/governance/test_recovery_oauth_code_coordination.py', 'tests/governance/test_native_organization.py', 'tests/governance/test_directory_source_inventory_pin.py', 'tests/governance/test_recovery_oauth_access_ci.py', 'tests/governance/test_recovery_file_parent_gate.py', 'support/governance/project-description-ci/ci.py', '.github/workflows/assessment-credential-focused.yml', 'support/governance/media-session-ci/test_ci.py', 'tests/governance/test_recovery_file_parent_policy.py', 'tests/governance/test_recovery_oauth_client_lifecycle_ci.py', 'tests/governance/test_n05_legacy_audit_test_view.py', 'tests/governance/test_recovery_partial_wiring.py', '.github/workflows/oauth-client-lifecycle-focused.yml', 'tests/governance/test_recovery_oauth_client_lifecycle_coordination.py', 'tests/governance/test_recovery_partial_schema_coordination.py'})
-  need(set(entries)==(set(self.parent_pins)-WIKI_RETIRED_PATHS)|set(TASK_NEW_PINS)|{BASELINE,INVERSE,'scripts/governance/task_source_operation_context.py'}|V2_PATHS|CI_V2_NEW_PATHS|set(DIRECTORY_PRODUCT_NEW_PINS))
-  for rel,pin in DIRECTORY_PRODUCT_NEW_PINS.items():
+  need(set(entries)==(set(self.parent_pins)-WIKI_RETIRED_PATHS)|set(TASK_NEW_PINS)|{BASELINE,INVERSE,'scripts/governance/task_source_operation_context.py'}|V2_PATHS|CI_V2_NEW_PATHS|set(DIRECTORY_PRODUCT_NEW_PINS)|set(HANDOFF_NEW_PINS))
+  for rel,pin in HANDOFF_NEW_PINS.items():
    need(entries[rel]['kind']=='file'and entries[rel]['mode']==pin['mode']and len(self.current_raw[rel])==pin['bytes']and sha(self.current_raw[rel])==pin['sha256'])
-  directory_predecessor=directory_product_cohort({name:self.current_raw[name]for name in DIRECTORY_PRODUCT_PATHS},self.current_raw[DIRECTORY_PRODUCT_HISTORY])
+  handoff_predecessor=handoff_cohort({name:self.current_raw[name]for name in HANDOFF_PATHS},self.current_raw[HANDOFF_HISTORY])
+  for rel,pin in DIRECTORY_PRODUCT_NEW_PINS.items():
+   value=handoff_predecessor.get(rel,self.current_raw[rel]);need(entries[rel]['kind']=='file'and entries[rel]['mode']==pin['mode']and len(value)==pin['bytes']and sha(value)==pin['sha256'])
+  directory_predecessor=directory_product_cohort({name:handoff_predecessor.get(name,self.current_raw[name])for name in DIRECTORY_PRODUCT_PATHS},self.current_raw[DIRECTORY_PRODUCT_HISTORY])
   for rel,pin in TASK_NEW_PINS.items():need(len(self.current_raw[rel])==pin['bytes']and sha(self.current_raw[rel])==pin['sha256'])
   # Compile CURRENT Task inverse, captured from this real source; never Git old code.
   path='scripts/governance/task_content_grant_source_delta.py';namespace={'__file__':str(self.root/path),'__name__':'TaskOperation_current_inverse'};exec(compile(self.current_raw[path],str(self.root/path),'exec'),namespace);self.reduce=namespace['reduce_selected']
   for rel,pin in entries.items():
    if pin['kind']!='file':continue
-   raw=directory_predecessor.get(rel,self.current_raw[rel])
+   raw=directory_predecessor.get(rel,handoff_predecessor.get(rel,self.current_raw[rel]))
    if rel in self.ci_inverse:
     inverse=self.ci_inverse[rel];decoder=zlib.decompressobj();raw=decoder.decompress(base64.b64decode(inverse['zlib_base64'],validate=True),inverse['bytes']+1);need(decoder.eof and not decoder.unused_data and not decoder.unconsumed_tail and len(raw)==inverse['bytes']and sha(raw)==inverse['sha256'])
    elif rel in self.api_inverse:

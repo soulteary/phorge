@@ -468,7 +468,9 @@ final class PhabricatorProjectTransactionEditor
   protected function shouldApplyHeraldRules(
     PhabricatorLiskDAO $object,
     array $xactions) {
-    return true;
+    // The reviewed handoff must not gain a second, unpreviewed policy mutation
+    // from post-commit automation. Native transaction publication still runs.
+    return !PhorgeProjectHandoffService::isEditor($this);
   }
 
   protected function buildHeraldAdapter(
