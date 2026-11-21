@@ -20,6 +20,7 @@ CURRENT_PURE_ADDITIONS=frozenset({
  'PhorgeGovernanceMediaHTTPProtocolTestCase::testDisabledHTTPPreservesNativeCredentialsAndOmitsBootstrap'})
 RETIRED_PURE_IDS=frozenset(['PhorgeGovernanceCapabilityMapTestCase::testWikiContentRequiresValueAndExpansionReview', 'PhorgeGovernanceNativeObservationTestCase::testCreationWrongEnvelopeAndUnknownBatchBlock', 'PhorgeGovernanceNativeObservationTestCase::testTaskAndWikiPolicyItemsAreOnlyLocalPassThrough', 'PhorgeGovernanceNativeObservationTestCase::testWikiBatchMoveAndDeletePreserveNativeOrder', 'PhorgeGovernanceNativeObservationTestCase::testWikiBatchNativeCanonicalVersionHydration', 'PhorgeGovernanceNativeObservationTestCase::testWikiBatchPreludeUsesAttachedNativeContent', 'PhorgeGovernanceNativeObservationTestCase::testWikiBatchRejectsMissingOrMismatchedContent', 'PhorgeGovernanceNativeObservationTestCase::testWikiEmptyBodyActuallyExpandsToDelete', 'PhorgeGovernanceNativeObservationTestCase::testWikiMoveActuallyAddsDestinationPolicies', 'PhorgeGovernanceNativeObservationTestCase::testWikiMoveCannotInjectAnArbitraryObject', 'PhorgeGovernanceNativeObservationTestCase::testWikiNonemptyBodyDoesNotClaimPublicationValidated', 'PhorgeGovernanceReadSetTestCase::testTaskAndWikiGroupDependenciesAreNotOmitted'])
 RETIREMENT_PURE_ADDITIONS=frozenset(['PhorgeGovernanceCapabilityMapTestCase::testRetiredWikiCannotAcquireContentOrManagementCapabilities', 'PhorgeGovernanceNativeObservationTestCase::testTaskPolicyItemsAreOnlyLocalPassThrough', 'PhorgeGovernanceReadSetTestCase::testTaskGroupDependenciesAreNotOmitted'])
+DIRECTORY_PURE_ADDITIONS=frozenset(['PhorgeOrganizationRequestTestCase::testBulkSelectionIsDetachedSortedAndDeduplicated', 'PhorgeOrganizationRequestTestCase::testBulkRejectsAuthorityFieldsUnknownSourceAndUnboundedInput', 'PhorgeOrganizationRequestTestCase::testReplacementIsExplicitAndSupportsEmptyDesiredSet', 'PhorgeOrganizationRequestTestCase::testBulkPeriodsAndOperationIDAreStrict', 'PhorgeOrganizationRequestTestCase::testBulkAdmitsTwoHundredDistinctExistingUserIdentifiers', 'PhorgeOrganizationRequestTestCase::testReplacementRetainsLiteralZeroTeamIdentifier'])
 def exact(value,wanted):
  if type(value)is not type(wanted):raise ValueError('typed evidence mismatch')
  if type(wanted)is dict:
@@ -103,14 +104,14 @@ def pure_inventory(root):
   methods=re.findall(r'public\s+function\s+(test[A-Za-z0-9_]+)\s*\(',paths[0].read_text())
   if len(methods)!=len(set(methods)):raise ValueError('pure method duplicate')
   ids.update(cls+'::'+method for method in methods)
- if len(ids)!=276:raise ValueError('current pure IDs refused')
- if not CURRENT_PURE_ADDITIONS<=ids or not RETIREMENT_PURE_ADDITIONS<=ids or RETIRED_PURE_IDS&ids or digest(json.dumps(sorted((ids-CURRENT_PURE_ADDITIONS-RETIREMENT_PURE_ADDITIONS)|RETIRED_PURE_IDS),separators=(',',':')).encode())!=BASE_PURE_IDS_SHA256:raise ValueError('original280 plus exact five current cases required')
+ if len(ids)!=282:raise ValueError('current pure IDs refused')
+ if not CURRENT_PURE_ADDITIONS<=ids or not RETIREMENT_PURE_ADDITIONS<=ids or not DIRECTORY_PURE_ADDITIONS<=ids or RETIRED_PURE_IDS&ids or digest(json.dumps(sorted((ids-CURRENT_PURE_ADDITIONS-RETIREMENT_PURE_ADDITIONS-DIRECTORY_PURE_ADDITIONS)|RETIRED_PURE_IDS),separators=(',',':')).encode())!=BASE_PURE_IDS_SHA256:raise ValueError('original280 plus exact current additions required')
  return ids
 def validate_pure(data,ids):
- if data.get('passed')is not True or data.get('runtime')!='8.5.13'or type(data.get('expected_methods'))is not int or data['expected_methods']!=276:raise ValueError('actual pure outcome refused')
+ if data.get('passed')is not True or data.get('runtime')!='8.5.13'or type(data.get('expected_methods'))is not int or data['expected_methods']!=282:raise ValueError('actual pure outcome refused')
  results=data.get('results')
- if type(results)is not list or len(results)!=276 or len({r['id']for r in results})!=276 or {r['id']for r in results}!=ids or any(r.get('result')!='pass'for r in results):raise ValueError('actual pure IDs refused')
- return {'passed':True,'methods':276,'classes':49,'new_executions':1}
+ if type(results)is not list or len(results)!=282 or len({r['id']for r in results})!=282 or {r['id']for r in results}!=ids or any(r.get('result')!='pass'for r in results):raise ValueError('actual pure IDs refused')
+ return {'passed':True,'methods':282,'classes':49,'new_executions':1}
 def cleanup_proved(receipt,revision):
  try:
   exact(receipt['cleanup'],{'ownedSchemasRemoved':55,'ownedRuntimeUsersRemoved':2,'readerRemoved':True})

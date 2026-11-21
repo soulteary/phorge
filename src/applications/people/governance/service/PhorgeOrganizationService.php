@@ -303,10 +303,12 @@ final class PhorgeOrganizationService extends Phobject {
         $this->table('guard'));
     }
     $result = array('status' => 'committed', 'replayed' => false, 'versions' => $versions);
+    $encoded=phutil_json_encode($result);
+    if(strlen($encoded)>16384){throw new RuntimeException('organization_operation_result_limit');}
     queryfx($this->connection,
       'INSERT INTO %T (operationID,actorPHID,requestDigest,resultJSON,createdAt) '.
       'VALUES (%s,%s,%s,%s,%d)', $this->table('operation'), $operation,
-      $this->actor(), $digest, phutil_json_encode($result), $this->now());
+      $this->actor(), $digest, $encoded, $this->now());
     return $result;
   }
 
@@ -401,6 +403,13 @@ final class PhorgeOrganizationService extends Phobject {
     }
     $this->begin($subjects);
     try {
+      $result=$this->executeLocked($input,$approvals);
+      $this->finish(true);return $result;
+    } catch (Throwable $error) { $this->finish(false); throw $error; }
+  }
+
+  /** Shared implementation, only callable inside this service's owned mutex. */
+  private function executeLocked(array $input,array $approvals=array()) {
       if ($approvals) { $this->requireAdmin(); }
       $units = array();
       foreach ($input['mutations'] as $mutation) {
@@ -415,7 +424,7 @@ final class PhorgeOrganizationService extends Phobject {
       $replay = $this->replay($input['operation_id'], $digest);
       if ($replay !== null) {
         foreach ($units as $unit) { $this->authorize($unit); }
-        $this->finish(true); return $replay;
+        return $replay;
       }
       $consumed = array();
       foreach ($input['mutations'] as $mutation) {
@@ -494,10 +503,90 @@ final class PhorgeOrganizationService extends Phobject {
         PhorgeGovernanceNativeApprovalAdapter::forLockedService($this)
           ->assertCurrent($approval, $input['operation_id']);
       }
-      $this->finish(true); return $result;
-    } catch (Throwable $error) { $this->finish(false); throw $error; }
+      return $result;
   }
 
+
+  /** Preview and commit share the same current-read, locked planner. */
+  public function bulkMembers(array $intent,$expectedDigest=null,$acknowledged=false) {
+    $intent=PhorgeOrganizationRequest::bulk($intent);
+    if ($expectedDigest!==null && (!is_string($expectedDigest) ||
+        !preg_match('/\A[a-f0-9]{64}\z/',$expectedDigest) || $acknowledged!==true)) {
+      throw new InvalidArgumentException('organization_bulk_confirmation_required');
+    }
+    $subjects=$intent['mode']==='import'?$intent['selection']:array($intent['user_phid']);
+    $unguarded=$expectedDigest===null?AphrontWriteGuard::beginScopedUnguardedWrites():null;
+    try {
+      $this->begin($subjects);
+      try {
+        if($intent['mode']==='replace'){$this->requireAdmin();}
+        else{$unit=$this->unit($intent['unit_id']);$this->authorize($unit);
+          if($unit['kind']!=='team'||$unit['state']!=='active'){throw new RuntimeException('organization_team_required');}}
+        $requestDigest=hash('sha256',phutil_json_encode(array('bulk-members-v1',$intent,$expectedDigest)));
+        if($expectedDigest!==null){$replay=$this->replay($intent['operation_id'],$requestDigest);
+          if($replay!==null){$this->finish(true);return $replay;}}
+        $plan=$this->planBulkMembers($intent);
+        if($expectedDigest===null){$this->finish(true);return $plan;}
+        if(!hash_equals($plan['digest'],$expectedDigest)){throw new RuntimeException('organization_stale_bulk_preview');}
+        $versions=array();
+        foreach(array_chunk($plan['mutations'],32)as$index=>$chunk){
+          // The existing mutation engine keeps its 32-pair bound. Every chunk
+          // belongs to this one transaction; later failures roll back all chunks.
+          foreach($chunk as&$mutation){
+            if(isset($versions[$mutation['team']])){$mutation['expected_team_version']=$versions[$mutation['team']];}
+          }unset($mutation);
+          $input=PhorgeOrganizationRequest::normalize(array('operation_id'=>'bulk:'.$intent['operation_id'].':'.$index,
+            'mutations'=>$chunk));
+          $result=$this->executeLocked($input);$versions=$result['versions']+$versions;
+        }
+        $result=$this->record($intent['operation_id'],$requestDigest,$versions);
+        $this->finish(true);return $result;
+      }catch(Throwable $error){$this->finish(false);throw $error;}
+    }finally{unset($unguarded);}
+  }
+
+  private function planBulkMembers(array $intent) {
+    $pairs=array();$snapshot=array();$changes=array();$mutations=array();
+    if($intent['mode']==='import'){
+      foreach($intent['selection']as$user){$pairs[]=array($intent['unit_id'],$user,true);}
+    }else{
+      // Include every stored edge in the preview digest. A concurrent addition,
+      // ending, or scheduled relationship cannot disappear from a replacement.
+      $rows=queryfx_all($this->connection,'SELECT * FROM %T WHERE userPHID=%s ORDER BY unitID LIMIT 1001',
+        $this->table('member'),$intent['user_phid']);
+      if(count($rows)>1000){throw new RuntimeException('organization_bulk_limit');}
+      $snapshot['all_edges']=$rows;$teams=array();
+      foreach($rows as$row){if($row['state']!=='ended'){$teams['id:'.$row['unitID']]=array($row['unitID'],false);}}
+      foreach($intent['selection']as$team){$teams['id:'.$team]=array($team,true);}
+      ksort($teams,SORT_STRING);
+      if(count($teams)>200){throw new RuntimeException('organization_bulk_limit');}
+      foreach($teams as$entry){$pairs[]=array($entry[0],$intent['user_phid'],$entry[1]);}
+    }
+    foreach($pairs as$pair){
+      list($team,$user,$desired)=$pair;$unit=$this->unit($team);$this->authorize($unit);
+      if($unit['kind']!=='team'||$unit['state']!=='active'){throw new RuntimeException('organization_team_required');}
+      $member=$this->relationship('member',$team,$user);$appointment=$this->relationship('appointment',$team,$user);
+      $snapshot['pairs'][]=array($unit,$member,$appointment,$this->accounts[$user]);
+      $retained=$member && $member['state']==='active' &&
+        ($member['validUntil']===null||self::version($member['validUntil'])>$this->now());
+      if($desired && $this->accounts[$user]['eligible']!==true){throw new RuntimeException('organization_subject_ineligible');}
+      $action=$desired?($retained?'keep':($member?'member.update':'member.add')):'member.end';
+      $changes[]=array('team'=>$team,'user_phid'=>$user,'action'=>$action);
+      if($action==='keep'){continue;}
+      if($desired && $intent['valid_until']!==null && $intent['valid_until']<=$this->now()){
+        throw new RuntimeException('organization_period_expired');}
+      $this->preserveAppointment($appointment,$desired?'active':'ended',
+        $desired?$intent['valid_from']:($member?$member['validFrom']:0),
+        $desired?$intent['valid_until']:($member?$member['validUntil']:null));
+      $mutations[]=array('action'=>$action,'approval_id'=>null,
+        'expected_appointment_version'=>$appointment?self::version($appointment['version']):0,
+        'expected_member_version'=>$member?self::version($member['version']):0,
+        'expected_team_version'=>self::version($unit['version']),'target_user'=>$user,'team'=>$team,
+        'valid_from'=>$desired?$intent['valid_from']:null,'valid_until'=>$desired?$intent['valid_until']:null);
+    }
+    return array('digest'=>hash('sha256',phutil_json_encode(array('bulk-preview-v1',$this->actor(),$intent,$snapshot,$changes))),
+      'changes'=>$changes,'mutations'=>$mutations,'native_permissions_changed'=>false);
+  }
 
   private function applyAppointment($operation, array $mutation, $member, $before) {
     $grant = $mutation['action'] === 'appointment.grant';
@@ -899,14 +988,15 @@ final class PhorgeOrganizationService extends Phobject {
     return qsprintf($connection, '%d=%d', 1, 1);
   }
 
-  private function visibleSQL() {
+  private function visibleSQL($alias = 'u') {
+    if(!in_array($alias,array('u','p'),true)){throw new InvalidArgumentException('organization_alias_refused');}
     if ($this->actorSnapshot->isSystemAdmin()) {
       return self::adminPredicate($this->connection);
     }
     return qsprintf($this->connection,
-      'u.kind=%s AND EXISTS (SELECT 1 FROM %T m JOIN %T a '.
+      $alias.'.kind=%s AND EXISTS (SELECT 1 FROM %T m JOIN %T a '.
       'ON a.unitID=m.unitID AND a.userPHID=m.userPHID '.
-      'WHERE m.unitID=u.unitID AND m.userPHID=%s AND m.state=%s '.
+      'WHERE m.unitID='.$alias.'.unitID AND m.userPHID=%s AND m.state=%s '.
       'AND a.state=%s AND a.role=%s AND m.version>0 AND a.version>0 '.
       'AND m.validFrom<=UNIX_TIMESTAMP() AND a.validFrom<=UNIX_TIMESTAMP() '.
       'AND (m.validUntil IS NULL OR m.validUntil>UNIX_TIMESTAMP()) '.
@@ -1193,7 +1283,7 @@ final class PhorgeOrganizationService extends Phobject {
     } finally { unset($unguarded); }
   }
 
-  public function readUnits($limit = 100, $after = null, $query = '', $selector = false, $kind = null) {
+  public function readUnits($limit = 100, $after = null, $query = '', $selector = false, $kind = null, $parent = false) {
     $unguarded = AphrontWriteGuard::beginScopedUnguardedWrites();
     try {
       $this->limit($limit);
@@ -1208,6 +1298,22 @@ final class PhorgeOrganizationService extends Phobject {
       $this->begin(array());
       try {
         $this->startRead();
+        $branch=qsprintf($this->connection,'%d=%d',1,1);
+        if($parent!==false){
+          if($parent!==null && !PhorgeGovernanceOrganizationRequest::identifier($parent,64)){
+            throw new InvalidArgumentException('organization_tree_parent_refused');}
+          if($parent!==null){
+            if(!$this->visibleUnit($parent)){throw new RuntimeException('organization_not_visible');}
+            $branch=qsprintf($this->connection,'u.parentID=%s',$parent);
+          }else{
+            // Hidden ancestors do not leak through IDs, counts or placeholders.
+            $branch=qsprintf($this->connection,
+              '(u.parentID IS NULL OR NOT EXISTS (SELECT 1 FROM %T p WHERE p.unitID=u.parentID '.
+              'AND p.state=%s AND p.kind IN (%Ls) AND p.version>0 '.
+              'AND p.visibilityModel=%s AND p.visibilityVersion=1 AND (%Q)))',
+              $this->table('unit'),'active',array('team','department'),'restricted-admin-v1',$this->visibleSQL('p'));
+          }
+        }
         $name_expression=$selector
           ? qsprintf($this->connection,'LOWER(CONVERT(u.name USING utf8mb4))')
           : qsprintf($this->connection,'u.name');
@@ -1217,11 +1323,11 @@ final class PhorgeOrganizationService extends Phobject {
           : qsprintf($this->connection,'%s',$pattern);
         $rows = queryfx_all($this->connection,
           'SELECT u.* FROM %T u WHERE u.state=%s AND u.kind IN (%Ls) '.
-          'AND u.version>0 AND u.visibilityModel=\'restricted-admin-v1\' AND u.visibilityVersion=1 AND u.unitID>%s AND %Q LIKE %Q ESCAPE %s AND (%Q) ORDER BY u.unitID LIMIT %d',
+          'AND u.version>0 AND u.visibilityModel=\'restricted-admin-v1\' AND u.visibilityVersion=1 AND u.unitID>%s AND %Q LIKE %Q ESCAPE %s AND (%Q) AND (%Q) ORDER BY u.unitID LIMIT %d',
           $this->table('unit'), 'active', $kind===null?array('team','department'):array($kind),
           $after === null ? '' : $after,
           $name_expression,$pattern_expression, '=',
-          $this->visibleSQL(), $limit);
+          $this->visibleSQL(), $branch, $limit);
         $result = array(); foreach ($rows as $row) { $result[] = $this->publicUnit($row); }
         // A role expiring while producing a response does not return a stale list.
         foreach ($rows as $row) {
@@ -1339,10 +1445,26 @@ final class PhorgeOrganizationService extends Phobject {
     } finally { unset($unguarded); }
   }
 
-  public function readUserTeams($subject, $limit = 100) {
+  public function readUserDepartment($subject) {
+    if(!PhorgeGovernanceOrganizationRequest::userID($subject)){throw new InvalidArgumentException('organization_subject_refused');}
+    $unguarded=AphrontWriteGuard::beginScopedUnguardedWrites();
+    try{$this->begin(array($subject));try{
+      $this->startRead();$result=null;
+      if($this->accounts[$subject]['eligible']===true){
+        $row=queryfx_one($this->connection,'SELECT unitID FROM %T WHERE userPHID=%s AND version>0',
+          $this->table('primarydepartment'),$subject);
+        if($row && $row['unitID']!==null){$unit=$this->visibleUnit($row['unitID']);
+          if($unit&&$unit['kind']==='department'){$result=$this->publicUnit($unit);}}
+      }
+      $this->finish(true);return $result;
+    }catch(Throwable $error){$this->finish(false);throw $error;}}finally{unset($unguarded);}
+  }
+
+  public function readUserTeams($subject, $limit = 100, $after = null) {
     $unguarded = AphrontWriteGuard::beginScopedUnguardedWrites();
     try {
       $this->limit($limit);
+      if($after!==null&&!PhorgeGovernanceOrganizationRequest::identifier($after,64)){throw new InvalidArgumentException('organization_cursor_refused');}
       if (!PhorgeGovernanceOrganizationRequest::userID($subject)) {
         throw new InvalidArgumentException('organization_subject_refused');
       }
@@ -1357,9 +1479,9 @@ final class PhorgeOrganizationService extends Phobject {
           'AND m.validFrom<=UNIX_TIMESTAMP() '.
           'AND (m.validUntil IS NULL OR m.validUntil>UNIX_TIMESTAMP()) '.
           'AND u.kind=%s AND u.state=%s AND u.version>0 AND u.visibilityModel=\'restricted-admin-v1\' AND u.visibilityVersion=1 AND (%Q) '.
-          'ORDER BY u.unitID LIMIT %d', $this->table('unit'), $this->table('member'),
+          'AND u.unitID>%s ORDER BY u.unitID LIMIT %d', $this->table('unit'), $this->table('member'),
           new PhabricatorUser(), $subject, 'active', 'team', 'active',
-          $this->visibleSQL(), $limit);
+          $this->visibleSQL(), $after??'', $limit);
         $result = array(); foreach ($rows as $row) {
           $this->fenceRead($row['subjectMemberUntil']);
           $result[] = $this->publicUnit($row);

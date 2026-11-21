@@ -42,7 +42,15 @@ class TaskStaticInventory(unittest.TestCase):
    'src/infrastructure/governance/observation/PhorgeGovernanceNativeObservationVerifier.php',
    'src/infrastructure/governance/native/PhorgeGovernanceNativeRuleHierarchyVerifier.php',
    'src/infrastructure/governance/contracts/PhorgeGovernanceContentDecision.php',
-   'src/infrastructure/governance/media/http/PhorgeGovernanceMediaFileGuard.php'})
+   'src/infrastructure/governance/media/http/PhorgeGovernanceMediaFileGuard.php',
+   'src/applications/people/controller/PhabricatorPeopleProfileViewController.php',
+   'src/applications/people/governance/controller/PhorgeOrganizationController.php',
+   'src/applications/people/governance/query/PhorgeOrganizationQuery.php',
+   'src/applications/people/governance/service/PhorgeOrganizationEndpoint.php',
+   'src/applications/people/governance/service/PhorgeOrganizationRequest.php',
+   'src/applications/people/governance/service/PhorgeOrganizationService.php',
+   'src/applications/people/governance/__tests__/PhorgeOrganizationRequestTestCase.php',
+   'src/infrastructure/internationalization/translation/PhabricatorChineseTranslation.php'})
   for name,(old,new)in gate.METADATA_DELTAS.items():
    current=(ROOT/name).read_bytes();parent=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'show','5903d98b14926401f0be49cb0a9d6168026a2642:'+name])
    self.assertEqual((gate.sha(parent),gate.sha(current)),(old,new));self.assertEqual(gate._metadata_data(name,current,parent),parent)

@@ -176,6 +176,7 @@ class ReleaseHistoryLiteralData(unittest.TestCase):
   spec=importlib.util.spec_from_file_location('release_history_DATA',path)
   cls.scope=importlib.util.module_from_spec(spec);spec.loader.exec_module(cls.scope)
   cls.raw=(ROOT/cls.scope.RELEASE_HISTORY).read_bytes();cls.doc=cls.scope.load_release_history(cls.raw)
+  cls.directory_predecessor=cls.scope.directory_product_cohort({path:(ROOT/path).read_bytes() for path in cls.scope.DIRECTORY_PRODUCT_PATHS},(ROOT/cls.scope.DIRECTORY_PRODUCT_HISTORY).read_bytes())
   cls.proxy_predecessor=cls.scope.proxy_identity_security_cohort({path:(ROOT/path).read_bytes() for path in cls.scope.PROXY_IDENTITY_SECURITY_PATHS})
   cls.sink_path=cls.scope.HEADER_EMISSION_SECURITY_PATH;cls.sink_current=(ROOT/cls.sink_path).read_bytes()
   cls.sink_predecessor=cls.scope.header_emission_security_inverse(cls.sink_path,cls.sink_current)
@@ -193,7 +194,7 @@ class ReleaseHistoryLiteralData(unittest.TestCase):
   parent=json.loads((ROOT/self.scope.BASELINE).read_bytes())['entries']
   for path in self.doc['files']:
    with self.subTest(path=path):
-    current=(ROOT/path).read_bytes();historical=self.proxy_predecessor.get(path,current)
+    current=(ROOT/path).read_bytes();historical=self.proxy_predecessor.get(path,self.directory_predecessor.get(path,current))
     target=self.scope.release_history_inverse(path,historical,self.doc)
     self.assertEqual(self.scope.release_history_roundtrip(path,target,self.doc),historical)
     if path in self.proxy_predecessor:
@@ -216,6 +217,7 @@ class ReleaseHistoryLiteralData(unittest.TestCase):
     checked+=1
     continue
    raw=(ROOT/path).read_bytes()
+   if path in self.directory_predecessor:raw=self.directory_predecessor[path]
    if path in ci or path in api:
     entry=(ci if path in ci else api)[path];decoder=zlib.decompressobj()
     raw=decoder.decompress(base64.b64decode(entry['zlib_base64'],validate=True),entry['bytes']+1)

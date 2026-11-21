@@ -369,6 +369,54 @@ def task_preupgrade_fixture_inverse(relative,raw,recipe_raw):
  need(len(restored)==TASK_PREUPGRADE_PARENT_PIN['bytes']and sha(restored)==TASK_PREUPGRADE_PARENT_PIN['sha256'])
  return restored
 
+# Exact directory-product compatibility DATA. This grants no source permit;
+# CURRENT code still requires the unchanged project signature and whole-tree
+# capture. Historical strings are only compared/reconstructed, never executed.
+DIRECTORY_PRODUCT_HISTORY='support/governance/source-operation/directory-product-inverse-v1.json'
+DIRECTORY_PRODUCT_HISTORY_SHA='a1c97dcf4dfb30a90af61e8135d72f5d734fb5db1381265ce86e0e52e45a0edb'
+DIRECTORY_PRODUCT_HISTORY_BYTES=49754
+DIRECTORY_PRODUCT_PATHS=frozenset(('.github/workflows/atomic-feature-regressions.yml', 'docs/governance/batch-2-callers.json', 'docs/governance/private-notification-producers.json', 'src/applications/people/controller/PhabricatorPeopleProfileViewController.php', 'src/applications/people/governance/README.md', 'src/applications/people/governance/__tests__/PhorgeOrganizationRequestTestCase.php', 'src/applications/people/governance/controller/PhorgeOrganizationController.php', 'src/applications/people/governance/query/PhorgeOrganizationQuery.php', 'src/applications/people/governance/service/PhorgeOrganizationEndpoint.php', 'src/applications/people/governance/service/PhorgeOrganizationRequest.php', 'src/applications/people/governance/service/PhorgeOrganizationService.php', 'src/infrastructure/internationalization/translation/PhabricatorChineseTranslation.php', 'tests/governance/native_rr_ci/execution.py', 'tests/governance/test_native_directory_task_static_v2.py', 'tests/governance/test_native_rr_ci_execution.py', 'tests/governance/test_native_rr_ci_runner.py', 'tests/governance/test_native_user_rr_mdl_source.py'))
+DIRECTORY_PRODUCT_NEW_PINS={'docs/governance/directory-membership-tools.md': {'bytes': 6024, 'sha256': '22fa15ba6e9b07d17155c9450a6c764380ff3191145ab72ce3506581bc44da90', 'mode': 420}, 'support/governance/native-organization/directory-product-browser-fixture.php': {'bytes': 4816, 'sha256': '39b23611518f76b250a3c4c2771928939ed1b242da79bbca06a140a27361debd', 'mode': 420}, 'support/governance/native-organization/directory-product-cases.php': {'bytes': 16243, 'sha256': '499af9772f41bbbed6dcc9c399ef466fcb74a3d7b82bb63d95898683dc875115', 'mode': 420}, 'support/governance/native-organization/directory-product-http-router.php': {'bytes': 6497, 'sha256': 'a6eeac29c9cb55c090e6cfb485a4ac96ffe0acc56b4e3175b2190ab293d37d73', 'mode': 420}, 'support/governance/native-organization/directory-product-run.php': {'bytes': 11487, 'sha256': 'd14aea70a4c315ccd2f182b3187b9637ac3831ba15e7ac62fcb7d4aa70253893', 'mode': 420}, 'support/governance/source-operation/directory-product-inverse-v1.json': {'bytes': 49754, 'sha256': 'a1c97dcf4dfb30a90af61e8135d72f5d734fb5db1381265ce86e0e52e45a0edb', 'mode': 420}, 'tests/governance/directory_product/browser.cjs': {'bytes': 6770, 'sha256': '3832f69ffb70c3566621f74a949bde8dd706df624fe257aed301bf0d2ad6de1e', 'mode': 420}, 'tests/governance/directory_product/docker_relay.py': {'bytes': 2521, 'sha256': 'd07b53802be2849036617b53b708ced0f1c361f3f054aab350e76a31a0b5b3cc', 'mode': 420}, 'tests/governance/directory_product/run.py': {'bytes': 9360, 'sha256': 'b9ac99b9ff205954b4550aa8218bf299e0a62470269e9ce79c9cda5c983ec327', 'mode': 420}, 'tests/governance/directory_product/test_runner.py': {'bytes': 2827, 'sha256': '71f3859733098b434fd3a5d6d8fcb5880fdde85864140ecb7ed1f0c4bedd546b', 'mode': 420}, 'tests/governance/test_directory_product_source_cohort.py': {'bytes': 2685, 'sha256': 'e8b211a8290fb31eced62f61b7abc79ec2672ee7da545e44222e21dc65e1883e', 'mode': 420}}
+
+def directory_product_history(raw):
+ need(type(raw)is bytes and len(raw)==DIRECTORY_PRODUCT_HISTORY_BYTES and sha(raw)==DIRECTORY_PRODUCT_HISTORY_SHA)
+ doc=decode(raw)
+ need(type(doc)is dict and set(doc)=={'schema','base_checkpoint','not_runtime_authority','files'})
+ need(doc['schema']=='directory-product-source-inverse-v1'and doc['base_checkpoint']=='5762c577170ba16f274775ae3ef99e4c5005603d'and doc['not_runtime_authority']is True)
+ need(type(doc['files'])is dict and set(doc['files'])==DIRECTORY_PRODUCT_PATHS)
+ for item in doc['files'].values():
+  need(type(item)is dict and set(item)=={'parent_bytes','parent_sha256','current_bytes','current_sha256','edits'})
+  need(type(item['edits'])is list and bool(item['edits']))
+  for edit in item['edits']:
+   need(type(edit)is dict and set(edit)=={'parent_offset','current_offset','parent','current'})
+   need(type(edit['parent_offset'])is int and edit['parent_offset']>=0 and type(edit['current_offset'])is int and edit['current_offset']>=0)
+   need(type(edit['parent'])is str and type(edit['current'])is str and edit['parent']!=edit['current'])
+ return doc
+
+def _directory_product_apply(relative,value,raw,reverse):
+ doc=directory_product_history(raw)
+ need(relative in DIRECTORY_PRODUCT_PATHS and type(value)is bytes)
+ item=doc['files'][relative];origin='current'if reverse else'parent';target='parent'if reverse else'current'
+ need(len(value)==item[origin+'_bytes']and sha(value)==item[origin+'_sha256'])
+ pieces=[];offset=0
+ for edit in item['edits']:
+  start=edit[origin+'_offset'];old=edit[origin].encode('utf-8');new=edit[target].encode('utf-8')
+  need(offset<=start<=len(value)and value[start:start+len(old)]==old)
+  pieces.extend((value[offset:start],new));offset=start+len(old)
+ pieces.append(value[offset:]);result=b''.join(pieces)
+ need(len(result)==item[target+'_bytes']and sha(result)==item[target+'_sha256']);return result
+
+def directory_product_roundtrip(relative,parent,raw):
+ return _directory_product_apply(relative,parent,raw,False)
+
+def directory_product_inverse(relative,current,raw):
+ parent=_directory_product_apply(relative,current,raw,True)
+ need(directory_product_roundtrip(relative,parent,raw)==current);return parent
+
+def directory_product_cohort(current,raw):
+ need(type(current)is dict and set(current)==DIRECTORY_PRODUCT_PATHS)
+ return {name:directory_product_inverse(name,current[name],raw)for name in sorted(DIRECTORY_PRODUCT_PATHS)}
+
 def git_tree(root,expected_checkpoint):
  need(type(expected_checkpoint)is str and re.fullmatch('[a-f0-9]{40}',expected_checkpoint)is not None)
  env={'PATH':'/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin','HOME':str(Path.home()),'LANG':'C','GIT_NO_REPLACE_OBJECTS':'1','GIT_OPTIONAL_LOCKS':'0'}
@@ -443,13 +491,16 @@ class TaskContext:
   need(sha(self.current_raw[CI_INVERSE])==CI_INVERSE_SHA)
   ci=decode(self.current_raw[CI_INVERSE]);need(set(ci)=={'schema','parent_revision','files'}and ci['schema']=='Task-CI-modified-parent5903-v1'and ci['parent_revision']=='5903d98b14926401f0be49cb0a9d6168026a2642')
   self.ci_inverse=ci['files'];need(set(self.ci_inverse)=={'tests/governance/test_recovery_spaces_source_gate.py', 'tests/governance/test_restore_current_schema_profile.py', 'tests/governance/test_recovery_borrowed_native_producer.py', 'tests/governance/test_application_config_atomic_ci.py', 'scripts/governance/check_native_organization.py', '.github/workflows/atomic-feature-regressions.yml', 'tests/atomic/test_current_pair_consumers.py', 'tests/governance/test_recovery_session_lease_ci.py', 'tests/governance/recovery_oauth_code_test_cohort.py', 'tests/governance/test_task_owner_atomic_ci.py', 'tests/governance/test_recovery_oauth_access_sql.py', 'src/applications/auth/__tests__/PhabricatorTraefikAuthProviderTestCase.php', 'deploy/acceptance/build-lock.json', 'tests/governance/test_recovery_oauth_authorization_coordination.py', 'support/governance/notification/wiki-render-service.php', 'tests/governance/test_private_calendar_sql_gate.py', 'tests/governance/test_notice_native_admin_wire_source.py', 'tests/governance/test_callers.py', 'tests/governance/test_n05_r3_historical_test_view.py', 'tests/governance/test_directory_transports_receipt_v1.py', 'tests/governance/test_recovery_session_lease_gate.py', 'tests/governance/test_recovery_conduit_participant.py', 'tests/governance/test_native_directory.py', 'tests/governance/test_media_fixture_contentgrant_migration.py', 'tests/governance/test_directory_terminal_failure_v1.py', 'tests/governance/test_directory_transport_failure_v1.py', 'tests/governance/test_organization_approval_workbench_atomic_ci.py', 'tests/governance/test_recovery_borrowed_wiring.py', 'tests/governance/test_project_content_grant_source_cohort.py', 'tests/governance/test_source_operation_snapshot.py', 'tests/governance/test_recovery_oauth_code_ci.py', '.github/workflows/private-mail-wire.yml', '.github/workflows/native-media-session-positive-sql.yml', 'tests/governance/test_project_content_grant_ci_runtime.py', 'tests/governance/test_recovery_assessment_current.py', 'tests/governance/test_project_content_grant_ci_workflow.py', 'tests/governance/test_recovery_oauth_authorization_mysql84.py', 'tests/governance/test_file_source_atomic_ci.py', 'tests/atomic/packages/D01.json', 'tests/governance/test_recovery_oauth_authorization_sql.py', 'scripts/governance/project_description_admission_delta.py', 'tests/governance/test_recovery_borrowed_session.py', 'tests/atomic/paired-gorge.json', 'src/applications/config/schema/PhabricatorConfigSchemaSpec.php', 'tests/governance/test_native_worker_terminal.py', '.github/workflows/oauth-access-producer-focused.yml', '.github/workflows/project-content-grants-focused.yml', 'tests/governance/test_recovery_conduit_wiring.py', 'tests/governance/test_private_calendar_wire.py', 'tests/governance/test_recovery_borrowed_worker_diagnostic.py', 'support/governance/project-content-grants-ci/ci.py', 'tests/governance/test_recovery_assessment_credentials.py', 'tests/governance/test_recovery_oauth_access_source.py', 'tests/governance/test_recovery_oauth_authorization_ci.py', 'tests/governance/test_recovery_session_actor_order.py', 'tests/governance/test_notice_history_lifecycle.py', 'tests/governance/test_recovery_file_parent_ci.py', '.github/workflows/oauth-authorization-producer-focused.yml', 'tests/atomic/extract_native_renderer.py', '.github/workflows/conduit-producer-focused.yml', 'tests/governance/test_project_content_grant_target_binding.py', 'tests/governance/test_calendar_conduit_union.py', 'docs/governance/batch-2-callers.json', 'tests/governance/test_api_concurrency_atomic_ci.py', '.github/workflows/project-description-focused.yml', 'tests/governance/test_recovery_oauth_code_sql.py', '.github/workflows/native-directory-transports-v1.yml', 'tests/governance/test_project_source_atomic_ci.py', 'tests/governance/test_media_remote_native_profile.py', 'tests/governance/test_recovery_oauth_code_media_binding.py', '.github/workflows/oauth-code-producer-focused.yml', 'tests/governance/test_private_calendar_failure_diagnostic.py', 'tests/governance/test_recovery_assessment_credential_sql.py', 'tests/governance/test_recovery_oauth_code_coordination.py', 'tests/governance/test_native_organization.py', 'tests/governance/test_directory_source_inventory_pin.py', 'tests/governance/test_recovery_oauth_access_ci.py', 'tests/governance/test_recovery_file_parent_gate.py', 'support/governance/project-description-ci/ci.py', '.github/workflows/assessment-credential-focused.yml', 'support/governance/media-session-ci/test_ci.py', 'tests/governance/test_recovery_file_parent_policy.py', 'tests/governance/test_recovery_oauth_client_lifecycle_ci.py', 'tests/governance/test_n05_legacy_audit_test_view.py', 'tests/governance/test_recovery_partial_wiring.py', '.github/workflows/oauth-client-lifecycle-focused.yml', 'tests/governance/test_recovery_oauth_client_lifecycle_coordination.py', 'tests/governance/test_recovery_partial_schema_coordination.py'})
-  need(set(entries)==(set(self.parent_pins)-WIKI_RETIRED_PATHS)|set(TASK_NEW_PINS)|{BASELINE,INVERSE,'scripts/governance/task_source_operation_context.py'}|V2_PATHS|CI_V2_NEW_PATHS)
+  need(set(entries)==(set(self.parent_pins)-WIKI_RETIRED_PATHS)|set(TASK_NEW_PINS)|{BASELINE,INVERSE,'scripts/governance/task_source_operation_context.py'}|V2_PATHS|CI_V2_NEW_PATHS|set(DIRECTORY_PRODUCT_NEW_PINS))
+  for rel,pin in DIRECTORY_PRODUCT_NEW_PINS.items():
+   need(entries[rel]['kind']=='file'and entries[rel]['mode']==pin['mode']and len(self.current_raw[rel])==pin['bytes']and sha(self.current_raw[rel])==pin['sha256'])
+  directory_predecessor=directory_product_cohort({name:self.current_raw[name]for name in DIRECTORY_PRODUCT_PATHS},self.current_raw[DIRECTORY_PRODUCT_HISTORY])
   for rel,pin in TASK_NEW_PINS.items():need(len(self.current_raw[rel])==pin['bytes']and sha(self.current_raw[rel])==pin['sha256'])
   # Compile CURRENT Task inverse, captured from this real source; never Git old code.
   path='scripts/governance/task_content_grant_source_delta.py';namespace={'__file__':str(self.root/path),'__name__':'TaskOperation_current_inverse'};exec(compile(self.current_raw[path],str(self.root/path),'exec'),namespace);self.reduce=namespace['reduce_selected']
   for rel,pin in entries.items():
    if pin['kind']!='file':continue
-   raw=self.current_raw[rel]
+   raw=directory_predecessor.get(rel,self.current_raw[rel])
    if rel in self.ci_inverse:
     inverse=self.ci_inverse[rel];decoder=zlib.decompressobj();raw=decoder.decompress(base64.b64decode(inverse['zlib_base64'],validate=True),inverse['bytes']+1);need(decoder.eof and not decoder.unused_data and not decoder.unconsumed_tail and len(raw)==inverse['bytes']and sha(raw)==inverse['sha256'])
    elif rel in self.api_inverse:

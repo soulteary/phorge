@@ -24,7 +24,9 @@ final class PhorgeOrganizationEndpoint extends Phobject {
       case 'members': return $query->listMembers($unit, $limit, $after);
       case 'unassigned': return $query->listUnassignedUsers($limit,$after);
       case 'search': return $query->searchUnits($unit??'', $limit,$after);
-      case 'user-teams': return $query->listUserTeams($subject, $limit);
+      case 'user-teams': return $query->listUserTeams($subject, $limit, $after);
+      case 'user-department': return $query->getUserDepartment($subject);
+      case 'tree': return $query->treePage($unit===''?null:$unit,$limit,$after);
       default: throw new InvalidArgumentException('organization_query_mode_refused');
     }
   }
@@ -81,6 +83,14 @@ final class PhorgeOrganizationEndpoint extends Phobject {
         $keys=array_keys($payload);sort($keys);
         if($keys!==array('acknowledge_no_project_permission_change','transfer_id')){throw new InvalidArgumentException('organization_transfer_transport_refused');}
         return $service->executeTransfer($payload['transfer_id'],$payload['acknowledge_no_project_permission_change']);
+      case 'members.preview': return $service->bulkMembers($payload);
+      case 'members.commit':
+        $keys=array_keys($payload);sort($keys);
+        if($keys!==array('acknowledge_impact','expected_digest','intent')||!is_array($payload['intent'])||
+            !is_string($payload['expected_digest'])||!preg_match('/\A[a-f0-9]{64}\z/',$payload['expected_digest'])||
+            $payload['acknowledge_impact']!==true){
+          throw new InvalidArgumentException('organization_bulk_confirmation_required');}
+        return $service->bulkMembers($payload['intent'],$payload['expected_digest'],$payload['acknowledge_impact']);
       case 'unit.create': return $service->createUnit($payload);
       case 'unit.preview': return $service->previewUnitChange($payload);
       case 'unit.metadata': return $service->updateUnitMetadata($payload);

@@ -129,4 +129,56 @@ final class PhorgeOrganizationRequestTestCase extends PhutilTestCase {
     $this->assertEqual('SELECT COUNT(*) FROM unit WHERE (1=1)',
       (string)qsprintf($connection, 'SELECT COUNT(*) FROM unit WHERE (%Q)', $predicate));
   }
+  private function bulkIntent() {
+    return array('mode'=>'import','operation_id'=>'bulk-test','selection'=>array('PHID-USER-aaaaaaaaaaaaaaaaaaaa'),
+      'unit_id'=>'team-a','user_phid'=>null,'valid_from'=>0,'valid_until'=>null);
+  }
+
+  public function testBulkSelectionIsDetachedSortedAndDeduplicated() {
+    $user='PHID-USER-bbbbbbbbbbbbbbbbbbbb';$input=$this->bulkIntent();
+    $input['selection']=array(&$user,'PHID-USER-aaaaaaaaaaaaaaaaaaaa','PHID-USER-aaaaaaaaaaaaaaaaaaaa');
+    $value=PhorgeOrganizationRequest::bulk($input);$user='PHID-USER-cccccccccccccccccccc';
+    $this->assertEqual(array('PHID-USER-aaaaaaaaaaaaaaaaaaaa','PHID-USER-bbbbbbbbbbbbbbbbbbbb'),$value['selection']);
+    $this->assertEqual(false,array_key_exists('actor',$value));
+  }
+
+  public function testBulkRejectsAuthorityFieldsUnknownSourceAndUnboundedInput() {
+    $base=$this->bulkIntent();$invalid=array();
+    foreach(array('actor','is_admin','source','approval_id')as$key){$v=$base;$v[$key]='untrusted';$invalid[]=$v;}
+    foreach(array('team','project','department','IMPORT')as$mode){$v=$base;$v['mode']=$mode;$invalid[]=$v;}
+    foreach(array(array(),array('user@example.invalid'),array_fill(0,201,'PHID-USER-aaaaaaaaaaaaaaaaaaaa'),array('named'=>'PHID-USER-aaaaaaaaaaaaaaaaaaaa'))as$selection){$v=$base;$v['selection']=$selection;$invalid[]=$v;}
+    foreach($invalid as$v){$this->assertException(InvalidArgumentException::class,function()use($v){PhorgeOrganizationRequest::bulk($v);});}
+  }
+
+  public function testReplacementIsExplicitAndSupportsEmptyDesiredSet() {
+    $v=$this->bulkIntent();$v['mode']='replace';$v['unit_id']=null;
+    $v['user_phid']='PHID-USER-aaaaaaaaaaaaaaaaaaaa';$v['selection']=array();
+    $this->assertEqual(array(),PhorgeOrganizationRequest::bulk($v)['selection']);
+    $v['selection']=array('team-b','team-a','team-a');
+    $this->assertEqual(array('team-a','team-b'),PhorgeOrganizationRequest::bulk($v)['selection']);
+    $v['user_phid']=null;
+    $this->assertException(InvalidArgumentException::class,function()use($v){PhorgeOrganizationRequest::bulk($v);});
+  }
+
+  public function testBulkPeriodsAndOperationIDAreStrict() {
+    foreach(array(true,'0',-1)as$from){$v=$this->bulkIntent();$v['valid_from']=$from;
+      $this->assertException(InvalidArgumentException::class,function()use($v){PhorgeOrganizationRequest::bulk($v);});}
+    $v=$this->bulkIntent();$v['valid_until']=0;
+    $this->assertException(InvalidArgumentException::class,function()use($v){PhorgeOrganizationRequest::bulk($v);});
+    $v=$this->bulkIntent();$v['operation_id']=str_repeat('x',81);
+    $this->assertException(InvalidArgumentException::class,function()use($v){PhorgeOrganizationRequest::bulk($v);});
+  }
+
+  public function testBulkAdmitsTwoHundredDistinctExistingUserIdentifiers() {
+    $v=$this->bulkIntent();$v['selection']=array();
+    for($i=0;$i<200;$i++){$v['selection'][]='PHID-USER-'.sprintf('%020d',$i);}
+    $this->assertEqual(200,count(PhorgeOrganizationRequest::bulk($v)['selection']));
+  }
+
+  public function testReplacementRetainsLiteralZeroTeamIdentifier() {
+    $v=$this->bulkIntent();$v['mode']='replace';$v['unit_id']=null;
+    $v['user_phid']='PHID-USER-aaaaaaaaaaaaaaaaaaaa';$v['selection']=array('team-a','0');
+    $this->assertEqual(array('0','team-a'),PhorgeOrganizationRequest::bulk($v)['selection']);
+  }
+
 }
