@@ -54,12 +54,13 @@ class Controls(unittest.TestCase):
     with self.subTest(change=change),self.assertRaises(ValueError):e.extract_current_archive(raw.getvalue(),root)
     self.assertEqual([],list(root.iterdir()))
  def test_actual_current_pure_inventory_and_typed_outcome(self):
-  ids=e.pure_inventory(ROOT);self.assertEqual(276,len(ids));data={'passed':True,'runtime':'8.5.13','expected_methods':276,'results':[{'id':i,'result':'pass'}for i in ids]};self.assertTrue(e.validate_pure(data,ids)['passed'])
-  for change in ('bool','duplicate','failed','old-count','stale-280'):
+  ids=e.pure_inventory(ROOT);self.assertEqual(282,len(ids));data={'passed':True,'runtime':'8.5.13','expected_methods':282,'results':[{'id':i,'result':'pass'}for i in ids]};self.assertTrue(e.validate_pure(data,ids)['passed'])
+  for change in ('bool','duplicate','failed','old-count','stale-280','stale-276'):
    bad=copy.deepcopy(data)
    if change=='bool':bad['expected_methods']=True
    elif change=='duplicate':bad['results'][0]=bad['results'][1]
    elif change=='old-count':bad['expected_methods']=277
+   elif change=='stale-276':bad['expected_methods']=276
    elif change=='stale-280':bad['expected_methods']=280
    else:bad['results'][0]['result']='fail'
    with self.subTest(change=change),self.assertRaises(ValueError):e.validate_pure(bad,ids)
@@ -73,11 +74,11 @@ class Controls(unittest.TestCase):
    'PhorgeGovernanceMediaHTTPProtocolTestCase::testDisabledHTTPPreservesNativeCredentialsAndOmitsBootstrap'}
   self.assertTrue(additions<=ids)
   self.assertEqual(additions,e.CURRENT_PURE_ADDITIONS)
-  for removed in additions:
-   data={'passed':True,'runtime':'8.5.13','expected_methods':276,
+  for removed in additions|e.DIRECTORY_PURE_ADDITIONS:
+   data={'passed':True,'runtime':'8.5.13','expected_methods':282,
          'results':[{'id':i,'result':'pass'}for i in ids if i!=removed]}
    with self.subTest(removed=removed),self.assertRaises(ValueError):e.validate_pure(data,ids)
-  # The historical280 prefix/success bit cannot replace all current276 IDs.
+  # The historical280 prefix/success bit cannot replace all current282 IDs.
   old=ids-additions
   with self.assertRaises(ValueError):e.validate_pure({'passed':True,'runtime':'8.5.13',
    'expected_methods':280,'results':[{'id':i,'result':'pass'}for i in old]},ids)
@@ -91,9 +92,10 @@ class Controls(unittest.TestCase):
    for cls in classes:
     original=next((ROOT/'src').rglob(cls+'.php'));target=root/'src'/original.name
     target.parent.mkdir(exist_ok=True);target.write_text(original.read_text());files[cls]=target
-   self.assertEqual(276,len(e.pure_inventory(root)))
+   self.assertEqual(282,len(e.pure_inventory(root)))
    for identity in ('PhorgeGovernanceDirectoryReaderTestCase',
-                    'PhorgeGovernanceMediaExchangeServiceTestCase'):
+                    'PhorgeGovernanceMediaExchangeServiceTestCase',
+                    'PhorgeOrganizationRequestTestCase'):
     target=files[identity];original=target.read_text()
     method=('testIsolationRowsKeepExactNamesAndKnownNativeValues'if 'MediaExchange'in identity
             else re.search(r'public\s+function\s+(test[A-Za-z0-9_]+)\s*\(',original).group(1))
