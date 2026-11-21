@@ -8,6 +8,10 @@ final class PhorgeOrganizationQuery extends Phobject {
     $this->service = PhorgeOrganizationService::newForActor($context);
   }
 
+  public function getUserDepartment($subject) { return $this->service->readUserDepartment($subject); }
+  public function treePage($parent=null,$limit=100,$after=null,$query='') {
+    return $this->service->readUnits($limit,$after,$query,false,null,$parent);
+  }
   public function getHandoverApproval($id){return $this->service->readHandoverApproval($id);}
   public function getHandoverProjects($id){return $this->service->readHandoverProjects($id);}
   public function getDueHandovers($limit,$after){
@@ -46,7 +50,7 @@ final class PhorgeOrganizationQuery extends Phobject {
   public function listMembers($unitID, $limit = 100, $after = null) {
     return $this->service->readMembers($unitID, $limit, $after);
   }
-  public function listUserTeams($subject, $limit = 100) {
-    return $this->service->readUserTeams($subject, $limit);
+  public function listUserTeams($subject, $limit = 100, $after = null) {
+    return $this->service->readUserTeams($subject, $limit, $after);
   }
 }

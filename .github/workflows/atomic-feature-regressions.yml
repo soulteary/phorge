@@ -574,6 +574,18 @@ jobs:
           mv "$RUNNER_TEMP/governance-native-organization/mysql-after.pending.json" "$RUNNER_TEMP/governance-native-organization/mysql-after.json"
           python3 -B scripts/governance/check_full_native_task_schema_receipt_v2.py --root "$GITHUB_WORKSPACE" --expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT" --consumer native --envelope "$RUNNER_TEMP/governance-native-organization/integration.json" --native-body "$RUNNER_TEMP/task-full-native-v2-private/capture-native-body.private.json" --profile "$RUNNER_TEMP/task-full-native-v2-private/capture/schema-profile.private.json" --runtime-before "$RUNNER_TEMP/governance-native-organization/mysql-before.json" --runtime-after "$RUNNER_TEMP/governance-native-organization/mysql-after.json" --profile-sha "$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["profile_sha256"])' "$RUNNER_TEMP/task-full-native-v2-private/capture/binding.safe.json")" --file-binary "$RUNNER_TEMP/gorge-file-storage" --file-sha "$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" --render-binary "$RUNNER_TEMP/gorge-render" --render-sha "$(sha256sum "$RUNNER_TEMP/gorge-render" | cut -d ' ' -f1)" --taskqueue-binary "$RUNNER_TEMP/gorge-taskqueue" --taskqueue-sha "$(sha256sum "$RUNNER_TEMP/gorge-taskqueue" | cut -d ' ' -f1)" > "$RUNNER_TEMP/governance-native-organization/accepted.json"
           python3 -B scripts/governance/check_full_native_task_schema_receipt_v2.py --root "$GITHUB_WORKSPACE" --expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT" --consumer notifications --envelope "$RUNNER_TEMP/governance-native-organization/integration.json" --native-body "$RUNNER_TEMP/task-full-native-v2-private/capture-native-body.private.json" --profile "$RUNNER_TEMP/task-full-native-v2-private/capture/schema-profile.private.json" --runtime-before "$RUNNER_TEMP/governance-native-organization/mysql-before.json" --runtime-after "$RUNNER_TEMP/governance-native-organization/mysql-after.json" --profile-sha "$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["profile_sha256"])' "$RUNNER_TEMP/task-full-native-v2-private/capture/binding.safe.json")" --file-binary "$RUNNER_TEMP/gorge-file-storage" --file-sha "$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" --render-binary "$RUNNER_TEMP/gorge-render" --render-sha "$(sha256sum "$RUNNER_TEMP/gorge-render" | cut -d ' ' -f1)" --taskqueue-binary "$RUNNER_TEMP/gorge-taskqueue" --taskqueue-sha "$(sha256sum "$RUNNER_TEMP/gorge-taskqueue" | cut -d ' ' -f1)" > "$RUNNER_TEMP/governance-native-organization/private-email-sources.json"
+      - name: Verify protected directory membership product paths
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 -B tests/governance/directory_product/test_runner.py
+          PHORGE_GOVERNANCE_ISOLATED_TEST=1 \
+          PHORGE_GOVERNANCE_FIXTURE_DSN='mysql:host=127.0.0.1;port=3306;dbname=governance_fixture_bootstrap;charset=utf8mb4' \
+          PHORGE_GOVERNANCE_FIXTURE_USER=root \
+          PHORGE_GOVERNANCE_FIXTURE_PASSWORD="$GORGE_TEST_MYSQL_PASSWORD" \
+          PHORGE_GOVERNANCE_GORGE_FILE_BINARY="$RUNNER_TEMP/gorge-file-storage" \
+          PHORGE_GOVERNANCE_GORGE_FILE_SHA256="$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" \
+          php support/governance/native-organization/directory-product-run.php > "$RUNNER_TEMP/governance-native-organization/directory-product.json"
       - uses: actions/upload-artifact@v4
         if: always()
         with:

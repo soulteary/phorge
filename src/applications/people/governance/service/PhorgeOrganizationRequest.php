@@ -20,6 +20,39 @@ final class PhorgeOrganizationRequest extends Phobject {
       'mutations' => $value['mutations']);
   }
 
+  /** Selection is an explicit bounded snapshot, never a recursive source. */
+  public static function bulk(array $input) {
+    $keys = array_keys($input); sort($keys);
+    if ($keys !== array('mode','operation_id','selection','unit_id','user_phid','valid_from','valid_until') ||
+        !PhorgeGovernanceOrganizationRequest::identifier($input['operation_id'],80) ||
+        !in_array($input['mode'],array('import','replace'),true) ||
+        !is_array($input['selection']) || !array_is_list($input['selection']) ||
+        count($input['selection'])>200 ||
+        !is_int($input['valid_from']) || $input['valid_from']<0 ||
+        ($input['valid_until']!==null && (!is_int($input['valid_until']) ||
+          $input['valid_until']<=$input['valid_from']))) {
+      throw new InvalidArgumentException('organization_bulk_request_refused');
+    }
+    $import=$input['mode']==='import';
+    if (($import && (!PhorgeGovernanceOrganizationRequest::identifier($input['unit_id'],64) ||
+          $input['user_phid']!==null || !$input['selection'])) ||
+        (!$import && ($input['unit_id']!==null ||
+          !PhorgeGovernanceOrganizationRequest::userID($input['user_phid'])))) {
+      throw new InvalidArgumentException('organization_bulk_request_refused');
+    }
+    $selection=array();
+    foreach ($input['selection'] as $value) {
+      if ($import ? !PhorgeGovernanceOrganizationRequest::userID($value) :
+          !PhorgeGovernanceOrganizationRequest::identifier($value,64)) {
+        throw new InvalidArgumentException('organization_bulk_selection_refused');
+      }
+      $selection[$value]=$value;
+    }
+    sort($selection,SORT_STRING);
+    $copy=array();foreach($keys as $key){$copy[$key]=$input[$key];}
+    $copy['selection']=array_values($selection);return $copy;
+  }
+
   public static function unit(array $input) {
     $keys = array_keys($input); sort($keys);
     if ($keys !== array('kind', 'name', 'operation_id', 'parent_id', 'unit_id') ||

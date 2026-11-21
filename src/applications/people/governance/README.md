@@ -132,3 +132,11 @@ CSRF, rendering and browser receipts before completion is declared.
 No 365-day history deletion, transfer/handover state machine, dispatcher,
 implicit membership/appointment compound, project permission migration or
 production activation is included. O5–O8 remain separate dependent work.
+
+## Membership tools
+
+The bounded user import, administrator-only user-team replacement, restricted
+People fields and lazy tree browser are described in
+[`directory-membership-tools.md`](../../../../docs/governance/directory-membership-tools.md).
+They retain the same default-off organization gate and native permission axes.
+The dedicated SQL/controller runner is separate from full release qualification.

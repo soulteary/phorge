@@ -97,6 +97,26 @@ final class PhabricatorPeopleProfileViewController
       PhabricatorCustomField::ROLE_VIEW);
     $field_list->appendFieldsToPropertyList($user, $viewer, $view);
 
+    if (PhabricatorEnv::getEnvConfig('governance.organization.enabled') === true) {
+      try {
+        $query=new PhorgeOrganizationQuery(PhorgeGovernanceNativeActorContext::newFromWebRequest($this->getRequest()));
+        $department=$query->getUserDepartment($user->getPHID());
+        $teams=$query->listUserTeams($user->getPHID(),100,($this->getRequest()->getStr('organization_after')===''?null:$this->getRequest()->getStr('organization_after')));
+        $link=function($unit){return phutil_tag('a',array('href'=>(string)(new PhutilURI('/people/organization/'))
+          ->setQueryParam('unit_id',$unit['unit_id'])),$unit['name']);};
+        if($department){$view->addProperty(pht('Main Department'),$link($department));}
+        if($teams){
+          $items=array();foreach($teams as$team){$items[]=phutil_tag('li',array(),$link($team));}
+          if(count($teams)===100){$items[]=phutil_tag('li',array(),phutil_tag('a',array('href'=>(string)
+            (new PhutilURI('/p/'.$user->getUsername().'/'))->setQueryParam('organization_after',last($teams)['unit_id'])),pht('Next Visible Teams')));}
+          $view->addProperty(pht('Business Teams'),phutil_tag('ul',array(),$items));
+        }
+      }catch(Exception $error){
+        // An expired credential or unavailable directory never discloses a
+        // partial projection and must not make the native profile unavailable.
+      }
+    }
+
     if (!$view->hasAnyProperties()) {
       return null;
     }

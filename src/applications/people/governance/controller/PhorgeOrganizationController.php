@@ -11,6 +11,12 @@ final class PhorgeOrganizationController extends PhabricatorPeopleController {
     $json = $request->getBool('json');
     try {
       $context = PhorgeGovernanceNativeActorContext::newFromWebRequest($request);
+      if ($request->getStr('bulk','')!=='' || strncmp($request->getStr('form_action',''),'bulk.',5)===0) {
+        return $this->buildBulk($request,$context);
+      }
+      if (!$request->isHTTPPost() && $request->getStr('view')==='tree') {
+        return $this->buildTree($request,$context);
+      }
       if ($request->isHTTPPost()) {
         $request->validateCSRF();
         if ($request->getStr('form_action', '') !== '') {
@@ -87,7 +93,7 @@ final class PhorgeOrganizationController extends PhabricatorPeopleController {
       if ($json) {
         $result = PhorgeOrganizationEndpoint::read($context, $request->getStr('mode', 'list'),
           $request->getStr('unit_id'), $request->getStr('user_phid'),
-          $request->getInt('limit', 100), $request->getStr('after') ?: null);
+          $request->getInt('limit', 100), ($request->getStr('after')===''?null:$request->getStr('after')));
         return id(new AphrontJSONResponse())->setContent(array('result' => $result));
       }
       return $this->buildDirectory($request, $context);
@@ -100,6 +106,106 @@ final class PhorgeOrganizationController extends PhabricatorPeopleController {
         ->appendParagraph(pht('The organization request could not be completed.'))
         ->addCancelButton($this->getApplicationURI(), pht('Return to People'));
     }
+  }
+
+  private function buildBulk(AphrontRequest $request,PhorgeGovernanceNativeActorContext $context) {
+    $query=new PhorgeOrganizationQuery($context);$mode=$request->getStr('bulk');
+    if(!in_array($mode,array('import','replace'),true)){throw new InvalidArgumentException('organization_bulk_request_refused');}
+    $unit=$mode==='import'?$query->getUnit($request->getStr('unit_id')):null;
+    if(($mode==='replace'&&!$query->getActorCapabilities()['manage_units']) ||
+        ($mode==='import'&&(!$unit||$unit['kind']!=='team'))){throw new RuntimeException('organization_actor_forbidden');}
+    $uri=$this->getApplicationURI('organization/');
+    if($request->isHTTPPost()){
+      $request->validateCSRF();
+      if($request->getStr('form_action')==='bulk.commit'){
+        $raw=$request->getStr('confirmed_intent','');if(strlen($raw)>16384){throw new InvalidArgumentException('organization_bulk_request_refused');}
+        $intent=phutil_json_decode($raw);
+        if(!is_array($intent)||$intent['mode']!==$mode||($mode==='import'&&$intent['unit_id']!==$unit['unit_id'])){
+          throw new InvalidArgumentException('organization_bulk_request_refused');}
+        PhorgeOrganizationEndpoint::write($context,'members.commit',array('intent'=>$intent,
+          'expected_digest'=>$request->getStr('expected_digest'),'acknowledge_impact'=>$request->getBool('acknowledge_bulk')));
+        return id(new AphrontRedirectResponse())->setURI($uri);
+      }
+      if($request->getStr('form_action')!=='bulk.preview'){throw new InvalidArgumentException('organization_bulk_request_refused');}
+      $users=$request->getArr('subject');
+      if($mode==='replace'&&count($users)!==1){throw new InvalidArgumentException('organization_subject_refused');}
+      $selection=$request->getArr('selection');
+      if($mode==='import'){
+        $raw=$request->getStr('usernames','');if(strlen($raw)>8192){throw new InvalidArgumentException('organization_bulk_limit');}
+        $names=preg_split('/[\s,;]+/u',trim($raw),-1,PREG_SPLIT_NO_EMPTY);
+        if(count($names)>200){throw new InvalidArgumentException('organization_bulk_limit');}
+        if($names){$people=id(new PhabricatorPeopleQuery())->setViewer($this->getViewer())->withUsernames(array_values(array_unique($names)))->execute();
+          $resolved=array();foreach($people as$person){$resolved[$person->getUsername()]=$person->getPHID();}
+          foreach($names as$name){if(!isset($resolved[$name])){throw new InvalidArgumentException('organization_bulk_user_unavailable');}$selection[]=$resolved[$name];}}
+      }
+      $intent=PhorgeOrganizationRequest::bulk(array('mode'=>$mode,'operation_id'=>'web:'.bin2hex(random_bytes(16)),
+        'unit_id'=>$unit?$unit['unit_id']:null,'user_phid'=>$mode==='replace'?head($users):null,
+        'selection'=>$selection,'valid_from'=>0,'valid_until'=>null));
+      $plan=PhorgeOrganizationEndpoint::write($context,'members.preview',$intent);
+      $rows=array();$actions=array('keep'=>pht('Keep Existing Period'),'member.add'=>pht('Add Member'),
+        'member.update'=>pht('Reactivate Member'),'member.end'=>pht('End Membership'));
+      $handles=$this->getViewer()->loadHandles(array_unique(ipull($plan['changes'],'user_phid')));
+      foreach($plan['changes']as$change){$team=$query->getUnit($change['team']);if(!$team){throw new RuntimeException('organization_not_visible');}
+        $rows[]=array($team['name'],$handles[$change['user_phid']]->renderLink(),$actions[$change['action']]);}
+      $form=id(new AphrontFormView())->setUser($this->getViewer())->addHiddenInput('bulk',$mode)
+        ->addHiddenInput('unit_id',$unit?$unit['unit_id']:'')->addHiddenInput('form_action','bulk.commit')
+        ->addHiddenInput('confirmed_intent',phutil_json_encode($intent))->addHiddenInput('expected_digest',$plan['digest'])
+        ->appendControl(id(new AphrontFormCheckboxControl())->addCheckbox('acknowledge_bulk',1,
+          pht('I reviewed every change. Team membership may affect explicit content grants. Native project permissions and administrator appointments are unchanged.'),false))
+        ->appendControl(id(new AphrontFormSubmitControl())->setValue(pht('Apply Reviewed Changes')));
+      $box=id(new PHUIObjectBoxView())->setHeaderText(pht('Review Membership Changes'))
+        ->appendChild(id(new AphrontTableView($rows))->setHeaders(array(pht('Team'),pht('User'),pht('Change'))))
+        ->appendChild($form);
+    }else{
+      $form=id(new AphrontFormView())->setUser($this->getViewer())->addHiddenInput('bulk',$mode)
+        ->addHiddenInput('unit_id',$unit?$unit['unit_id']:'')->addHiddenInput('form_action','bulk.preview');
+      if($mode==='import'){
+        $form->appendControl(id(new AphrontFormTokenizerControl())->setLabel(pht('Existing Users'))->setName('selection')
+          ->setDatasource(new PhabricatorPeopleDatasource()))
+          ->appendControl(id(new AphrontFormTextAreaControl())->setLabel(pht('Or Paste Usernames'))->setName('usernames')
+            ->setCaption(pht('Up to 200 existing usernames, separated by spaces, commas or newlines. Duplicate selections are merged. No accounts are created.')));
+      }else{
+        $form->appendControl(id(new AphrontFormTokenizerControl())->setLabel(pht('User'))->setName('subject')->setLimit(1)
+          ->setDatasource(new PhabricatorPeopleDatasource()))
+          ->appendControl(id(new AphrontFormTokenizerControl())->setLabel(pht('Complete Desired Team List'))->setName('selection')
+            ->setDatasource((new PhorgeOrganizationDatasource())->setActorContext($context)))
+          ->appendRemarkupInstructions(pht('An empty list explicitly ends all ordinary team memberships. Administrator prerequisites cannot be removed here. Departments, appointments and project memberships are preserved. At most 200 teams may be affected.'));
+      }
+      $form->appendControl(id(new AphrontFormSubmitControl())->setValue(pht('Preview Changes')));
+      $box=id(new PHUIObjectBoxView())->setHeaderText($mode==='import'?pht('Import Ordinary Members'):pht('Replace User Team Memberships'))->appendChild($form);
+    }
+    return $this->newPage()->setTitle(pht('Organization Memberships'))->appendChild($box);
+  }
+
+  /** Server-rendered lazy tree: each branch has its own visible-only cursor. */
+  private function buildTree(AphrontRequest $request,PhorgeGovernanceNativeActorContext $context) {
+    $query=new PhorgeOrganizationQuery($context);$parent=$request->getStr('tree_parent');$parent=$parent===''?null:$parent;
+    $search=$request->getStr('query','');$after=($request->getStr('after')===''?null:$request->getStr('after'));
+    $units=$query->treePage($parent,100,$after,$search);
+    $uri=function($parent=null,$after=null)use($search){return (string)(new PhutilURI($this->getApplicationURI('organization/')))
+      ->setQueryParam('view','tree')->setQueryParam('tree_parent',$parent)->setQueryParam('after',$after)->setQueryParam('query',$search);};
+    $crumbs=$this->buildApplicationCrumbs()->addTextCrumb(pht('Organization Directory'),$uri());
+    $ancestors=array();$seen=array();$cursor=$parent;
+    while($cursor!==null){
+      if(isset($seen[$cursor])||count($seen)>=64){throw new RuntimeException('organization_tree_cycle');}
+      $seen[$cursor]=true;$row=$query->getUnit($cursor);if(!$row){throw new RuntimeException('organization_not_visible');}
+      $ancestors[]=$row;$cursor=$row['parent_id'];
+    }
+    foreach(array_reverse($ancestors)as$row){$crumbs->addTextCrumb($row['name'],$uri($row['unit_id']));}
+    $items=array();foreach($units as$unit){$select=(string)(new PhutilURI($this->getApplicationURI('organization/')))->setQueryParam('unit_id',$unit['unit_id']);
+      $items[]=phutil_tag('li',array(),array(phutil_tag('a',array('href'=>$select),$unit['name']),' — ',
+        $unit['kind']==='team'?pht('Team'):pht('Department'),' · ',
+        phutil_tag('a',array('href'=>$uri($unit['unit_id'])),pht('Open Children'))));}
+    $form=id(new AphrontFormView())->setUser($this->getViewer())->setMethod('GET')->addHiddenInput('view','tree')
+      ->addHiddenInput('tree_parent',$parent?:'')->appendControl(id(new AphrontFormTextControl())->setName('query')->setLabel(pht('Filter This Branch'))->setValue($search))
+      ->appendControl(id(new AphrontFormSubmitControl())->setValue(pht('Search')));
+    $children=array($form,phutil_tag('ul',array(),$items));
+    if(!$units){$children[]=phutil_tag('p',array(),pht('No visible units in this branch.'));}
+    if(count($units)===100){$children[]=phutil_tag('a',array('href'=>$uri($parent,last($units)['unit_id'])),pht('Next Organization Page'));}
+    if($parent!==null){$children[]=phutil_tag('a',array('href'=>$uri($ancestors[0]['parent_id'])),pht('Up One Level'));}
+    $children[]=phutil_tag('a',array('href'=>$this->getApplicationURI('organization/')),pht('Flat Directory'));
+    return $this->newPage()->setCrumbs($crumbs)->setTitle(pht('Organization Tree'))
+      ->appendChild(id(new PHUIObjectBoxView())->setHeaderText(pht('Organization Tree'))->appendChild($children));
   }
 
   private function formPayload(AphrontRequest $request, PhorgeGovernanceNativeActorContext $context) {
@@ -128,7 +234,7 @@ final class PhorgeOrganizationController extends PhabricatorPeopleController {
       if(count($request->getArr('parent'))>1){throw new InvalidArgumentException('organization_parent_refused');}
       return array('unit.create', array('operation_id' => $operation,
         'unit_id' => $request->getStr('unit_id'), 'kind' => $request->getStr('kind'),
-        'name' => $request->getStr('name'), 'parent_id' => head($request->getArr('parent')) ?: null));
+        'name' => $request->getStr('name'), 'parent_id' => $this->firstReference($request->getArr('parent'))));
     }
     if ($request->getStr('form_action') === 'unit.metadata') {
       $departments=$request->getArr('department');$contacts=$request->getArr('contact');
@@ -136,8 +242,8 @@ final class PhorgeOrganizationController extends PhabricatorPeopleController {
       $references=$this->managementReferences($request,$context);
       return array('unit.metadata',array('operation_id'=>$operation,'unit_id'=>$request->getStr('unit_id'),
         'expected_version'=>$request->getInt('unit_version'),
-        'associated_department_id'=>$this->referenceAction($request,'department_action')==='keep'?$references['department_id']:(head($departments)?:null),
-        'contact_user_phid'=>$this->referenceAction($request,'contact_action')==='keep'?$references['contact_user_phid']:(head($contacts)?:null)));
+        'associated_department_id'=>$this->referenceAction($request,'department_action')==='keep'?$references['department_id']:$this->firstReference($departments),
+        'contact_user_phid'=>$this->referenceAction($request,'contact_action')==='keep'?$references['contact_user_phid']:$this->firstReference($contacts)));
 
     }
     if ($request->getStr('form_action') === 'member.update') {
@@ -164,7 +270,7 @@ final class PhorgeOrganizationController extends PhabricatorPeopleController {
       return array('unit.update',array('operation_id'=>$operation,'unit_id'=>$request->getStr('unit_id'),
         'expected_version'=>$request->getInt('unit_version'),'name'=>$request->getStr('name'),
         'state'=>$request->getStr('state'),
-        'parent_id'=>$this->referenceAction($request,'parent_action')==='keep'?$references['parent_id']:(head($parents)?:null)));
+        'parent_id'=>$this->referenceAction($request,'parent_action')==='keep'?$references['parent_id']:$this->firstReference($parents)));
 
     }
     if ($request->getStr('form_action') === 'member.end' || $request->getStr('form_action') === 'member.suspend') {
@@ -188,6 +294,11 @@ final class PhorgeOrganizationController extends PhabricatorPeopleController {
     throw new InvalidArgumentException('organization_form_refused');
   }
 
+  private function firstReference(array $values) {
+    if(count($values)>1){throw new InvalidArgumentException('organization_reference_action_refused');}
+    return $values?head($values):null;
+  }
+
   private function referenceAction(AphrontRequest $request,$name) {
     $action=$request->getStr($name,'keep');
     if(!in_array($action,array('keep','replace'),true)){throw new InvalidArgumentException('organization_reference_action_refused');}
@@ -204,7 +315,8 @@ final class PhorgeOrganizationController extends PhabricatorPeopleController {
   private function buildDirectory(AphrontRequest $request,
     PhorgeGovernanceNativeActorContext $context) {
     $query = new PhorgeOrganizationQuery($context);
-    $units = $query->searchUnits($request->getStr('query',''),100,$request->getStr('after') ?: null);
+    $units = $query->searchUnits($request->getStr('query',''),100,($request->getStr('after')===''?null:$request->getStr('after')));
+    $tree_link=phutil_tag('a',array('href'=>(string)(new PhutilURI($this->getApplicationURI('organization/')))->setQueryParam('view','tree')),pht('Organization Tree'));
     $search=id(new AphrontFormView())->setUser($this->getViewer())->setMethod('GET')
       ->appendControl(id(new AphrontFormTextControl())->setLabel(pht('Search'))->setName('query')->setValue($request->getStr('query','')))
       ->appendControl(id(new AphrontFormSubmitControl())->setValue(pht('Search')));
@@ -307,6 +419,9 @@ final class PhorgeOrganizationController extends PhabricatorPeopleController {
 
       }
       if ($unit['kind'] === 'team') {
+        $boxes[]=phutil_tag('a',array('href'=>(string)(new PhutilURI($this->getApplicationURI('organization/')))
+          ->setQueryParam('bulk','import')->setQueryParam('unit_id',$selected)),pht('Import Ordinary Members'));
+
         $form = id(new AphrontFormView())->setUser($this->getViewer())
           ->addHiddenInput('form_action', 'member.add')
           ->addHiddenInput('operation_id', 'web:'.bin2hex(random_bytes(16)))
@@ -335,7 +450,9 @@ final class PhorgeOrganizationController extends PhabricatorPeopleController {
       }
     }
     $capabilities = $query->getActorCapabilities();
+    $boxes[]=$tree_link;
     if ($capabilities['manage_units']) {
+      $boxes[]=phutil_tag('a',array('href'=>(string)(new PhutilURI($this->getApplicationURI('organization/')))->setQueryParam('bulk','replace')),pht('Replace User Team Memberships'));
       $boxes[]=phutil_tag('a',array('href'=>$this->getApplicationURI('organization/transfer/')),pht('Organization Transfers'));
       $boxes[]=phutil_tag('a',array('href'=>$this->getApplicationURI('organization/history/')),pht('Restricted Organization History'));
       $boxes[]=phutil_tag('a',array('href'=>$this->getApplicationURI('organization/approvals/')),pht('Compound Approval Workbench'));
