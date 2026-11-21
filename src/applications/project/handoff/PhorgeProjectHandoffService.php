@@ -91,6 +91,7 @@ final class PhorgeProjectHandoffService extends Phobject {
       return array('committed'=>true,'replayed'=>true,'projectPHID'=>$request['projectPHID'],
         'recipientPHID'=>$request['recipientPHID'],'operationID'=>$request['operationID'],'transactionPHID'=>$x->getPHID());
     }
+    if(count($rows)>=1000){throw new RuntimeException('handoff_history_bound');}
     return null;
   }
   private static function snapshot($conn,PhorgeGovernanceNativeActorContext $context,array $request,$expires) {

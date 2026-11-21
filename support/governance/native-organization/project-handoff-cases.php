@@ -64,6 +64,33 @@ function governance_project_handoff_cases($fixture,callable $check,mysqli $contr
   try{governance_native_refused(fn()=>PhorgeProjectHandoffService::preview($contexts['admin'],$intent($p,'handoff_cluster_01')),
     'handoff_database_cluster_unsupported',$check,'handoff-replica-topology-refuses-before-read-or-write');}finally{unset($scope);}
 
+  $bounded=$project('Synthetic bounded handoff history');
+  $template=(new PhabricatorProjectTransaction())->loadOneWhere('phid=%s',$result['transactionPHID']);
+  $oldest=null;$oldestPHID=null;
+  for($i=1;$i<=999;++$i){
+    $seed=PhorgeProjectHandoffRequest::parse(array('projectPHID'=>$bounded->getPHID(),
+      'recipientPHID'=>$users['recipient']->getPHID(),'operationID'=>'handoff_history_seed_'.sprintf('%04d',$i),
+      'acknowledge'=>true,'expiresAt'=>1,'expectedDigest'=>str_repeat('a',64)),true);
+    $audit=clone$template;$audit->setID(null)->setPHID(null)->setObjectPHID($bounded->getPHID())->setNewValue($seed)->save();
+    if($i===1){$oldest=$seed;$oldestPHID=$audit->getPHID();}
+  }
+  $capRequest=$confirm(PhorgeProjectHandoffService::preview($contexts['admin'],$intent($bounded,'handoff_history_last1')));
+  $last=PhorgeProjectHandoffService::commit($contexts['admin'],$capRequest);
+  $current=$count();$perProject=queryfx_one($bounded->establishConnection('w'),
+    'SELECT COUNT(*) n FROM %R WHERE objectPHID=%s AND transactionType=%s',new PhabricatorProjectTransaction(),
+    $bounded->getPHID(),PhorgeProjectHandoffService::TYPE);
+  $check($last['committed']&&(int)$perProject['n']===1000,'handoff-last-readable-history-slot-commits');
+  $lastRetry=PhorgeProjectHandoffService::commit($contexts['admin'],$capRequest);
+  $oldRetry=PhorgeProjectHandoffService::commit($contexts['admin'],$oldest);
+  $check($lastRetry['replayed']&&$lastRetry['transactionPHID']===$last['transactionPHID']&&
+    $oldRetry['replayed']&&$oldRetry['transactionPHID']===$oldestPHID&&$count()===$current,
+    'handoff-history-limit-preserves-newest-and-oldest-exact-receipts');
+  $unknown=$capRequest;$unknown['operationID']='handoff_history_over1';
+  governance_native_refused(fn()=>PhorgeProjectHandoffService::commit($contexts['admin'],$unknown),
+    'handoff_history_bound',$check,'handoff-history-limit-refuses-new-operation-before-write');
+  $check($count()===$current&&$bounded->reload()->getViewPolicy()===$users['recipient']->getPHID()&&
+    $bounded->getEditPolicy()===$users['recipient']->getPHID(),'handoff-history-limit-does-not-create-row-1001');
+
   $p=$project('Synthetic handoff stale');$preview=PhorgeProjectHandoffService::preview($contexts['admin'],$intent($p,'handoff_stale_00001'));
   $p->setName('Synthetic handoff changed')->save();$before=$count();
   governance_native_refused(fn()=>PhorgeProjectHandoffService::commit($contexts['admin'],$confirm($preview)),
