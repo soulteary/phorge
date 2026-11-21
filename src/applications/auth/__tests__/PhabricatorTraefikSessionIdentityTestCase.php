@@ -199,8 +199,8 @@ final class PhabricatorTraefikSessionIdentityTestCase
     $server = $_SERVER;
     try {
       $provider = $this->newProvider();
-      (clone $provider->getProviderConfig())
-        ->setID(null)->setPHID(null)
+      $duplicate = clone $provider->getProviderConfig();
+      $duplicate->setID(null)->setPHID(null)
         ->setProviderDomain('unit-duplicate-adapter-domain')
         ->save();
       $user = $this->generateNewTestUser();
