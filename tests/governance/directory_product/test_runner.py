@@ -1,9 +1,23 @@
-import importlib.util,subprocess,unittest
+import copy,importlib.util,subprocess,sys,unittest
 from pathlib import Path
 spec=importlib.util.spec_from_file_location('directory_product_runner',Path(__file__).with_name('run.py'))
 m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
 
 class OwnedCleanup(unittest.TestCase):
+    def test_current_caller_inventory_is_exact_and_stale_snapshot_refuses(self):
+        root=Path(__file__).resolve().parents[3]
+        sys.path.insert(0,str(root/'scripts/governance'))
+        import check_callers
+        data=check_callers.load(root/'docs/governance/batch-2-callers.json')
+        actual=check_callers.scan_sources(root)
+        result=check_callers.validate(data,root,actual)
+        self.assertTrue(result['activation_blocked'])
+        self.assertFalse(result['runtime_certified'])
+        stale=copy.deepcopy(data)
+        stale['scan']['source_snapshot_sha256']='0'*64
+        with self.assertRaisesRegex(ValueError,'runtime source/candidate drift'):
+            check_callers.validate(stale,root,actual)
+
     def test_foreign_label_never_removes_container(self):
         calls=[]
         def runner(args,**kw):
