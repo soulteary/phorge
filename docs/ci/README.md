@@ -231,3 +231,23 @@ cover deployment, permission migration or activation in another round.
   file policy and session lifecycle together.
 - Obtain CI and independent final review before merge. No deployment or
   permission migration follows from this checklist.
+
+### Proxy identity and native media sessions
+
+When an enabled Traefik authentication provider observes a different identity,
+revoke the native session presented by that request before clearing its browser
+identity. Keep other device sessions intact. Media reads must match the current
+proxy identity to the persisted external-account link; missing, unlinked or
+ambiguous proxy identities fail closed. The account-linking exception is not a
+media access exception. Native password-only installations retain their existing
+behavior.
+
+This check relies on the protected ingress replacing authentication headers.
+It does not authenticate a client-supplied header or promise immediate upstream
+revocation. Native SQL tests and native password browser tests do not establish
+a Stargate/Warden lifecycle result. A separate host-only gateway exchange and
+TLS/browser run must cover that boundary before joint acceptance is closed.
+
+The source compatibility recipe binds all three changed runtime files as one
+exact cohort. Prior bytes are inverse-validation data, never a runtime fallback.
+Unknown, mixed and old cohorts remain rejected.

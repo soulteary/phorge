@@ -225,6 +225,43 @@ foreach (array(302, 304) as $code) {
     'response-'.$code.'-no-referrer');
 }
 
+// Exercise the actual merged response emission, not separate header getters.
+final class MediaWireCaptureSink extends AphrontHTTPSink {
+  public $headers=array();public $status=null;public $body='';
+  protected function emitHTTPStatus($code,$message=''){$this->status=$code;}
+  protected function emitHeader($name,$value){$this->headers[]=array($name,$value);}
+  protected function emitData($data){$this->body.=$data;}
+  protected function isWritable(){return true;}
+}
+foreach (array(200,302,304,403,500) as $code) {
+  if($code===200){$wire=(new AphrontFileResponse())->setMimeType('image/png')->setContent('wire-body');}
+  elseif($code===302){$wire=(new AphrontRedirectResponse())->setIsExternal(true)->setURI('https://files.example.invalid/file/data/wire/');}
+  elseif($code===304){$wire=new Aphront304Response();}
+  else{$wire=(new PhorgeGovernanceMediaHTTPResponse())->setBody('wire-error');}
+  $wire->setHTTPResponseCode($code);PhorgeGovernanceMediaFileGuard::secureResponse($wire);
+  $expected_body=$code===304?'':$wire->buildResponseString();$sink=new MediaWireCaptureSink();$sink->writeResponse($wire);
+  $nosniff=array();$cache=array();foreach($sink->headers as$header){
+    if(strtolower($header[0])==='x-content-type-options'){$nosniff[]=$header[1];}
+    if(strtolower($header[0])==='cache-control'){$cache[]=$header[1];}
+  }
+  $check($nosniff===array('nosniff'),'wire-'.$code.'-single-nosniff');
+  $check($sink->status===$code&&$sink->body===$expected_body,'wire-'.$code.'-status-body-preserved');
+  $check($cache===array('no-store, private','no-store'),'wire-'.$code.'-cache-list-preserved');
+}
+$bridge=(new PhorgeGovernanceMediaHTTPResponse())->setBody('wire-bridge')->withHeader('Set-Cookie','first=1; Secure')->withHeader('Set-Cookie','second=2; Secure');
+$bridge_sink=new MediaWireCaptureSink();$bridge_sink->writeResponse($bridge);
+$nosniff=array();$cookies=array();foreach($bridge_sink->headers as$header){if(strtolower($header[0])==='x-content-type-options'){$nosniff[]=$header[1];}if(strtolower($header[0])==='set-cookie'){$cookies[]=$header[1];}}
+$check($nosniff===array('nosniff')&&$bridge_sink->body==='wire-bridge','wire-bridge-single-nosniff-body');
+$check($cookies===array('first=1; Secure','second=2; Secure'),'wire-multiple-set-cookie-preserved');
+$raw_sink=new MediaWireCaptureSink();
+$raw_sink->writeHeaders(array(array('x-content-type-options','nosniff'),array('X-Content-Type-Options','nosniff'),array('X-Content-Type-Options','different'),array('Cache-Control','private'),array('Cache-Control','no-store')));
+$check($raw_sink->headers===array(array('x-content-type-options','nosniff'),array('X-Content-Type-Options','different'),array('Cache-Control','private'),array('Cache-Control','no-store')),'wire-case-insensitive-name-exact-value-only');
+foreach(array(array('Bad:Name','x'),array('X-Content-Type-Options',"nosniff\r\nInjected: yes"),array('X-Content-Type-Options',"nosniff\0"),array('one'))as$unsafe){
+  $sink=new MediaWireCaptureSink();$rejected=false;
+  try{$sink->writeHeaders(array(array('X-Content-Type-Options','nosniff'),array('X-Content-Type-Options','nosniff'),$unsafe));}catch(Exception $error){$rejected=true;}
+  $check($rejected&&$sink->headers===array(),'wire-unsafe-header-rejected-before-emission-'.count($checks));
+}
+
 foreach ($flags as $flag) {
   $check($before[$flag] === false &&
     PhabricatorEnv::getEnvConfig($flag) === $before[$flag],
@@ -252,11 +289,153 @@ class MediaResponseContractTest(unittest.TestCase):
         self.assertEqual(result.stderr, '')
         report = json.loads(result.stdout)
         self.assertTrue(report['passed'])
-        self.assertEqual(len(report['checks']), 28)
-        self.assertEqual(len(set(report['checks'])), 28)
+        self.assertEqual(len(report['checks']), 50)
+        self.assertEqual(len(set(report['checks'])), 50)
         self.assertFalse(report['http_or_browser_proof'])
         self.assertFalse(report['authenticated_conditional_cache_hit_proof'])
         self.assertFalse(report['application_flags_changed'])
+
+
+class ProxyIdentitySecurityInverseData(unittest.TestCase):
+ """Literal DATA proof only; no SourceOperation, SQL, TLS or browser authority."""
+ def setUp(self):
+  import task_source_operation_context as context
+  self.context=context
+  self.paths=frozenset({'src/applications/auth/provider/PhabricatorTraefikAuthProvider.php',
+   'src/applications/base/controller/PhabricatorController.php',
+   'src/infrastructure/governance/media/http/PhorgeGovernanceMediaFileGuard.php'})
+  self.current={path:(CANDIDATE/path).read_bytes()for path in self.paths}
+  self.previous={path:subprocess.check_output(['git','--no-replace-objects','-C',str(CANDIDATE),'show',
+   '0a48f072bbfca5de398f491fb3a1dec63554dd24:'+path])for path in self.paths}
+ def test_actual_new_cohort_reconstructs_exact_actual0a_and_forward_roundtrip(self):
+  m=self.context;self.assertEqual(m.PROXY_IDENTITY_SECURITY_PATHS,self.paths)
+  targets=m.proxy_identity_security_cohort(self.current)
+  self.assertEqual(targets,self.previous)
+  for path in self.paths:
+   self.assertEqual(m.proxy_identity_security_roundtrip(path,self.previous[path]),self.current[path])
+ def test_every_mixed_or_old_insecure_cohort_is_refused(self):
+  import itertools
+  for choice in itertools.product((False,True),repeat=3):
+   if all(choice):continue
+   mixed={path:(self.current if fresh else self.previous)[path]for path,fresh in zip(sorted(self.paths),choice)}
+   with self.subTest(cohort=choice),self.assertRaises(ValueError):self.context.proxy_identity_security_cohort(mixed)
+  for path in self.paths:
+   with self.subTest(old_path=path),self.assertRaises(ValueError):self.context.proxy_identity_security_inverse(path,self.previous[path])
+ def test_unknown_missing_extra_and_malformed_cohort_refused(self):
+  m=self.context
+  with self.assertRaises(ValueError):m.proxy_identity_security_cohort(dict(self.current,**{'src/unreviewed.php':b'unknown'}))
+  for path in self.paths:
+   missing=dict(self.current);del missing[path]
+   with self.subTest(missing=path),self.assertRaises(ValueError):m.proxy_identity_security_cohort(missing)
+   for raw in (None,bytearray(self.current[path]),self.current[path]+b'\n',b'X'+self.current[path][1:]):
+    changed=dict(self.current);changed[path]=raw
+    with self.subTest(path=path,kind=type(raw).__name__),self.assertRaises(ValueError):m.proxy_identity_security_cohort(changed)
+  with self.assertRaises(ValueError):m.proxy_identity_security_inverse('src/unreviewed.php',b'unknown')
+ def test_mutated_recipe_and_duplicate_noncanonical_DATA_refused(self):
+  import copy
+  m=self.context;raw=m.PROXY_IDENTITY_SECURITY_RECIPE
+  for value in (b'',raw+b'\n',raw.replace(b'not_runtime_authority',b'not_runtime_authoritY',1),
+    raw.replace(b'"schema":',b'"schema":"Task-proxy-identity-security-inverse-v1","schema":',1),bytearray(raw)):
+   with self.subTest(kind=type(value).__name__),self.assertRaises(ValueError):m.load_proxy_identity_security_history(value)
+  doc=m.load_proxy_identity_security_history();path=sorted(self.paths)[0]
+  for mutate in (lambda d:d.update(base_checkpoint='f'*40),lambda d:d['files'][path].update(target_sha256='0'*64),
+    lambda d:d['files'][path]['edits'][0].update(offset=True),lambda d:d['files'][path]['edits'][0].update(parent='tampered'),
+    lambda d:d['files'].update({'src/unreviewed.php':d['files'][path]}),lambda d:d.update(not_runtime_authority=False)):
+   changed=copy.deepcopy(doc);mutate(changed)
+   with self.assertRaises(ValueError):m.validate_proxy_identity_security_history(changed)
+ def test_forward_reconstruction_refuses_unknown_or_changed_target(self):
+  m=self.context
+  for path,raw in self.previous.items():
+   for changed in (raw+b'\n',b'X'+raw[1:],bytearray(raw)):
+    with self.subTest(path=path),self.assertRaises(ValueError):m.proxy_identity_security_roundtrip(path,changed)
+  with self.assertRaises(ValueError):m.proxy_identity_security_roundtrip('src/unknown.php',b'unknown')
+ def test_existing_release_history_and_original_parent_pins_remain_exact(self):
+  m=self.context;history=m.load_release_history((CANDIDATE/m.RELEASE_HISTORY).read_bytes())
+  parent=json.loads((CANDIDATE/m.BASELINE).read_bytes())['entries']
+  delta=load('proxy_actual_existing_Task_reducer',CANDIDATE/'scripts/governance/task_content_grant_source_delta.py')
+  for path,raw in m.proxy_identity_security_cohort(self.current).items():
+   if path in m.RELEASE_HISTORY_PATHS:raw=m.release_history_inverse(path,raw,history)
+   prior=delta.reduce_selected(path,raw)
+   self.assertEqual(len(prior),parent[path]['bytes']);self.assertEqual(hashlib.sha256(prior).hexdigest(),parent[path]['sha256'])
+ def test_prior_history_hashes_unchanged_and_new_inverse_precedes_old_reducers(self):
+  import ast
+  m=self.context
+  old=subprocess.check_output(['git','--no-replace-objects','-C',str(CANDIDATE),'show',
+   '0a48f072bbfca5de398f491fb3a1dec63554dd24:scripts/governance/task_source_operation_context.py'])
+  names={'BASELINE','BASELINE_SHA','INVERSE','INVERSE_SHA','CI_INVERSE','CI_INVERSE_SHA','RELEASE_HISTORY','RELEASE_HISTORY_BYTES','RELEASE_HISTORY_SHA','WIKI_RETIREMENT_MANIFEST','WIKI_RETIREMENT_SHA'}
+  seen=set()
+  for node in ast.parse(old).body:
+   if isinstance(node,ast.Assign)and len(node.targets)==1 and isinstance(node.targets[0],ast.Name)and node.targets[0].id in names:
+    name=node.targets[0].id;self.assertEqual(getattr(m,name),ast.literal_eval(node.value));seen.add(name)
+  self.assertEqual(seen,names)
+  text=(CANDIDATE/'scripts/governance/task_source_operation_context.py').read_text()
+  init=text[text.index('class TaskContext:'):]
+  self.assertLess(init.index('proxy_predecessor=proxy_identity_security_cohort('),init.index("self.reduce=namespace['reduce_selected']"))
+  self.assertLess(init.index('if rel in PROXY_IDENTITY_SECURITY_PATHS:raw=proxy_predecessor[rel]'),init.index('if rel in RELEASE_HISTORY_PATHS:raw=release_history_inverse('))
+
+
+class HeaderEmissionSecurityInverseData(unittest.TestCase):
+ """Single-path DATA inverse; not HTTP, browser, SQL or runtime authority."""
+ def setUp(self):
+  import task_source_operation_context as context
+  self.context=context;self.path='src/aphront/sink/AphrontHTTPSink.php'
+  self.current=(CANDIDATE/self.path).read_bytes()
+  self.previous=subprocess.check_output(['git','--no-replace-objects','-C',str(CANDIDATE),'show',
+   '06aa03501894381577f3c60d042e35acff2868dc:'+self.path])
+ def test_actual_secure_sink_reconstructs_exact_parent_and_roundtrip(self):
+  m=self.context;self.assertEqual(m.HEADER_EMISSION_SECURITY_PATH,self.path)
+  self.assertEqual(m.header_emission_security_inverse(self.path,self.current),self.previous)
+  self.assertEqual(m.header_emission_security_roundtrip(self.path,self.previous),self.current)
+  parent=json.loads((CANDIDATE/m.BASELINE).read_bytes())['entries'][self.path]
+  self.assertEqual(parent,dict(m.HEADER_EMISSION_SECURITY_PARENT_PIN,kind='file',mode=0o644))
+  reducer=load('sink_existing_Task_reducer',CANDIDATE/'scripts/governance/task_content_grant_source_delta.py')
+  self.assertEqual(reducer.reduce_selected(self.path,m.header_emission_security_inverse(self.path,self.current)),self.previous)
+ def test_old_unknown_or_mutated_sink_cannot_be_runtime(self):
+  m=self.context
+  for raw in (self.previous,self.current+b'\n',b'!'+self.current[1:],bytearray(self.current),None,self.current.decode()):
+   with self.subTest(kind=type(raw).__name__),self.assertRaises(ValueError):m.header_emission_security_inverse(self.path,raw)
+  with self.assertRaises(ValueError):m.header_emission_security_inverse('src/unreviewed.php',self.current)
+ def test_unknown_or_changed_parent_cannot_reconstruct_secure_sink(self):
+  m=self.context
+  for raw in (self.previous+b'\n',b'!'+self.previous[1:],bytearray(self.previous),None):
+   with self.subTest(kind=type(raw).__name__),self.assertRaises(ValueError):m.header_emission_security_roundtrip(self.path,raw)
+  with self.assertRaises(ValueError):m.header_emission_security_roundtrip('src/unreviewed.php',self.previous)
+ def test_recipe_tamper_duplicate_or_nonbytes_refused(self):
+  m=self.context;raw=m.HEADER_EMISSION_SECURITY_RECIPE
+  for value in (b'',raw+b'\n',bytearray(raw),raw.replace(b'"schema":',b'"schema":"duplicate","schema":',1)):
+   with self.subTest(kind=type(value).__name__),self.assertRaises(ValueError):m.load_header_emission_security_history(value)
+  import copy
+  doc=m.load_header_emission_security_history()
+  for mutate in (lambda d:d.update(path='src/unknown.php'),lambda d:d.update(current_sha256='0'*64),
+    lambda d:d.update(target_sha256='0'*64),lambda d:d.update(not_runtime_authority=False),
+    lambda d:d['edits'][0].update(offset=True),lambda d:d['edits'][0].update(parent='unknown')):
+   altered=copy.deepcopy(doc);mutate(altered)
+   with self.assertRaises(ValueError):m.validate_header_emission_security_history(altered)
+ def test_repinning_recipe_alone_does_not_admit_unknown_edits(self):
+  from unittest.mock import patch
+  import copy
+  m=self.context;doc=m.load_header_emission_security_history()
+  for mutate in (lambda d:d.update(current_sha256='0'*64),lambda d:d['edits'][0].update(offset=True),
+    lambda d:d['edits'][0].update(offset=-1),lambda d:d['edits'].append(dict(d['edits'][0]))):
+   altered=copy.deepcopy(doc);mutate(altered);raw=json.dumps(altered,sort_keys=True,separators=(',',':')).encode()+b'\n'
+   with patch.object(m,'HEADER_EMISSION_SECURITY_BYTES',len(raw)),patch.object(m,'HEADER_EMISSION_SECURITY_SHA',hashlib.sha256(raw).hexdigest()):
+    with self.assertRaises(ValueError):m.validate_header_emission_security_history(altered)
+ def test_sink_is_mandatory_before_old_reducers_and_prior_pins_unchanged(self):
+  import ast
+  m=self.context;old=subprocess.check_output(['git','--no-replace-objects','-C',str(CANDIDATE),'show',
+   '06aa03501894381577f3c60d042e35acff2868dc:scripts/governance/task_source_operation_context.py'])
+  names={'BASELINE','BASELINE_SHA','INVERSE','INVERSE_SHA','CI_INVERSE','CI_INVERSE_SHA',
+   'RELEASE_HISTORY','RELEASE_HISTORY_BYTES','RELEASE_HISTORY_SHA','PROXY_IDENTITY_SECURITY_RECIPE',
+   'PROXY_IDENTITY_SECURITY_BYTES','PROXY_IDENTITY_SECURITY_SHA','WIKI_RETIREMENT_MANIFEST','WIKI_RETIREMENT_SHA'}
+  seen=set()
+  for node in ast.parse(old).body:
+   if isinstance(node,ast.Assign)and len(node.targets)==1 and isinstance(node.targets[0],ast.Name)and node.targets[0].id in names:
+    name=node.targets[0].id;self.assertEqual(getattr(m,name),ast.literal_eval(node.value));seen.add(name)
+  self.assertEqual(seen,names)
+  text=(CANDIDATE/'scripts/governance/task_source_operation_context.py').read_text();init=text[text.index('class TaskContext:'):]
+  self.assertEqual(init.count('header_predecessor=header_emission_security_inverse('),1)
+  self.assertLess(init.index('header_predecessor=header_emission_security_inverse('),init.index("self.reduce=namespace['reduce_selected']"))
+  self.assertLess(init.index('if rel==HEADER_EMISSION_SECURITY_PATH:raw=header_predecessor'),init.index('raw=self.reduce(rel,raw)'))
 
 
 if __name__ == '__main__':

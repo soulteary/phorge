@@ -26,6 +26,8 @@ final class PhorgeGovernanceMediaFileGuard extends Phobject {
       ->withPHIDs(array($identity->getUserPHID()))->executeOne();
     if(!$viewer||$viewer->getIsDisabled()||!$viewer->getIsApproved()){
       throw new RuntimeException('media_file_identity_unavailable');}
+    if(!PhabricatorTraefikAuthProvider::canUseMediaSessionForProxyIdentity($viewer)){
+      throw new RuntimeException('media_file_identity_unavailable');}
     // Preserve native author/ANY visible attachment/original-transform semantics.
     // No omnipotent file is returned as a substitute for a failed native query.
     $visible=(new PhabricatorFileQuery())->setViewer($viewer)->withPHIDs(array($phid))->withIsDeleted(false)->executeOne();
