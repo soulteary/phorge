@@ -1320,7 +1320,7 @@
     ],
     "excluded_test_directory": "__tests__",
     "files_scanned": 4408,
-    "source_snapshot_sha256": "f35cead42cddfda3fd612e7df883373f75819a7de169598ad43e7f7000795004",
+    "source_snapshot_sha256": "1565eadad849041fcb1115e97c36d8d6717a08ca676b50f34bfe4b7806a0ed6e",
     "candidates": [
       {
         "id": "CALL-e71899f6e4e06c5b",
@@ -4413,7 +4413,7 @@
       {
         "id": "CALL-d67ea3e004ada643",
         "path": "src/applications/project/handoff/PhorgeProjectHandoffService.php",
-        "sha256": "53a2c1157718fab99857faf45fc2c4333f60cdd6ad97e415af07552bb577383a",
+        "sha256": "67dfc75c90dd77cb3e54d141254ebe9158dc4798e2657a02a694d85b5dc5e379",
         "matches": [
           {
             "pattern": "transaction_apply",

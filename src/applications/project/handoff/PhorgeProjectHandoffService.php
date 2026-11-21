@@ -132,8 +132,8 @@ final class PhorgeProjectHandoffService extends Phobject {
     foreach($objects as$id=>$object){
       $edges=queryfx_all($conn,'SELECT type,dst FROM edge WHERE src=%s AND type IN (%Ld) ORDER BY type,dst LIMIT 2001 LOCK IN SHARE MODE',
         $id,array(PhabricatorProjectProjectHasMemberEdgeType::EDGECONST,PhabricatorProjectMaterializedMemberEdgeType::EDGECONST));
-      $direct=array_filter($edges,static fn($edge)=>(int)$edge['type']===PhabricatorProjectProjectHasMemberEdgeType::EDGECONST);
-      $materialized=array_filter($edges,static fn($edge)=>(int)$edge['type']===PhabricatorProjectMaterializedMemberEdgeType::EDGECONST);
+      $direct=array_filter($edges,static function($edge){return(int)$edge['type']===PhabricatorProjectProjectHasMemberEdgeType::EDGECONST;});
+      $materialized=array_filter($edges,static function($edge){return(int)$edge['type']===PhabricatorProjectMaterializedMemberEdgeType::EDGECONST;});
       if(count($edges)>2000||count($direct)>1000||count($materialized)>1000){throw new RuntimeException('handoff_member_bound');}
       // Automatic project VIEW uses the native materialized edge set. Do not
       // reinterpret historical direct edges or rebuild membership here.
