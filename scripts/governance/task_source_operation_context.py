@@ -156,6 +156,13 @@ PROXY_IDENTITY_SECURITY_PATHS=frozenset(['src/applications/auth/provider/Phabric
 PROXY_IDENTITY_SECURITY_RECIPE=b'{"base_checkpoint":"0a48f072bbfca5de398f491fb3a1dec63554dd24","files":{"src/applications/auth/provider/PhabricatorTraefikAuthProvider.php":{"current_bytes":9828,"current_sha256":"34d0032c0f8b402a597b936849d4107eb27da5da7f2dca406872810b2f4b9e37","edits":[{"current":"s","offset":2412,"parent":"PhabricatorAuthProvid"},{"current":"lf","offset":2414,"parent":"r"},{"current":"Current","offset":2421,"parent":"All"},{"current":"Proxy","offset":2435,"parent":""},{"current":"","offset":2467,"parent":"\\n      if (!($provider instanceof self)) {\\n        continue;\\n      }"},{"current":";\\n  }\\n\\n  /**\\n   * Match an already authenticated media user to the current gateway identity.\\n   * This trusts the same protected proxy ingress as this authentication provider;\\n   * a client-supplied header alone is not proof of gateway authentication.\\n   */\\n  public static function canUseMediaSessionForProxyIdentity(\\n    PhabricatorUser $user) {\\n\\n    $providers = self::getCurrentEnabledProxyProviders();\\n\\n    // Native password-only installations do not acquire a gateway dependency.\\n    if (!$providers) {\\n      return true;\\n    }\\n\\n    $identity = AphrontRequest::getHTTPHeader(\'X-Auth-User\');\\n    if (!phutil_nonempty_string($identity)) {\\n      return false;\\n    }\\n\\n    foreach ($providers as $provider) {\\n      if ($provider->isSessionIdentityCompatible($user, $identity)) {\\n        return true;\\n      }\\n    }\\n\\n    // The account-linking exception is deliberately unavailable to media reads.\\n    return false;\\n  }\\n\\n  private static function getCurrentEnabledProxyProviders() {\\n    $configs = id(new PhabricatorAuthProviderConfigQuery())\\n      ->setViewer(PhabricatorUser::getOmnipotentUser())\\n      ->withProviderClasses(array(self::class))\\n      ->withIsEnabled(true)\\n      ->execute();\\n\\n    // This final provider has one adapter key. Preserve the ordinary provider\\n    // loader\'s refusal of duplicate keys instead of accepting any mapping.\\n    if (count($configs) > 1) {\\n      throw new RuntimeException(\'proxy_identity_provider_ambiguous\');\\n    }\\n\\n    return mpull($configs, \'getProvider\')","offset":2762,"parent":""}],"target_bytes":8406,"target_sha256":"f22818d852fd78d8a6f442dd78339d1d7e1e405bf832ae4682f0f1bc3fb99d72"},"src/applications/base/controller/PhabricatorController.php":{"current_bytes":20830,"current_sha256":"dbb0b3e683d28c4427e815447eac08522c7867066c32c07be4b87df21969ea02","edits":[{"current":"\\n          // Changing the browser cookie alone leaves media credentials bound\\n          // to the old database session valid. Revoke only the session which\\n          // this request actually authenticated, preserving other browsers.\\n          $unguarded = AphrontWriteGuard::beginScopedUnguardedWrites();\\n          try {\\n            $session_engine->logoutSession(\\n              $session_user,\\n              $session_user->getSession());\\n          } finally {\\n            unset($unguarded);\\n          }","offset":2553,"parent":""}],"target_bytes":20327,"target_sha256":"3d870b9a8d41cfd81b4794ed1bfa3149c8e9df39850f8af500ce9b4d5a0fa354"},"src/infrastructure/governance/media/http/PhorgeGovernanceMediaFileGuard.php":{"current_bytes":4015,"current_sha256":"a8679638a240c7bb436afe46cd1ae46c9311ab6d8b8596276384d8dec30332d4","edits":[{"current":"if(!PhabricatorTraefikAuthProvider::canUseMediaSessionForProxyIdentity($viewer)){\\n      throw new RuntimeException(\'media_file_identity_unavailable\');}\\n    ","offset":2126,"parent":""}],"target_bytes":3859,"target_sha256":"79afd0eb6661c0665d5af8aeba10080ac5accb9244dc33a647a91b91217f0379"}},"not_runtime_authority":true,"schema":"Task-proxy-identity-security-inverse-v1"}\n'
 PROXY_IDENTITY_SECURITY_BYTES=3679
 PROXY_IDENTITY_SECURITY_SHA='d13dc62dd9901d490c9b26df913ab360bf875db4797b30083e83768d01462cea'
+HEADER_EMISSION_SECURITY_PATH='src/aphront/sink/AphrontHTTPSink.php'
+HEADER_EMISSION_SECURITY_CURRENT_PIN={'bytes': 5703, 'sha256': 'b8df4a83b8a294248e9e3aa6ad8c88162f70a5120614c2ae0651fd5a9d72f606'}
+HEADER_EMISSION_SECURITY_PARENT_PIN={'bytes': 5248, 'sha256': '6a13c3acf1f9e3ed17b7c350b07ab33398824816803315cb0e11810383e428c6'}
+HEADER_EMISSION_SECURITY_RECIPE=b'{"base_checkpoint":"06aa03501894381577f3c60d042e35acff2868dc","current_bytes":5703,"current_sha256":"b8df4a83b8a294248e9e3aa6ad8c88162f70a5120614c2ae0651fd5a9d72f606","edits":[{"current":"// Response-specific hardening and default cache headers may both add\\n    // nosniff. Validate the entire input above before suppressing this one\\n    // identical security directive; other repeated headers remain unchanged.\\n    $emitted_nosniff = false;\\n    ","offset":2356,"parent":""},{"current":"\\n      if (strtolower($name) === \'x-content-type-options\' &&\\n          $value === \'nosniff\') {\\n        if ($emitted_nosniff) {\\n          continue;\\n        }\\n        $emitted_nosniff = true;\\n      }","offset":2682,"parent":""}],"not_runtime_authority":true,"path":"src/aphront/sink/AphrontHTTPSink.php","schema":"Task-header-emission-security-inverse-v1","target_bytes":5248,"target_sha256":"6a13c3acf1f9e3ed17b7c350b07ab33398824816803315cb0e11810383e428c6"}\n'
+HEADER_EMISSION_SECURITY_BYTES=956
+HEADER_EMISSION_SECURITY_SHA='c6d90e69ba91cdbc7eeb3f416df09911c630cacaf9a8298c2746aaa409539d4e'
+
 
 def need(v):
  if v is not True:raise ValueError('task_SourceOperation_admission_refused')
@@ -296,6 +303,54 @@ def proxy_identity_security_cohort(current):
  doc=load_proxy_identity_security_history()
  return {path:proxy_identity_security_inverse(path,current[path],doc)for path in sorted(PROXY_IDENTITY_SECURITY_PATHS)}
 
+def validate_header_emission_security_history(doc):
+ need(type(doc)is dict and set(doc)=={'schema','base_checkpoint','path','not_runtime_authority','current_bytes','current_sha256','target_bytes','target_sha256','edits'})
+ canonical=json.dumps(doc,sort_keys=True,separators=(',',':')).encode()+b'\n'
+ need(len(canonical)==HEADER_EMISSION_SECURITY_BYTES and sha(canonical)==HEADER_EMISSION_SECURITY_SHA)
+ need(doc['schema']=='Task-header-emission-security-inverse-v1'and doc['base_checkpoint']=='06aa03501894381577f3c60d042e35acff2868dc'and doc['path']==HEADER_EMISSION_SECURITY_PATH and doc['not_runtime_authority']is True)
+ for role,pin in (('current',HEADER_EMISSION_SECURITY_CURRENT_PIN),('target',HEADER_EMISSION_SECURITY_PARENT_PIN)):
+  need(type(doc[role+'_bytes'])is int and doc[role+'_bytes']==pin['bytes']and doc[role+'_sha256']==pin['sha256'])
+ edits=doc['edits'];need(type(edits)is list and 0<len(edits)<=16)
+ previous=-1;current_end=target_end=delta=total=0
+ for edit in edits:
+  need(type(edit)is dict and set(edit)=={'offset','current','parent'}and type(edit['offset'])is int and type(edit['current'])is type(edit['parent'])is str)
+  old=edit['current'].encode();new=edit['parent'].encode();offset=edit['offset'];total+=len(old)+len(new)
+  need(total<=32768 and old!=new and offset>previous and offset>=current_end and offset+len(old)<=doc['current_bytes'])
+  target_offset=offset+delta;need(target_offset>=target_end and target_offset+len(new)<=doc['target_bytes'])
+  previous=offset;current_end=offset+len(old);target_end=target_offset+len(new);delta+=len(new)-len(old)
+ need(doc['current_bytes']+delta==doc['target_bytes']);return doc
+
+def load_header_emission_security_history(raw=None):
+ if raw is None:raw=HEADER_EMISSION_SECURITY_RECIPE
+ need(type(raw)is bytes and len(raw)==HEADER_EMISSION_SECURITY_BYTES and sha(raw)==HEADER_EMISSION_SECURITY_SHA)
+ return validate_header_emission_security_history(decode(raw))
+
+def header_emission_security_roundtrip(relative,target,doc=None):
+ if doc is None:doc=load_header_emission_security_history()
+ validate_header_emission_security_history(doc);need(relative==HEADER_EMISSION_SECURITY_PATH and type(target)is bytes)
+ need(len(target)==doc['target_bytes']and sha(target)==doc['target_sha256'])
+ parts=[];cursor=delta=0
+ for edit in doc['edits']:
+  old=edit['current'].encode();new=edit['parent'].encode();offset=edit['offset']+delta
+  need(target[offset:offset+len(new)]==new)
+  parts.extend((target[cursor:offset],old));cursor=offset+len(new);delta+=len(new)-len(old)
+ result=b''.join(parts)+target[cursor:]
+ need(len(result)==doc['current_bytes']and sha(result)==doc['current_sha256']);return result
+
+def header_emission_security_inverse(relative,current,doc=None):
+ # The prior Sink is authenticated DATA, never an admitted runtime fallback.
+ if doc is None:doc=load_header_emission_security_history()
+ validate_header_emission_security_history(doc);need(relative==HEADER_EMISSION_SECURITY_PATH and type(current)is bytes)
+ need(len(current)==doc['current_bytes']and sha(current)==doc['current_sha256'])
+ parts=[];cursor=0
+ for edit in doc['edits']:
+  old=edit['current'].encode();new=edit['parent'].encode();offset=edit['offset']
+  need(current[offset:offset+len(old)]==old)
+  parts.extend((current[cursor:offset],new));cursor=offset+len(old)
+ target=b''.join(parts)+current[cursor:]
+ need(len(target)==doc['target_bytes']and sha(target)==doc['target_sha256'])
+ need(header_emission_security_roundtrip(relative,target,doc)==current);return target
+
 def task_preupgrade_fixture_inverse(relative,raw,recipe_raw):
  """Pure fixed DATA inverse; never executes a fixture, recipe, or source code."""
  need(type(relative)is str and relative==TASK_PREUPGRADE_FIXTURE)
@@ -380,6 +435,8 @@ class TaskContext:
         and self.parent_pins[row['path']]['kind']=='file'
         and self.parent_pins[row['path']]['sha256']==row['sha256'])
 
+  need(self.parent_pins.get(HEADER_EMISSION_SECURITY_PATH)==dict(HEADER_EMISSION_SECURITY_PARENT_PIN,kind='file',mode=0o644))
+  header_predecessor=header_emission_security_inverse(HEADER_EMISSION_SECURITY_PATH,self.current_raw[HEADER_EMISSION_SECURITY_PATH])
   need(PROXY_IDENTITY_SECURITY_PATHS.issubset(self.parent_pins))
   proxy_predecessor=proxy_identity_security_cohort({path:self.current_raw[path]for path in PROXY_IDENTITY_SECURITY_PATHS})
   release_history=load_release_history(self.current_raw[RELEASE_HISTORY])
@@ -398,6 +455,7 @@ class TaskContext:
    elif rel in self.api_inverse:
     inverse=self.api_inverse[rel];decoder=zlib.decompressobj();raw=decoder.decompress(base64.b64decode(inverse['zlib_base64'],validate=True),inverse['bytes']+1);need(decoder.eof and not decoder.unused_data and not decoder.unconsumed_tail and len(raw)==inverse['bytes']and sha(raw)==inverse['sha256'])
    elif rel in self.parent_pins:
+    if rel==HEADER_EMISSION_SECURITY_PATH:raw=header_predecessor
     if rel in PROXY_IDENTITY_SECURITY_PATHS:raw=proxy_predecessor[rel]
     if rel in RELEASE_HISTORY_PATHS:raw=release_history_inverse(rel,raw,release_history)
     if rel==TASK_PREUPGRADE_FIXTURE:
