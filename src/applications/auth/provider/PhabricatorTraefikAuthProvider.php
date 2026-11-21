@@ -72,10 +72,7 @@ final class PhabricatorTraefikAuthProvider extends PhabricatorAuthProvider {
     }
 
     $has_proxy_provider = false;
-    foreach (PhabricatorAuthProvider::getAllEnabledProviders() as $provider) {
-      if (!($provider instanceof self)) {
-        continue;
-      }
+    foreach (self::getCurrentEnabledProxyProviders() as $provider) {
       $has_proxy_provider = true;
       if ($provider->isSessionIdentityCompatible($user, $identity)) {
         return true;
@@ -87,6 +84,52 @@ final class PhabricatorTraefikAuthProvider extends PhabricatorAuthProvider {
     }
 
     return !$has_proxy_provider;
+  }
+
+  /**
+   * Match an already authenticated media user to the current gateway identity.
+   * This trusts the same protected proxy ingress as this authentication provider;
+   * a client-supplied header alone is not proof of gateway authentication.
+   */
+  public static function canUseMediaSessionForProxyIdentity(
+    PhabricatorUser $user) {
+
+    $providers = self::getCurrentEnabledProxyProviders();
+
+    // Native password-only installations do not acquire a gateway dependency.
+    if (!$providers) {
+      return true;
+    }
+
+    $identity = AphrontRequest::getHTTPHeader('X-Auth-User');
+    if (!phutil_nonempty_string($identity)) {
+      return false;
+    }
+
+    foreach ($providers as $provider) {
+      if ($provider->isSessionIdentityCompatible($user, $identity)) {
+        return true;
+      }
+    }
+
+    // The account-linking exception is deliberately unavailable to media reads.
+    return false;
+  }
+
+  private static function getCurrentEnabledProxyProviders() {
+    $configs = id(new PhabricatorAuthProviderConfigQuery())
+      ->setViewer(PhabricatorUser::getOmnipotentUser())
+      ->withProviderClasses(array(self::class))
+      ->withIsEnabled(true)
+      ->execute();
+
+    // This final provider has one adapter key. Preserve the ordinary provider
+    // loader's refusal of duplicate keys instead of accepting any mapping.
+    if (count($configs) > 1) {
+      throw new RuntimeException('proxy_identity_provider_ambiguous');
+    }
+
+    return mpull($configs, 'getProvider');
   }
 
   public function canUseSessionForAccountLink(

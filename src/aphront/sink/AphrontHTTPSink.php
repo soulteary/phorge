@@ -80,8 +80,19 @@ abstract class AphrontHTTPSink extends Phobject {
       }
     }
 
+    // Response-specific hardening and default cache headers may both add
+    // nosniff. Validate the entire input above before suppressing this one
+    // identical security directive; other repeated headers remain unchanged.
+    $emitted_nosniff = false;
     foreach ($headers as $header) {
       list($name, $value) = $header;
+      if (strtolower($name) === 'x-content-type-options' &&
+          $value === 'nosniff') {
+        if ($emitted_nosniff) {
+          continue;
+        }
+        $emitted_nosniff = true;
+      }
       $this->emitHeader($name, $value);
     }
   }
