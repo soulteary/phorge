@@ -91,6 +91,17 @@ abstract class PhabricatorController extends AphrontController {
               $session_user, $this)) {
           // The gateway account changed. Do not reuse the previous account's
           // native session, including on read-only or file requests.
+          // Changing the browser cookie alone leaves media credentials bound
+          // to the old database session valid. Revoke only the session which
+          // this request actually authenticated, preserving other browsers.
+          $unguarded = AphrontWriteGuard::beginScopedUnguardedWrites();
+          try {
+            $session_engine->logoutSession(
+              $session_user,
+              $session_user->getSession());
+          } finally {
+            unset($unguarded);
+          }
           $session_user = null;
           $phsid = $session_engine->establishSession(
             PhabricatorAuthSession::TYPE_WEB,

@@ -176,6 +176,9 @@ class ReleaseHistoryLiteralData(unittest.TestCase):
   spec=importlib.util.spec_from_file_location('release_history_DATA',path)
   cls.scope=importlib.util.module_from_spec(spec);spec.loader.exec_module(cls.scope)
   cls.raw=(ROOT/cls.scope.RELEASE_HISTORY).read_bytes();cls.doc=cls.scope.load_release_history(cls.raw)
+  cls.proxy_predecessor=cls.scope.proxy_identity_security_cohort({path:(ROOT/path).read_bytes() for path in cls.scope.PROXY_IDENTITY_SECURITY_PATHS})
+  cls.sink_path=cls.scope.HEADER_EMISSION_SECURITY_PATH;cls.sink_current=(ROOT/cls.sink_path).read_bytes()
+  cls.sink_predecessor=cls.scope.header_emission_security_inverse(cls.sink_path,cls.sink_current)
   path=ROOT/'scripts/governance/task_content_grant_source_delta.py'
   spec=importlib.util.spec_from_file_location('unchanged_Task_reducer_DATA',path)
   cls.delta=importlib.util.module_from_spec(spec);spec.loader.exec_module(cls.delta)
@@ -190,8 +193,11 @@ class ReleaseHistoryLiteralData(unittest.TestCase):
   parent=json.loads((ROOT/self.scope.BASELINE).read_bytes())['entries']
   for path in self.doc['files']:
    with self.subTest(path=path):
-    current=(ROOT/path).read_bytes();target=self.scope.release_history_inverse(path,current,self.doc)
-    self.assertEqual(self.scope.release_history_roundtrip(path,target,self.doc),current)
+    current=(ROOT/path).read_bytes();historical=self.proxy_predecessor.get(path,current)
+    target=self.scope.release_history_inverse(path,historical,self.doc)
+    self.assertEqual(self.scope.release_history_roundtrip(path,target,self.doc),historical)
+    if path in self.proxy_predecessor:
+     self.assertEqual(self.scope.proxy_identity_security_roundtrip(path,historical),current)
     if path==self.scope.TASK_PREUPGRADE_FIXTURE:
      target=self.scope.task_preupgrade_fixture_inverse(path,target,(ROOT/self.scope.TASK_PREUPGRADE_RECIPE).read_bytes())
     restored=self.delta.reduce_selected(path,target);old=parent[path]
@@ -216,6 +222,8 @@ class ReleaseHistoryLiteralData(unittest.TestCase):
     self.assertTrue(decoder.eof and not decoder.unused_data and not decoder.unconsumed_tail)
     self.assertEqual(len(raw),entry['bytes']);self.assertEqual(hashlib.sha256(raw).hexdigest(),entry['sha256'])
    else:
+    if path==self.sink_path:raw=self.sink_predecessor
+    if path in self.proxy_predecessor:raw=self.proxy_predecessor[path]
     if path in self.scope.RELEASE_HISTORY_PATHS:raw=self.scope.release_history_inverse(path,raw,self.doc)
     if path==self.scope.TASK_PREUPGRADE_FIXTURE:
      raw=self.scope.task_preupgrade_fixture_inverse(path,raw,(ROOT/self.scope.TASK_PREUPGRADE_RECIPE).read_bytes())
@@ -228,6 +236,9 @@ class ReleaseHistoryLiteralData(unittest.TestCase):
   self.assertEqual((len(target),hashlib.sha256(target).hexdigest()),(pin['current_bytes'],pin['current_sha256']))
   self.assertEqual(pin['current_sha256'],'081e5cf740a2aa893274774885a949f3d90fd233370517ce08f7f6ab007765a2')
  def test_unknown_current_bytes_length_type_and_path_refuse(self):
+  self.assertEqual(self.scope.header_emission_security_roundtrip(self.sink_path,self.sink_predecessor),self.sink_current)
+  for changed in (self.sink_predecessor,self.sink_current+b' ',b'!'+self.sink_current[1:],bytearray(self.sink_current)):
+   with self.subTest(path=self.sink_path),self.assertRaises(ValueError):self.scope.header_emission_security_inverse(self.sink_path,changed)
   for path in self.doc['files']:
    raw=(ROOT/path).read_bytes()
    for changed in (raw+b' ',b'!'+raw[1:],bytearray(raw)):

@@ -24,8 +24,10 @@ class TaskStaticInventory(unittest.TestCase):
   with self.assertRaises(ValueError):gate.TypedSeams().visit(f)
  def test_fake_owner_refuses_before_source_capture(self):
   with self.assertRaises(ValueError):gate.verify_in_operation(object(),ROOT)
+  with self.assertRaises(ValueError):gate._metadata_bytes(object(),ROOT,ROOT/'src/infrastructure/governance/media/http/PhorgeGovernanceMediaFileGuard.php')
  def test_only_two_exact_current_parent_metadata_deltas(self):
-  # Retain the existing test ID/count; the exact retirement deltas are explicit below.
+  # Retain the existing test ID/count. These inverse pairs are DATA only;
+  # the real metadata seam still requires the full genuine TaskContext.
   self.assertEqual(set(gate.METADATA_DELTAS),{
    'src/applications/people/governance/auth/PhorgeGovernanceNativeIdentitySource.php',
    'src/infrastructure/governance/execution/PhorgeProjectConfigEpochScope.php',
@@ -39,7 +41,8 @@ class TaskStaticInventory(unittest.TestCase):
    'src/infrastructure/governance/native/PhorgeGovernanceNativeSourceReader.php',
    'src/infrastructure/governance/observation/PhorgeGovernanceNativeObservationVerifier.php',
    'src/infrastructure/governance/native/PhorgeGovernanceNativeRuleHierarchyVerifier.php',
-   'src/infrastructure/governance/contracts/PhorgeGovernanceContentDecision.php'})
+   'src/infrastructure/governance/contracts/PhorgeGovernanceContentDecision.php',
+   'src/infrastructure/governance/media/http/PhorgeGovernanceMediaFileGuard.php'})
   for name,(old,new)in gate.METADATA_DELTAS.items():
    current=(ROOT/name).read_bytes();parent=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'show','5903d98b14926401f0be49cb0a9d6168026a2642:'+name])
    self.assertEqual((gate.sha(parent),gate.sha(current)),(old,new));self.assertEqual(gate._metadata_data(name,current,parent),parent)
