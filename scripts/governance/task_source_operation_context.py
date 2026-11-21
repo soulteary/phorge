@@ -150,6 +150,13 @@ CI_V2_NEW_PATHS.add('tests/release/test_php_security.py')
 
 PHP_SECURITY_HISTORY_PATHS=frozenset(['.github/workflows/php-core-security.yml', '.github/workflows/rebuild-phutil-map.yml', 'DOCKER.md', 'Dockerfile', 'README.md', 'deploy/acceptance/image-lock-provenance.md', 'deploy/acceptance/php_security.php', 'deploy/release/README.md', 'docker/acceptance.Dockerfile', 'docs/governance/batch-1-contracts.md', 'docs/governance/batch-1-implementation.md', 'docs/governance/batch-2-callers.md', 'docs/releases/php-8.5.12-upgrade.md', 'docs/upstream/atomic-required-gates-and-evidence.md', 'scripts/governance/check_api_credential_concurrency.py', 'scripts/governance/check_directory_transports_v1.py', 'scripts/governance/check_native_user_rr_mdl.py', 'scripts/governance/check_organization_approval_workbench.py', 'scripts/governance/check_private_calendar_reminders.py', 'scripts/governance/check_recovery_application_config.py', 'scripts/governance/check_recovery_assessment_credentials.py', 'scripts/governance/check_recovery_assessment_credentials_v2.py', 'scripts/governance/check_recovery_borrowed_session.py', 'scripts/governance/check_recovery_conduit_producer.py', 'scripts/governance/check_recovery_file_parent_policy.py', 'scripts/governance/check_recovery_file_source.py', 'scripts/governance/check_recovery_oauth_access_producer.py', 'scripts/governance/check_recovery_oauth_access_producer_v2.py', 'scripts/governance/check_recovery_oauth_access_producer_v3.py', 'scripts/governance/check_recovery_oauth_authorization_producer_v1.py', 'scripts/governance/check_recovery_oauth_client_lifecycle.py', 'scripts/governance/check_recovery_oauth_code_producer_v1.py', 'scripts/governance/check_recovery_org_lifecycle.py', 'scripts/governance/check_recovery_org_metadata.py', 'scripts/governance/check_recovery_partial_composition.py', 'scripts/governance/check_recovery_policy_isolation.py', 'scripts/governance/check_recovery_project_source.py', 'scripts/governance/check_recovery_session_lease.py', 'scripts/governance/check_recovery_spaces_source.py', 'scripts/governance/check_recovery_task_owner_source.py', 'src/__tests__/PhorgePHPVersionTestCase.php', 'src/docs/user/installation_guide.diviner', 'support/governance/completion/fixture.php', 'support/governance/media-session-ci/prepare.py', 'support/governance/media-session-ci/project.py', 'support/governance/media-session-docker/README.md', 'support/governance/media-session-docker/run.py', 'support/governance/project-content-grants-ci/README.md', 'support/governance/project-description-ci/README.md', 'support/governance/project-description-ci/fixture.php', 'support/governance/project-description-qualification/README.md', 'support/governance/project-description-qualification/native.php', 'support/governance/revocation-measurement/README.md', 'support/runtime/README.md', 'support/runtime/manifest.json', 'support/runtime/php-version.php', 'tests/atomic/README.md', 'tests/governance/private_mail_ci/Dockerfile', 'tests/governance/private_mail_ci/IMAGE-PLAN.md', 'tests/governance/private_mail_ci/README.md', 'tests/governance/private_mail_ci/pure_inventory.py', 'tests/governance/private_mail_ci/run_matrix.py', 'tests/governance/private_mail_ci/run_pending.py', 'tests/governance/private_mail_ci/test_pure_inventory.py', 'tests/governance/test_directory_restore_progress.py', 'tests/governance/test_project_description_ci.py', 'tests/governance/test_recovery_org_lifecycle_gate.py', 'tests/governance/test_recovery_org_metadata_gate.py', 'tests/governance/test_recovery_partial_failure_diagnostic.py', 'tests/governance/test_recovery_policy_isolation.py', 'tests/governance/test_task_wire_parent.py', 'tests/operations/php.Dockerfile', 'tests/permissions/xlsx/composer.json', 'tests/permissions/xlsx/composer.lock', 'tests/project-workspace/README.md'])
 
+# Exact three-source security successor. Prior bytes below remain inert DATA;
+# they are never admitted as the new runtime or compiled as application code.
+PROXY_IDENTITY_SECURITY_PATHS=frozenset(['src/applications/auth/provider/PhabricatorTraefikAuthProvider.php', 'src/applications/base/controller/PhabricatorController.php', 'src/infrastructure/governance/media/http/PhorgeGovernanceMediaFileGuard.php'])
+PROXY_IDENTITY_SECURITY_RECIPE=b'{"base_checkpoint":"0a48f072bbfca5de398f491fb3a1dec63554dd24","files":{"src/applications/auth/provider/PhabricatorTraefikAuthProvider.php":{"current_bytes":9828,"current_sha256":"34d0032c0f8b402a597b936849d4107eb27da5da7f2dca406872810b2f4b9e37","edits":[{"current":"s","offset":2412,"parent":"PhabricatorAuthProvid"},{"current":"lf","offset":2414,"parent":"r"},{"current":"Current","offset":2421,"parent":"All"},{"current":"Proxy","offset":2435,"parent":""},{"current":"","offset":2467,"parent":"\\n      if (!($provider instanceof self)) {\\n        continue;\\n      }"},{"current":";\\n  }\\n\\n  /**\\n   * Match an already authenticated media user to the current gateway identity.\\n   * This trusts the same protected proxy ingress as this authentication provider;\\n   * a client-supplied header alone is not proof of gateway authentication.\\n   */\\n  public static function canUseMediaSessionForProxyIdentity(\\n    PhabricatorUser $user) {\\n\\n    $providers = self::getCurrentEnabledProxyProviders();\\n\\n    // Native password-only installations do not acquire a gateway dependency.\\n    if (!$providers) {\\n      return true;\\n    }\\n\\n    $identity = AphrontRequest::getHTTPHeader(\'X-Auth-User\');\\n    if (!phutil_nonempty_string($identity)) {\\n      return false;\\n    }\\n\\n    foreach ($providers as $provider) {\\n      if ($provider->isSessionIdentityCompatible($user, $identity)) {\\n        return true;\\n      }\\n    }\\n\\n    // The account-linking exception is deliberately unavailable to media reads.\\n    return false;\\n  }\\n\\n  private static function getCurrentEnabledProxyProviders() {\\n    $configs = id(new PhabricatorAuthProviderConfigQuery())\\n      ->setViewer(PhabricatorUser::getOmnipotentUser())\\n      ->withProviderClasses(array(self::class))\\n      ->withIsEnabled(true)\\n      ->execute();\\n\\n    // This final provider has one adapter key. Preserve the ordinary provider\\n    // loader\'s refusal of duplicate keys instead of accepting any mapping.\\n    if (count($configs) > 1) {\\n      throw new RuntimeException(\'proxy_identity_provider_ambiguous\');\\n    }\\n\\n    return mpull($configs, \'getProvider\')","offset":2762,"parent":""}],"target_bytes":8406,"target_sha256":"f22818d852fd78d8a6f442dd78339d1d7e1e405bf832ae4682f0f1bc3fb99d72"},"src/applications/base/controller/PhabricatorController.php":{"current_bytes":20830,"current_sha256":"dbb0b3e683d28c4427e815447eac08522c7867066c32c07be4b87df21969ea02","edits":[{"current":"\\n          // Changing the browser cookie alone leaves media credentials bound\\n          // to the old database session valid. Revoke only the session which\\n          // this request actually authenticated, preserving other browsers.\\n          $unguarded = AphrontWriteGuard::beginScopedUnguardedWrites();\\n          try {\\n            $session_engine->logoutSession(\\n              $session_user,\\n              $session_user->getSession());\\n          } finally {\\n            unset($unguarded);\\n          }","offset":2553,"parent":""}],"target_bytes":20327,"target_sha256":"3d870b9a8d41cfd81b4794ed1bfa3149c8e9df39850f8af500ce9b4d5a0fa354"},"src/infrastructure/governance/media/http/PhorgeGovernanceMediaFileGuard.php":{"current_bytes":4015,"current_sha256":"a8679638a240c7bb436afe46cd1ae46c9311ab6d8b8596276384d8dec30332d4","edits":[{"current":"if(!PhabricatorTraefikAuthProvider::canUseMediaSessionForProxyIdentity($viewer)){\\n      throw new RuntimeException(\'media_file_identity_unavailable\');}\\n    ","offset":2126,"parent":""}],"target_bytes":3859,"target_sha256":"79afd0eb6661c0665d5af8aeba10080ac5accb9244dc33a647a91b91217f0379"}},"not_runtime_authority":true,"schema":"Task-proxy-identity-security-inverse-v1"}\n'
+PROXY_IDENTITY_SECURITY_BYTES=3679
+PROXY_IDENTITY_SECURITY_SHA='d13dc62dd9901d490c9b26df913ab360bf875db4797b30083e83768d01462cea'
+
 def need(v):
  if v is not True:raise ValueError('task_SourceOperation_admission_refused')
 def sha(raw):return hashlib.sha256(raw).hexdigest()
@@ -227,6 +234,67 @@ def release_history_inverse(relative,current,doc):
  target=b''.join(parts)+current[cursor:]
  need(len(target)==row['target_bytes']and sha(target)==row['target_sha256'])
  need(release_history_roundtrip(relative,target,doc)==current);return target
+
+
+def validate_proxy_identity_security_history(doc):
+ need(type(doc)is dict and set(doc)=={'schema','base_checkpoint','not_runtime_authority','files'})
+ canonical=json.dumps(doc,sort_keys=True,separators=(',',':')).encode()+b'\n'
+ need(len(canonical)==PROXY_IDENTITY_SECURITY_BYTES and sha(canonical)==PROXY_IDENTITY_SECURITY_SHA)
+ need(doc['schema']=='Task-proxy-identity-security-inverse-v1'and doc['base_checkpoint']=='0a48f072bbfca5de398f491fb3a1dec63554dd24'and doc['not_runtime_authority']is True)
+ files=doc['files'];need(type(files)is dict and set(files)==PROXY_IDENTITY_SECURITY_PATHS)
+ total=0
+ for path,row in files.items():
+  need(type(row)is dict and set(row)=={'current_bytes','current_sha256','target_bytes','target_sha256','edits'})
+  need(all(type(row[k])is int and 0<row[k]<=16777216 for k in ('current_bytes','target_bytes')))
+  need(all(type(row[k])is str and re.fullmatch('[a-f0-9]{64}',row[k])is not None for k in ('current_sha256','target_sha256')))
+  need(row['current_sha256']!=row['target_sha256'])
+  edits=row['edits'];need(type(edits)is list and 0<len(edits)<=64)
+  previous=-1;current_end=target_end=delta=0
+  for edit in edits:
+   need(type(edit)is dict and set(edit)=={'offset','current','parent'}and type(edit['offset'])is int and type(edit['current'])is type(edit['parent'])is str)
+   old=edit['current'].encode();new=edit['parent'].encode();offset=edit['offset'];total+=len(old)+len(new)
+   need(total<=65536 and old!=new and offset>previous and offset>=current_end and offset+len(old)<=row['current_bytes'])
+   target_offset=offset+delta;need(target_offset>=target_end and target_offset+len(new)<=row['target_bytes'])
+   previous=offset;current_end=offset+len(old);target_end=target_offset+len(new);delta+=len(new)-len(old)
+  need(row['current_bytes']+delta==row['target_bytes'])
+ return doc
+
+def load_proxy_identity_security_history(raw=None):
+ if raw is None:raw=PROXY_IDENTITY_SECURITY_RECIPE
+ need(type(raw)is bytes and len(raw)==PROXY_IDENTITY_SECURITY_BYTES and sha(raw)==PROXY_IDENTITY_SECURITY_SHA)
+ return validate_proxy_identity_security_history(decode(raw))
+
+def proxy_identity_security_roundtrip(relative,target,doc=None):
+ if doc is None:doc=load_proxy_identity_security_history()
+ validate_proxy_identity_security_history(doc);need(relative in PROXY_IDENTITY_SECURITY_PATHS and type(target)is bytes)
+ row=doc['files'][relative];need(len(target)==row['target_bytes']and sha(target)==row['target_sha256'])
+ parts=[];cursor=delta=0
+ for edit in row['edits']:
+  old=edit['current'].encode();new=edit['parent'].encode();offset=edit['offset']+delta
+  need(target[offset:offset+len(new)]==new)
+  parts.extend((target[cursor:offset],old));cursor=offset+len(new);delta+=len(new)-len(old)
+ current=b''.join(parts)+target[cursor:]
+ need(len(current)==row['current_bytes']and sha(current)==row['current_sha256']);return current
+
+def proxy_identity_security_inverse(relative,current,doc=None):
+ if doc is None:doc=load_proxy_identity_security_history()
+ validate_proxy_identity_security_history(doc);need(relative in PROXY_IDENTITY_SECURITY_PATHS and type(current)is bytes)
+ row=doc['files'][relative];need(len(current)==row['current_bytes']and sha(current)==row['current_sha256'])
+ parts=[];cursor=0
+ for edit in row['edits']:
+  old=edit['current'].encode();new=edit['parent'].encode();offset=edit['offset']
+  need(current[offset:offset+len(old)]==old)
+  parts.extend((current[cursor:offset],new));cursor=offset+len(old)
+ target=b''.join(parts)+current[cursor:]
+ need(len(target)==row['target_bytes']and sha(target)==row['target_sha256'])
+ need(proxy_identity_security_roundtrip(relative,target,doc)==current);return target
+
+def proxy_identity_security_cohort(current):
+ # All selected runtime leaves must be the new secure cohort, including when an
+ # old leaf is byte-valid for the historical reducers. No mixed/old fallback.
+ need(type(current)is dict and set(current)==PROXY_IDENTITY_SECURITY_PATHS)
+ doc=load_proxy_identity_security_history()
+ return {path:proxy_identity_security_inverse(path,current[path],doc)for path in sorted(PROXY_IDENTITY_SECURITY_PATHS)}
 
 def task_preupgrade_fixture_inverse(relative,raw,recipe_raw):
  """Pure fixed DATA inverse; never executes a fixture, recipe, or source code."""
@@ -312,6 +380,8 @@ class TaskContext:
         and self.parent_pins[row['path']]['kind']=='file'
         and self.parent_pins[row['path']]['sha256']==row['sha256'])
 
+  need(PROXY_IDENTITY_SECURITY_PATHS.issubset(self.parent_pins))
+  proxy_predecessor=proxy_identity_security_cohort({path:self.current_raw[path]for path in PROXY_IDENTITY_SECURITY_PATHS})
   release_history=load_release_history(self.current_raw[RELEASE_HISTORY])
   need(sha(self.current_raw[CI_INVERSE])==CI_INVERSE_SHA)
   ci=decode(self.current_raw[CI_INVERSE]);need(set(ci)=={'schema','parent_revision','files'}and ci['schema']=='Task-CI-modified-parent5903-v1'and ci['parent_revision']=='5903d98b14926401f0be49cb0a9d6168026a2642')
@@ -328,6 +398,7 @@ class TaskContext:
    elif rel in self.api_inverse:
     inverse=self.api_inverse[rel];decoder=zlib.decompressobj();raw=decoder.decompress(base64.b64decode(inverse['zlib_base64'],validate=True),inverse['bytes']+1);need(decoder.eof and not decoder.unused_data and not decoder.unconsumed_tail and len(raw)==inverse['bytes']and sha(raw)==inverse['sha256'])
    elif rel in self.parent_pins:
+    if rel in PROXY_IDENTITY_SECURITY_PATHS:raw=proxy_predecessor[rel]
     if rel in RELEASE_HISTORY_PATHS:raw=release_history_inverse(rel,raw,release_history)
     if rel==TASK_PREUPGRADE_FIXTURE:
      raw=task_preupgrade_fixture_inverse(rel,raw,self.current_raw[TASK_PREUPGRADE_RECIPE])

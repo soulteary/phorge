@@ -259,5 +259,83 @@ class MediaResponseContractTest(unittest.TestCase):
         self.assertFalse(report['application_flags_changed'])
 
 
+class ProxyIdentitySecurityInverseData(unittest.TestCase):
+ """Literal DATA proof only; no SourceOperation, SQL, TLS or browser authority."""
+ def setUp(self):
+  import task_source_operation_context as context
+  self.context=context
+  self.paths=frozenset({'src/applications/auth/provider/PhabricatorTraefikAuthProvider.php',
+   'src/applications/base/controller/PhabricatorController.php',
+   'src/infrastructure/governance/media/http/PhorgeGovernanceMediaFileGuard.php'})
+  self.current={path:(CANDIDATE/path).read_bytes()for path in self.paths}
+  self.previous={path:subprocess.check_output(['git','--no-replace-objects','-C',str(CANDIDATE),'show',
+   '0a48f072bbfca5de398f491fb3a1dec63554dd24:'+path])for path in self.paths}
+ def test_actual_new_cohort_reconstructs_exact_actual0a_and_forward_roundtrip(self):
+  m=self.context;self.assertEqual(m.PROXY_IDENTITY_SECURITY_PATHS,self.paths)
+  targets=m.proxy_identity_security_cohort(self.current)
+  self.assertEqual(targets,self.previous)
+  for path in self.paths:
+   self.assertEqual(m.proxy_identity_security_roundtrip(path,self.previous[path]),self.current[path])
+ def test_every_mixed_or_old_insecure_cohort_is_refused(self):
+  import itertools
+  for choice in itertools.product((False,True),repeat=3):
+   if all(choice):continue
+   mixed={path:(self.current if fresh else self.previous)[path]for path,fresh in zip(sorted(self.paths),choice)}
+   with self.subTest(cohort=choice),self.assertRaises(ValueError):self.context.proxy_identity_security_cohort(mixed)
+  for path in self.paths:
+   with self.subTest(old_path=path),self.assertRaises(ValueError):self.context.proxy_identity_security_inverse(path,self.previous[path])
+ def test_unknown_missing_extra_and_malformed_cohort_refused(self):
+  m=self.context
+  with self.assertRaises(ValueError):m.proxy_identity_security_cohort(dict(self.current,**{'src/unreviewed.php':b'unknown'}))
+  for path in self.paths:
+   missing=dict(self.current);del missing[path]
+   with self.subTest(missing=path),self.assertRaises(ValueError):m.proxy_identity_security_cohort(missing)
+   for raw in (None,bytearray(self.current[path]),self.current[path]+b'\n',b'X'+self.current[path][1:]):
+    changed=dict(self.current);changed[path]=raw
+    with self.subTest(path=path,kind=type(raw).__name__),self.assertRaises(ValueError):m.proxy_identity_security_cohort(changed)
+  with self.assertRaises(ValueError):m.proxy_identity_security_inverse('src/unreviewed.php',b'unknown')
+ def test_mutated_recipe_and_duplicate_noncanonical_DATA_refused(self):
+  import copy
+  m=self.context;raw=m.PROXY_IDENTITY_SECURITY_RECIPE
+  for value in (b'',raw+b'\n',raw.replace(b'not_runtime_authority',b'not_runtime_authoritY',1),
+    raw.replace(b'"schema":',b'"schema":"Task-proxy-identity-security-inverse-v1","schema":',1),bytearray(raw)):
+   with self.subTest(kind=type(value).__name__),self.assertRaises(ValueError):m.load_proxy_identity_security_history(value)
+  doc=m.load_proxy_identity_security_history();path=sorted(self.paths)[0]
+  for mutate in (lambda d:d.update(base_checkpoint='f'*40),lambda d:d['files'][path].update(target_sha256='0'*64),
+    lambda d:d['files'][path]['edits'][0].update(offset=True),lambda d:d['files'][path]['edits'][0].update(parent='tampered'),
+    lambda d:d['files'].update({'src/unreviewed.php':d['files'][path]}),lambda d:d.update(not_runtime_authority=False)):
+   changed=copy.deepcopy(doc);mutate(changed)
+   with self.assertRaises(ValueError):m.validate_proxy_identity_security_history(changed)
+ def test_forward_reconstruction_refuses_unknown_or_changed_target(self):
+  m=self.context
+  for path,raw in self.previous.items():
+   for changed in (raw+b'\n',b'X'+raw[1:],bytearray(raw)):
+    with self.subTest(path=path),self.assertRaises(ValueError):m.proxy_identity_security_roundtrip(path,changed)
+  with self.assertRaises(ValueError):m.proxy_identity_security_roundtrip('src/unknown.php',b'unknown')
+ def test_existing_release_history_and_original_parent_pins_remain_exact(self):
+  m=self.context;history=m.load_release_history((CANDIDATE/m.RELEASE_HISTORY).read_bytes())
+  parent=json.loads((CANDIDATE/m.BASELINE).read_bytes())['entries']
+  delta=load('proxy_actual_existing_Task_reducer',CANDIDATE/'scripts/governance/task_content_grant_source_delta.py')
+  for path,raw in m.proxy_identity_security_cohort(self.current).items():
+   if path in m.RELEASE_HISTORY_PATHS:raw=m.release_history_inverse(path,raw,history)
+   prior=delta.reduce_selected(path,raw)
+   self.assertEqual(len(prior),parent[path]['bytes']);self.assertEqual(hashlib.sha256(prior).hexdigest(),parent[path]['sha256'])
+ def test_prior_history_hashes_unchanged_and_new_inverse_precedes_old_reducers(self):
+  import ast
+  m=self.context
+  old=subprocess.check_output(['git','--no-replace-objects','-C',str(CANDIDATE),'show',
+   '0a48f072bbfca5de398f491fb3a1dec63554dd24:scripts/governance/task_source_operation_context.py'])
+  names={'BASELINE','BASELINE_SHA','INVERSE','INVERSE_SHA','CI_INVERSE','CI_INVERSE_SHA','RELEASE_HISTORY','RELEASE_HISTORY_BYTES','RELEASE_HISTORY_SHA','WIKI_RETIREMENT_MANIFEST','WIKI_RETIREMENT_SHA'}
+  seen=set()
+  for node in ast.parse(old).body:
+   if isinstance(node,ast.Assign)and len(node.targets)==1 and isinstance(node.targets[0],ast.Name)and node.targets[0].id in names:
+    name=node.targets[0].id;self.assertEqual(getattr(m,name),ast.literal_eval(node.value));seen.add(name)
+  self.assertEqual(seen,names)
+  text=(CANDIDATE/'scripts/governance/task_source_operation_context.py').read_text()
+  init=text[text.index('class TaskContext:'):]
+  self.assertLess(init.index('proxy_predecessor=proxy_identity_security_cohort('),init.index("self.reduce=namespace['reduce_selected']"))
+  self.assertLess(init.index('if rel in PROXY_IDENTITY_SECURITY_PATHS:raw=proxy_predecessor[rel]'),init.index('if rel in RELEASE_HISTORY_PATHS:raw=release_history_inverse('))
+
+
 if __name__ == '__main__':
     unittest.main()
