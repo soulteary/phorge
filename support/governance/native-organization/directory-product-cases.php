@@ -151,6 +151,11 @@ function governance_directory_product_cases($fixture,callable $check) {
   $service->assignPrimaryDepartment(array('operation_id'=>'restore-subject-department','unit_id'=>'dp-dept',
     'user_phid'=>$subject,'expected_version'=>2));
   $managerSession=governance_native_request($users['manager'],$sessions);
+  list($page,$html)=governance_directory_product_response($admin,array('view'=>'tree','tree_parent'=>'0','query'=>'Child'));
+  $check($page instanceof PhabricatorStandardPageView&&
+    preg_match('/name="tree_parent"[^>]*value="0"|value="0"[^>]*name="tree_parent"/',$html)===1&&
+    strpos($html,'Child of Zero')!==false,
+    'tree-real-filter-form-preserves-zero-parent');
   list($page,$html)=governance_directory_product_response($managerSession,array('view'=>'tree'));
   $GLOBALS['directory_product_diagnostic']=array('response_class'=>get_class($page),'html_bytes'=>strlen($html),'name_visible'=>strpos($html,'Renamed A')!==false,'parent_visible'=>strpos($html,'Directory dp-parent')!==false,'link_present'=>strpos($html,'tree_parent=dp-a')!==false);
   $check($page instanceof PhabricatorStandardPageView&&strpos($html,'Renamed A')!==false&&

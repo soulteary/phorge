@@ -197,7 +197,7 @@ final class PhorgeOrganizationController extends PhabricatorPeopleController {
         $unit['kind']==='team'?pht('Team'):pht('Department'),' · ',
         phutil_tag('a',array('href'=>$uri($unit['unit_id'])),pht('Open Children'))));}
     $form=id(new AphrontFormView())->setUser($this->getViewer())->setMethod('GET')->addHiddenInput('view','tree')
-      ->addHiddenInput('tree_parent',$parent?:'')->appendControl(id(new AphrontFormTextControl())->setName('query')->setLabel(pht('Filter This Branch'))->setValue($search))
+      ->addHiddenInput('tree_parent',$parent===null?'':$parent)->appendControl(id(new AphrontFormTextControl())->setName('query')->setLabel(pht('Filter This Branch'))->setValue($search))
       ->appendControl(id(new AphrontFormSubmitControl())->setValue(pht('Search')));
     $children=array($form,phutil_tag('ul',array(),$items));
     if(!$units){$children[]=phutil_tag('p',array(),pht('No visible units in this branch.'));}
