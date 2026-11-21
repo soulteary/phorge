@@ -113,6 +113,8 @@ final class PhorgeProjectHandoffService extends Phobject {
     }
     $project=$objects[$request['projectPHID']];
     if($project->isMilestone()||$project->isArchived()){throw new RuntimeException('handoff_ordinary_active_project_required');}
+    foreach($objects as$id=>$ancestor){if($id!==$project->getPHID()&&$ancestor->isMilestone()){
+      throw new RuntimeException('handoff_milestone_ancestor_unsupported');}}
     $children=queryfx_all($conn,'SELECT id FROM %R WHERE parentProjectPHID=%s LIMIT 1 FOR UPDATE',
       new PhabricatorProject(),$project->getPHID());
     if($children){throw new RuntimeException('handoff_descendant_impact_review_required');}
@@ -120,13 +122,30 @@ final class PhorgeProjectHandoffService extends Phobject {
     if($edgeConn!==$conn){throw new RuntimeException('handoff_same_edge_writer_required');}
     $edgeEngine=queryfx_one($conn,'SELECT ENGINE FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME=%s','edge');
     if(!$edgeEngine||$edgeEngine['ENGINE']!=='InnoDB'){throw new RuntimeException('handoff_transactional_edges_required');}
-    $members=array();foreach($objects as$id=>$object){
-      $edges=queryfx_all($conn,'SELECT dst FROM edge WHERE src=%s AND type=%d ORDER BY dst LIMIT 1001 LOCK IN SHARE MODE',
-        $id,PhabricatorProjectProjectHasMemberEdgeType::EDGECONST);
-      if(count($edges)>1000){throw new RuntimeException('handoff_member_bound');}
-      $members[$id]=array_column($edges,'dst');$object->attachMemberPHIDs($members[$id]);
+    $userTable=new PhabricatorUser();self::table($conn,$userTable);
+    $userEdge=PhabricatorEdgeConfig::establishConnection('USER','w');
+    if($userEdge!==$userTable->establishConnection('w')){throw new RuntimeException('handoff_user_edge_route_unsupported');}
+    $userDatabase=$userTable->getAphrontRefDatabaseName();
+    $engine=queryfx_one($conn,'SELECT ENGINE FROM information_schema.TABLES WHERE TABLE_SCHEMA=%s AND TABLE_NAME=%s',$userDatabase,'edge');
+    if(!$engine||$engine['ENGINE']!=='InnoDB'){throw new RuntimeException('handoff_transactional_user_edges_required');}
+    $members=array();$membershipEdges=array();$ruleMemberships=array();
+    foreach($objects as$id=>$object){
+      $edges=queryfx_all($conn,'SELECT type,dst FROM edge WHERE src=%s AND type IN (%Ld) ORDER BY type,dst LIMIT 2001 LOCK IN SHARE MODE',
+        $id,array(PhabricatorProjectProjectHasMemberEdgeType::EDGECONST,PhabricatorProjectMaterializedMemberEdgeType::EDGECONST));
+      $direct=array_filter($edges,static fn($edge)=>(int)$edge['type']===PhabricatorProjectProjectHasMemberEdgeType::EDGECONST);
+      $materialized=array_filter($edges,static fn($edge)=>(int)$edge['type']===PhabricatorProjectMaterializedMemberEdgeType::EDGECONST);
+      if(count($edges)>2000||count($direct)>1000||count($materialized)>1000){throw new RuntimeException('handoff_member_bound');}
+      // Automatic project VIEW uses the native materialized edge set. Do not
+      // reinterpret historical direct edges or rebuild membership here.
+      $membershipEdges[$id]=$edges;$members[$id]=array_column($materialized,'dst');
+      $object->attachMemberPHIDs($members[$id]);
       $object->attachParentProject($rows[$id]['parentProjectPHID']===null?null:$objects[$rows[$id]['parentProjectPHID']]);
-      PhabricatorPolicyRule::passTransactionHintToRule($object,new PhabricatorProjectMembersPolicyRule(),array_fuse($members[$id]));
+      // The Project Members object policy separately reads inverse user
+      // membership edges. It must not receive an aggregate-membership hint.
+      $inverse=queryfx_all($conn,'SELECT src FROM %T.%T WHERE dst=%s AND type=%d AND src IN (%Ls) ORDER BY src LOCK IN SHARE MODE',
+        $userDatabase,'edge',$id,PhabricatorProjectMemberOfProjectEdgeType::EDGECONST,$actors);
+      $ruleMemberships[$id]=array_column($inverse,'src');
+      PhabricatorPolicyRule::passTransactionHintToRule($object,new PhabricatorProjectMembersPolicyRule(),array_fuse($ruleMemberships[$id]));
     }
     // Publish only current locked Space rows to this bounded evaluation, then
     // restore the caller's request-local caches in every terminal path.
@@ -149,7 +168,7 @@ final class PhorgeProjectHandoffService extends Phobject {
     }finally{foreach($prior as$key=>$value){if($value===$missing){$cache->deleteKey($key);}else{$cache->setKey($key,$value);}}}
     $basis=array('schema'=>'project-handoff-preview-v1','intent'=>array('operationID'=>$request['operationID'],
       'projectPHID'=>$request['projectPHID'],'recipientPHID'=>$request['recipientPHID']),'actorPHID'=>$actor->getPHID(),
-      'credential'=>$credential,'users'=>$users,'projects'=>$rows,'members'=>$members,'spaces'=>$spaces,'expiresAt'=>$expires,
+      'credential'=>$credential,'users'=>$users,'projects'=>$rows,'members'=>$members,'membershipEdges'=>$membershipEdges,'ruleMemberships'=>$ruleMemberships,'spaces'=>$spaces,'expiresAt'=>$expires,
       'allowPublic'=>PhabricatorEnv::getEnvConfig('policy.allow-public'),'requireEmailVerification'=>(bool)PhabricatorUserEmail::isEmailVerificationRequired());
     return array('digest'=>PhorgeProjectHandoffRequest::digest($basis),'project'=>$project,'actor'=>$actor,
       'recipient'=>$recipient,'actorFinal'=>$actorFinal,'session'=>$session);

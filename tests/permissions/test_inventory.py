@@ -10,6 +10,16 @@ inventory=importlib.util.module_from_spec(spec);spec.loader.exec_module(inventor
 
 
 class ConsumerInventoryTests(unittest.TestCase):
+    def test_handoff_membership_read_set_is_reviewed_without_automatic_grants(self):
+        row=next(r for r in inventory.collect()['consumers']
+                 if r['path']=='src/applications/project/handoff/PhorgeProjectHandoffService.php')
+        self.assertTrue(row['discovery'])
+        self.assertTrue(row['matchingLines'])
+        self.assertEqual('native-project-policy-handoff',row['kind'])
+        self.assertEqual('sealed-native-project-policy-transaction',row['sourceOperation'])
+        self.assertIn('no independent membership grant',row['authority'])
+        self.assertIs(row['candidateGenerationIntroduced'],False)
+
     def test_policy_proposal_form_membership_hydration_has_no_generator_authority(self):
         rows={row['path']:row for row in inventory.collect()['consumers']}
         row=rows['src/infrastructure/governance/execution/PhorgeProjectPolicyApprovalController.php']

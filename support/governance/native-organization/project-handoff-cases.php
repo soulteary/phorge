@@ -99,6 +99,59 @@ function governance_project_handoff_cases($fixture,callable $check,mysqli $contr
   governance_native_refused(fn()=>PhorgeProjectHandoffService::preview($contexts['admin'],$intent($parent,'handoff_parent_001')),
     'handoff_descendant_impact_review_required',$check,'handoff-parent-impact-not-silently-approved');
 
+  $parent=$project('Synthetic handoff visible parent')->setViewPolicy(PhabricatorPolicies::POLICY_USER)->save();
+  $child=$project('Synthetic handoff native retained access',$parent);
+  (new PhabricatorProjectTransactionEditor())->setActor($users['admin'])
+    ->setContentSource(PhabricatorContentSource::newForSource(PhabricatorConduitContentSource::SOURCECONST))
+    ->applyTransactions($child,array((new PhabricatorProjectTransaction())->setTransactionType(PhabricatorTransactions::TYPE_EDGE)
+      ->setMetadataValue('edge:type',PhabricatorProjectProjectHasMemberEdgeType::EDGECONST)
+      ->setNewValue(array('+'=>array_fuse(array($users['admin']->getPHID()))))));
+  $preview=PhorgeProjectHandoffService::preview($contexts['admin'],$intent($child,'handoff_native_keep1'));
+  $check($preview['actorAfter']===array('view'=>true,'edit'=>true),
+    'handoff-preview-retains-native-member-view-and-parent-edit');
+  $space=$child->getSpacePHID();$join=$child->getJoinPolicy();
+  $result=PhorgeProjectHandoffService::commit($contexts['admin'],$confirm($preview));
+  $read=(new PhabricatorProjectQuery())->setViewer($users['admin'])->withPHIDs(array($child->getPHID()))
+    ->needMembers(true)->needAncestorMembers(true)->executeOne();
+  $check($result['committed']&&$read&&$read->getParentProjectPHID()===$parent->getPHID()&&
+    $read->getSpacePHID()===$space&&$read->getJoinPolicy()===$join&&
+    in_array($users['admin']->getPHID(),$read->getMemberPHIDs(),true)&&
+    PhabricatorPolicyFilter::hasCapability($users['admin'],$read,PhabricatorPolicyCapability::CAN_EDIT),
+    'handoff-preserves-native-members-join-space-and-parent');
+  $historical=$project('Synthetic historical raw membership only');
+  (new PhabricatorEdgeEditor())->addEdge($historical->getPHID(),
+    PhabricatorProjectProjectHasMemberEdgeType::EDGECONST,$users['admin']->getPHID())->save();
+  $historicalPreview=PhorgeProjectHandoffService::preview($contexts['admin'],$intent($historical,'handoff_raw_only_01'));
+  $check($historicalPreview['actorAfter']===array('view'=>false,'edit'=>false),
+    'handoff-historical-direct-edge-does-not-become-automatic-view');
+  $materialOnly=$project('Synthetic materialized member without inverse rule')->setEditPolicy('obj.project.members')->save();
+  (new PhabricatorEdgeEditor())->addEdge($materialOnly->getPHID(),
+    PhabricatorProjectMaterializedMemberEdgeType::EDGECONST,$users['admin']->getPHID())->save();
+  $native=(new PhabricatorProjectQuery())->setViewer($users['admin'])->withPHIDs(array($materialOnly->getPHID()))
+    ->needMembers(true)->needAncestorMembers(true)->executeOne();
+  $check($native&&!PhabricatorPolicyFilter::hasCapability($users['admin'],$native,PhabricatorPolicyCapability::CAN_EDIT),
+    'handoff-native-object-policy-does-not-use-materialized-membership');
+  governance_native_refused(fn()=>PhorgeProjectHandoffService::preview($contexts['admin'],$intent($materialOnly,'handoff_material_01')),
+    'handoff_actor_native_permission',$check,'handoff-materialized-edge-does-not-forge-object-policy-edit');
+  $inverseOnly=$project('Synthetic inverse object policy without automatic view')->setEditPolicy('obj.project.members')->save();
+  (new PhabricatorEdgeEditor())->addEdge($users['admin']->getPHID(),
+    PhabricatorProjectMemberOfProjectEdgeType::EDGECONST,$inverseOnly->getPHID())->save();
+  $native=(new PhabricatorProjectQuery())->setViewer($users['admin'])->withPHIDs(array($inverseOnly->getPHID()))
+    ->needMembers(true)->needAncestorMembers(true)->executeOne();
+  $inversePreview=PhorgeProjectHandoffService::preview($contexts['admin'],$intent($inverseOnly,'handoff_inverse_01'));
+  $check($native&&PhabricatorPolicyFilter::hasCapability($users['admin'],$native,PhabricatorPolicyCapability::CAN_EDIT)&&
+    $inversePreview['actorAfter']===array('view'=>false,'edit'=>false),
+    'handoff-inverse-object-policy-is-not-automatic-materialized-view');
+  $archived=$project('Synthetic handoff archived')->setStatus(PhabricatorProjectStatus::STATUS_ARCHIVED)->save();
+  governance_native_refused(fn()=>PhorgeProjectHandoffService::preview($contexts['admin'],$intent($archived,'handoff_archived_01')),
+    'handoff_ordinary_active_project_required',$check,'handoff-archived-project-refused');
+  $milestone=$project('Synthetic handoff milestone',$parent)->setMilestoneNumber(1)->save();
+  governance_native_refused(fn()=>PhorgeProjectHandoffService::preview($contexts['admin'],$intent($milestone,'handoff_milestone01')),
+    'handoff_ordinary_active_project_required',$check,'handoff-milestone-project-refused');
+  $nested=$project('Synthetic unsupported milestone ancestor',$milestone);
+  governance_native_refused(fn()=>PhorgeProjectHandoffService::preview($contexts['admin'],$intent($nested,'handoff_mile_anc01')),
+    'handoff_milestone_ancestor_unsupported',$check,'handoff-milestone-ancestor-refused');
+
   $p=$project('Synthetic handoff rollback');$preview=PhorgeProjectHandoffService::preview($contexts['admin'],$intent($p,'handoff_rollback01'));
   $before=$count();$conn=$p->establishConnection('w');$db=$p->getAphrontRefDatabaseName();
   if(!preg_match('/\Agovernance_[a-zA-Z0-9_]+\z/D',$db)){throw new RuntimeException('handoff_trigger_database_ownership');}
