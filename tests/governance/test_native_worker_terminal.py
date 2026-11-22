@@ -46,7 +46,10 @@ class WorkerTerminal(unittest.TestCase):
   d=self.invoke('timeout');self.assertFalse(d['accepted']);self.assertEqual(d['reason'],'native_worker_timeout');self.assertGreaterEqual(d['seconds'],15);self.assertTrue(d['timeout_handle_still_live_before_owned_cleanup']);self.assertTrue(d['result_file_retained'])
  def test_exact_terminal_delta_inverse_refuses_other_changes_after_repin(self):
   sys.path.insert(0,str(ROOT/'scripts/governance'));import recovery_worker_terminal_delta as delta
-  raw=(ROOT/delta.PATH).read_bytes();old=subprocess.check_output(['git','-C',str(ROOT),'show','fc0369af9d84c4a5f23a7080528e70f1ce84c4e7:'+delta.PATH]);self.assertEqual(delta.reduce_current(delta.PATH,raw),old)
+  import task_source_operation_context as candidate
+  raw=candidate.php86_compatibility_inverse(delta.PATH,(ROOT/delta.PATH).read_bytes(),(ROOT/candidate.PHP86_COMPATIBILITY_HISTORY).read_bytes())
+  # The prior terminal-only inverse remains an unchanged DATA oracle.
+  old=subprocess.check_output(['git','-C',str(ROOT),'show','fc0369af9d84c4a5f23a7080528e70f1ce84c4e7:'+delta.PATH]);self.assertEqual(delta.reduce_current(delta.PATH,raw),old)
   prior=delta.CURRENT_SHA256
   try:
    bad=raw+b'// unrelated bytes\n';delta.CURRENT_SHA256=hashlib.sha256(bad).hexdigest()
