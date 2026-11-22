@@ -15,6 +15,12 @@ MEDIA_WORKFLOW_SHA256 = 'd0b00933b908aa5e8da92ca3a1c6c154d7a082adaea9883a762324e
 
 def git(*args):
     return subprocess.check_output(['git', '-C', str(ROOT), *args])
+
+def candidate_predecessor_DATA(relative,raw):
+    import task_source_operation_context as candidate
+    if relative in candidate.PHP86_COMPATIBILITY_PATHS:
+        return candidate.php86_compatibility_inverse(relative,raw,(ROOT/candidate.PHP86_COMPATIBILITY_HISTORY).read_bytes())
+    return raw
 from contextlib import contextmanager
 
 @contextmanager
@@ -110,6 +116,19 @@ def validate_workflow_union(changed, historical, read, *, _operation=None):
         import recovery_oauth_authorization_ci_delta as authorization_ci
         import recovery_oauth_client_lifecycle_ci_delta as lifecycle_ci
         changed = set(changed)
+        # The additional candidate workflow is checked as a signed current leaf,
+        # not counted as historical Calendar coverage or release qualification.
+        candidate_path='.github/workflows/php86-isolated-compatibility.yml'
+        if candidate_path in changed:
+            import task_source_operation_context as candidate
+            context=operation._task_contexts[ROOT]
+            physical=current_read(candidate_path);pin=candidate.PHP86_COMPATIBILITY_NEW_PINS[candidate_path]
+            if (type(physical)is not bytes or physical!=context.current(candidate_path)or
+                len(physical)!=pin['bytes']or hashlib.sha256(physical).hexdigest()!=pin['sha256']or
+                context.parent(candidate_path)is not None or
+                git('ls-tree',WORKFLOW_BASELINE,'--',candidate_path)!=b''):
+                raise ValueError('unknown_candidate_workflow_current_leaf')
+            changed.remove(candidate_path)
         private_mail='.github/workflows/private-mail-wire.yml'
         if private_mail in changed:
             physical=current_read(private_mail);context=operation._task_contexts[ROOT]
@@ -387,6 +406,10 @@ class CalendarConduitUnion(unittest.TestCase):
                     self.assertEqual(assessment.reduce_current(path, reviewed[path]), git('show', previous + ':' + path))
             workflows = {'.github/workflows/atomic-feature-regressions.yml', '.github/workflows/oauth-access-producer-focused.yml', '.github/workflows/assessment-credential-focused.yml'}
             validate_workflow_union(git('diff', '--name-only', previous, '--', '.github/workflows').decode().splitlines(), workflows, lambda path: (ROOT / path).read_bytes(), _operation=operation)
+            candidate_path='.github/workflows/php86-isolated-compatibility.yml'
+            changed=git('diff','--name-only',previous,'--','.github/workflows').decode().splitlines()
+            with self.assertRaises(ValueError):
+                validate_workflow_union(changed,workflows,lambda path:(ROOT/path).read_bytes()+b'\n'if path==candidate_path else(ROOT/path).read_bytes(),_operation=operation)
             self.assertEqual(git('ls-tree', previous, '--', MEDIA_WORKFLOW), b'')
             for path in workflows - {'.github/workflows/assessment-credential-focused.yml'}:
                 raw = historical_atomic_source(_operation=operation).encode() if path == '.github/workflows/atomic-feature-regressions.yml' else operation._task_contexts[ROOT].parent(path)
@@ -398,7 +421,7 @@ class CalendarConduitUnion(unittest.TestCase):
                 if path == 'support/governance/native-organization/workers.php':
                     sys.path.insert(0, str(ROOT / 'scripts/governance'))
                     import recovery_worker_terminal_delta as worker_delta
-                    raw = worker_delta.reduce_current(path, raw)
+                    raw = worker_delta.reduce_current(path, candidate_predecessor_DATA(path,raw))
                 self.assertEqual(raw, git('show', MAIN + ':' + path))
 
     def test_private_mail_pair_toolchain_continuation_is_exact(self):
@@ -542,7 +565,7 @@ class CalendarConduitUnion(unittest.TestCase):
                 import recovery_conduit_source_delta as calendar
                 self.assertEqual(gate.SOURCE_INPUTS[DRIVER], hashlib.sha256(calendar.reduce_policy_cleanup_driver(_current_native_driver_prior(operation, ROOT, (ROOT / DRIVER).read_bytes()))).hexdigest())
                 self.assertTrue(gate.SQL_obligations(ROOT, _source_operation=operation))
-            self.assertEqual(worker.reduce_current(worker.PATH, (ROOT / worker.PATH).read_bytes()), git('show', MAIN + ':' + worker.PATH))
+            self.assertEqual(worker.reduce_current(worker.PATH, candidate_predecessor_DATA(worker.PATH,(ROOT / worker.PATH).read_bytes())), git('show', MAIN + ':' + worker.PATH))
 
     def test_OAuth_worker_source_view_accepts_only_exact_old_or_terminal_inverse(self):
         with _workflow_owner() as operation:
@@ -553,7 +576,7 @@ class CalendarConduitUnion(unittest.TestCase):
             import check_recovery_oauth_access_producer_v3 as current
             import check_recovery_conduit_producer as conduit
             import recovery_worker_terminal_delta as worker
-            actual = (ROOT / worker.PATH).read_bytes()
+            actual = candidate_predecessor_DATA(worker.PATH,(ROOT / worker.PATH).read_bytes())
             prior = git('show', MAIN + ':' + worker.PATH)
             for module in (old, current):
                 self.assertEqual(module.worker_terminal.reduce_if_selected(worker.PATH, actual), prior)

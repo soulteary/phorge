@@ -100,7 +100,14 @@ class CompletionSameOwnerPureControls(unittest.TestCase):
   with self.assertRaises(ValueError):ns['adapt'](raw,prefix+ns['MARKER'])
 
  def test_strict_schema_validator_keeps_original_functions(self):
-  old=(ROOT/'support/governance/task-additive-schema-v2/validate.py').read_text()
+  import sys
+  sys.path.insert(0,str(ROOT/'scripts/governance'))
+  import task_source_operation_context as candidate
+  relative='support/governance/task-additive-schema-v2/validate.py'
+  raw=(ROOT/relative).read_bytes()
+  # Completion-v3 retains the original production validator. The candidate
+  # layer is independently tested and reduced only as exact predecessor DATA.
+  old=candidate.php86_compatibility_inverse(relative,raw,(ROOT/candidate.PHP86_COMPATIBILITY_HISTORY).read_bytes()).decode()
   old=old.replace('support/governance/task-additive-schema-v2/capture.php',BASE+'capture.php').replace('Task-additive-schema-private-binding-v1','Completion-private-schema-v3').replace('Task-additive-schema-capture-v1','Completion-schema-capture-v3')
   old=old.replace('{"directory-Task-OFF","oauth-authorization-Task-OFF","oauth-client-lifecycle-Task-OFF","conduit-Task-OFF","oauth-access-Task-OFF","oauth-code-Task-OFF","assessment-credential-Task-OFF","api-credential-concurrency-Task-OFF","application-config-facts-Task-OFF","project-source-facts-Task-OFF","spaces-source-facts-Task-OFF","recovery-partial-composition-Task-OFF","task-owner-source-facts-Task-OFF","file-source-facts-Task-OFF","file-parent-policy-Task-OFF","session-producer-lease-Task-OFF","session-borrowed-owner-Task-OFF","organization-approval-workbench-Task-OFF","calendar-reminders-Task-OFF","full-native-Task-OFF"}','{"completion-v3"}').replace("{'directory-Task-OFF','oauth-authorization-Task-OFF','oauth-client-lifecycle-Task-OFF','conduit-Task-OFF','oauth-access-Task-OFF','oauth-code-Task-OFF','assessment-credential-Task-OFF','api-credential-concurrency-Task-OFF','application-config-facts-Task-OFF','project-source-facts-Task-OFF','spaces-source-facts-Task-OFF','recovery-partial-composition-Task-OFF','task-owner-source-facts-Task-OFF','file-source-facts-Task-OFF','file-parent-policy-Task-OFF','session-producer-lease-Task-OFF','session-borrowed-owner-Task-OFF','organization-approval-workbench-Task-OFF','calendar-reminders-Task-OFF','full-native-Task-OFF'}","{'completion-v3'}").replace('expected_mode="directory-Task-OFF"','expected_mode="completion-v3"').replace('"Task-directory-native-envelope-v2"if expected_mode=="directory-Task-OFF"else"Task-native-envelope-v3"','"Completion-Task-envelope-v3"')
   for n in ast.parse(old).body:

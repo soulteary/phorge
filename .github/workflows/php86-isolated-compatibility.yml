@@ -1,0 +1,263 @@
+name: PHP 8.6 isolated compatibility
+on:
+  workflow_dispatch:
+  workflow_call:
+  pull_request:
+    paths:
+      - 'support/runtime/**'
+      - 'scripts/runtime/**'
+      - 'scripts/governance/**'
+      - 'tests/runtime86/**'
+      - 'tests/governance/**'
+      - 'tests/operations/php86_runtime_controls.php'
+      - '.github/workflows/php86-isolated-compatibility.yml'
+permissions:
+  contents: read
+jobs:
+  candidate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      PHORGE_PHP_COMPATIBILITY_PROFILE: php86-isolated-v1
+      PHORGE_GOVERNANCE_ISOLATED_TEST: '1'
+      PYTHONDONTWRITEBYTECODE: '1'
+      EXPECTED_SOURCE_CHECKPOINT: ${{ github.event.pull_request.head.sha || github.sha }}
+      PHORGE_TASK_TEST_CHECKPOINT: ${{ github.event.pull_request.head.sha || github.sha }}
+      GORGE_TEST_MYSQL_PASSWORD: atomic-regressions-only
+      GORGE_TEST_MYSQL_PORT: '3306'
+      GORGE_TEST_FILE_URL: http://127.0.0.1:18100
+      GORGE_TEST_FILE_TOKEN: atomic-file-only
+      GORGE_TEST_IMAGE_URL: http://127.0.0.1:18190
+      GORGE_TEST_IMAGE_TOKEN: a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3
+      GORGE_TEST_RENDER_URL: http://127.0.0.1:18140
+      GORGE_TEST_RENDER_TOKEN: atomic-render-only
+      GORGE_TEST_SEARCH_URL: http://127.0.0.1:18120
+      GORGE_TEST_SEARCH_TOKEN: atomic-search-only
+    services:
+      mysql:
+        image: mysql:8.4.13@sha256:a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7
+        env:
+          MYSQL_ROOT_PASSWORD: atomic-regressions-only
+          MYSQL_ROOT_HOST: '%'
+        ports: ['127.0.0.1:3306:3306']
+        options: --health-cmd "mysqladmin ping --silent" --health-interval 5s --health-timeout 3s --health-retries 30
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Admit the exact signed candidate source
+        run: |
+          trust_home="$RUNNER_TEMP/php86-public-trust"
+          python3 -B scripts/governance/check_task_ci_head_v1.py --prepare-public-trust --public-key "$GITHUB_WORKSPACE/support/governance/source-operation/ci-source-verifier.asc" --trust-home "$trust_home"
+          python3 -B scripts/governance/check_task_ci_head_v1.py --root "$GITHUB_WORKSPACE" --event-file "$GITHUB_EVENT_PATH" --event-name "$GITHUB_EVENT_NAME" --expected-head "$EXPECTED_SOURCE_CHECKPOINT" --github-sha "$GITHUB_SHA" --trust-home "$trust_home" --external-proof-tag "source-proof/$EXPECTED_SOURCE_CHECKPOINT"
+          echo "HOME=$trust_home" >> "$GITHUB_ENV"
+          echo "PHORGE_CI_MERGE_SOURCE_PROOF=source-proof/$EXPECTED_SOURCE_CHECKPOINT" >> "$GITHUB_ENV"
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.6.0'
+          extensions: mysqli, pdo_mysql, gd, curl, mbstring, pcntl, posix, iconv, zip
+          ini-values: opcache.jit=disable, opcache.jit_buffer_size=0, opcache.enable_cli=0, session.upload_progress.enabled=0, session.use_strict_mode=1
+          coverage: none
+      - name: Build the pinned candidate APCu source
+        run: |
+          umask 077
+          apcu_source=$(mktemp -d "$RUNNER_TEMP/php86-apcu.XXXXXX")
+          curl -fsSL --retry 3 --max-time 60 https://codeload.github.com/krakjoe/apcu/tar.gz/90899684be91c4f750512c2f840f487286ecb807 -o "$apcu_source/source.tgz"
+          echo "33f9038e98d236d4833b3e311c21e1d969a96d06b0d1e4427c8a0db2dd7123e2  $apcu_source/source.tgz" | sha256sum -c -
+          tar -xzf "$apcu_source/source.tgz" -C "$apcu_source" --strip-components=1
+          cd "$apcu_source"
+          phpize
+          ./configure --enable-apcu
+          make -j2
+          sudo make install
+          echo 'extension=apcu.so' | sudo tee "$(php -r 'echo PHP_CONFIG_FILE_SCAN_DIR;')/99-php86-apcu.ini" >/dev/null
+          php -r 'if (!extension_loaded("apcu")) { exit(1); }'
+      - uses: actions/setup-go@v6
+        with:
+          go-version: '1.27.4'
+      - name: Prepare candidate tools and execute runtime controls
+        run: |
+          umask 077
+          mkdir -p "$RUNNER_TEMP/php86-evidence"
+          # Source clones and generated maps require the same modes as baseline CI.
+          # Private receipt producers establish their own restrictive masks.
+          umask 022
+          php scripts/runtime/build.php xhpast
+          php scripts/runtime/build.php php-parser
+          php bin/rebuild-library-map
+          git diff --exit-code -- src/__phutil_library_map__.php support/runtime/src/__phutil_library_map__.php support/runtime/manifest.json
+          sha256sum src/__phutil_library_map__.php support/runtime/src/__phutil_library_map__.php support/runtime/manifest.json > "$RUNNER_TEMP/php86-maps.sha256"
+          php bin/rebuild-library-map
+          sha256sum --check "$RUNNER_TEMP/php86-maps.sha256"
+          php scripts/runtime/verify.php
+          php tests/operations/php86_runtime_controls.php > "$RUNNER_TEMP/php86-evidence/controls.json"
+          php scripts/runtime/verify-php86-candidate.php > "$RUNNER_TEMP/php86-evidence/runtime.json"
+          php scripts/ci/core_guard.php > "$RUNNER_TEMP/php86-evidence/defaults-off.json"
+          php tests/governance/run.php > "$RUNNER_TEMP/php86-evidence/pure.json"
+          python3 -m venv "$RUNNER_TEMP/php86-python"
+          "$RUNNER_TEMP/php86-python/bin/python" -m pip install --disable-pip-version-check PyYAML==6.0.3
+          export PATH="$RUNNER_TEMP/php86-python/bin:$PATH"
+          echo "$RUNNER_TEMP/php86-python/bin" >> "$GITHUB_PATH"
+          python3 -B scripts/ci/core_guard.py unit --directory tests/runtime86 --pattern 'test_*.py'
+      - name: Require the same immutable Gorge revision as paired runtime contracts
+        run: |
+          revision=$(python3 tests/atomic/check_pair.py --print-revision)
+          echo "GORGE_CONTRACT_REF=$revision" >> "$GITHUB_ENV"
+      - uses: actions/checkout@v6
+        with:
+          repository: soulteary/gorge
+          ref: ${{ env.GORGE_CONTRACT_REF }}
+          path: .test-gorge
+          persist-credentials: false
+      - name: Move the owned paired checkout outside the Phorge source worktree
+        run: |
+          fixture_root=$(mktemp -d "$RUNNER_TEMP/atomic-gorge.XXXXXX")
+          mv -- .test-gorge "$fixture_root/source"
+          echo "ATOMIC_GORGE_SOURCE=$fixture_root/source" >> "$GITHUB_ENV"
+      - name: Build actual file, image, render and search services from the paired source
+        run: python3 tests/atomic/build_gorge.py --gorge-dir "$ATOMIC_GORGE_SOURCE" --revision "$GORGE_CONTRACT_REF"
+      - name: Start isolated disposable dependencies
+        env:
+          MYSQL_CONTAINER: ${{ job.services.mysql.id }}
+        run: |
+          docker exec -e MYSQL_PWD=atomic-regressions-only "$MYSQL_CONTAINER" mysql --user=root --execute="SET GLOBAL sql_mode = 'STRICT_ALL_TABLES'"
+          # Match baseline Completion preparation for owned trigger fault injection.
+          docker exec -e MYSQL_PWD="$GORGE_TEST_MYSQL_PASSWORD" "$MYSQL_CONTAINER" mysql --user=root --execute="SET GLOBAL log_bin_trust_function_creators = 1"
+          test "$(docker exec -e MYSQL_PWD="$GORGE_TEST_MYSQL_PASSWORD" "$MYSQL_CONTAINER" mysql --user=root --batch --skip-column-names --execute='SELECT @@GLOBAL.log_bin_trust_function_creators')" = 1
+          docker network create atomic-fixtures
+          docker run -d --name atomic-file --network atomic-fixtures -p 127.0.0.1:18100:8100 --read-only --tmpfs /var/lib/gorge/files:rw,uid=10001,gid=10001,mode=0700 --tmpfs /tmp:rw -e GORGE_SERVICE_TOKEN=atomic-file-only -e GORGE_FILE_LOCAL_DISK_PATH=/var/lib/gorge/files gorge-file-storage:atomic
+          docker run -d --name atomic-image --network atomic-fixtures -p 127.0.0.1:18190:8190 --read-only --tmpfs /tmp:rw -e GORGE_SERVICE_TOKEN="$GORGE_TEST_IMAGE_TOKEN" gorge-image:atomic
+          docker run -d --name atomic-render --network atomic-fixtures -p 127.0.0.1:18140:8140 --read-only --tmpfs /tmp:rw -e GORGE_SERVICE_TOKEN=atomic-render-only gorge-render:atomic
+          meili_image=$(python3 -c 'import json; print(json.load(open("deploy/acceptance/build-lock.json"))["images"]["meilisearch"])')
+          docker run -d --name atomic-meili --network atomic-fixtures --tmpfs /meili_data:rw -e MEILI_MASTER_KEY=atomic-search-fixture-secret-only -e MEILI_ENV=production -e MEILI_NO_ANALYTICS=true "$meili_image"
+          docker run -d --name atomic-search --network atomic-fixtures -p 127.0.0.1:18120:8120 --read-only --tmpfs /tmp:rw -e GORGE_SERVICE_TOKEN=atomic-search-only -e GORGE_SEARCH_ENGINE=meilisearch -e MEILI_HOST=atomic-meili:7700 -e MEILI_MASTER_KEY=atomic-search-fixture-secret-only -e MEILI_INDEX=atomic_permission_routes gorge-search:atomic
+          python3 - <<'PY'
+          import time, urllib.request
+          for port in (18100, 18190, 18140, 18120):
+              for attempt in range(60):
+                  try:
+                      with urllib.request.urlopen(f'http://127.0.0.1:{port}/readyz', timeout=2) as response:
+                          if response.status == 200:
+                              break
+                  except OSError:
+                      pass
+                  time.sleep(1)
+              else:
+                  raise SystemExit(f'Disposable service on port {port} did not become ready.')
+          PY
+      - name: Extract the exact paired native fixtures
+        run: |
+          mkdir -p "$RUNNER_TEMP/governance-batch-1" "$RUNNER_TEMP/governance-native-organization"
+          cp "$RUNNER_TEMP/php86-evidence/pure.json" "$RUNNER_TEMP/governance-batch-1/native.json"
+          for service in gorge-file-storage gorge-render gorge-taskqueue; do
+            python3 -B tests/atomic/extract_native_renderer.py --service "$service" --output "$RUNNER_TEMP/$service" --provenance "$RUNNER_TEMP/php86-evidence/$service-provenance.json" --revision "$GORGE_CONTRACT_REF"
+          done
+      - name: Verify native directory identities, approvals and media backend
+        env:
+          MYSQL_CONTAINER: ${{ job.services.mysql.id }}
+        run: |
+          umask 077
+          mkdir -p "$RUNNER_TEMP/governance-native-organization"
+          trust_home="$RUNNER_TEMP/full-native-public-trust"
+          python3 -B scripts/governance/check_task_ci_head_v1.py --prepare-public-trust --public-key "$GITHUB_WORKSPACE/support/governance/source-operation/ci-source-verifier.asc" --trust-home "$trust_home"
+          python3 -B scripts/governance/check_task_ci_head_v1.py --root "$GITHUB_WORKSPACE" --event-file "$GITHUB_EVENT_PATH" --event-name "$GITHUB_EVENT_NAME" --expected-head "$EXPECTED_SOURCE_CHECKPOINT" --github-sha "$GITHUB_SHA" --trust-home "$trust_home" --external-proof-tag "source-proof/$EXPECTED_SOURCE_CHECKPOINT"
+          export HOME="$trust_home"
+          export PHORGE_CI_MERGE_SOURCE_PROOF="source-proof/$EXPECTED_SOURCE_CHECKPOINT"
+          python3 -B scripts/governance/check_directory_transports_task_source_v2.py --expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT" > "$RUNNER_TEMP/governance-native-organization/source-admission.json"
+          cp "$RUNNER_TEMP/governance-batch-1/native.json" "$RUNNER_TEMP/governance-native-organization/native.json"
+          python3 -B scripts/governance/check_native_directory_task_source_v2.py --root "$GITHUB_WORKSPACE" --expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT" > "$RUNNER_TEMP/governance-native-organization/callers.json"
+          mysql_image=$(docker inspect "$MYSQL_CONTAINER" --format '{{.Config.Image}}')
+          test "$mysql_image" = 'mysql:8.4.13@sha256:a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7'
+          FULL_NATIVE_MYSQL_OBSERVED_IMAGE="$mysql_image" php scripts/governance/probe_full_native_task_mysql84.php before "$EXPECTED_SOURCE_CHECKPOINT" > "$RUNNER_TEMP/governance-native-organization/mysql-before.pending.json"
+          mv "$RUNNER_TEMP/governance-native-organization/mysql-before.pending.json" "$RUNNER_TEMP/governance-native-organization/mysql-before.json"
+          PHORGE_GOVERNANCE_ISOLATED_TEST=1 \
+          PHORGE_GOVERNANCE_FIXTURE_DSN='mysql:host=127.0.0.1;port=3306;dbname=governance_fixture_bootstrap;charset=utf8mb4' \
+          PHORGE_GOVERNANCE_FIXTURE_USER=root \
+          PHORGE_GOVERNANCE_FIXTURE_PASSWORD="$GORGE_TEST_MYSQL_PASSWORD" \
+          PHORGE_GOVERNANCE_GORGE_FILE_BINARY="$RUNNER_TEMP/gorge-file-storage" \
+          PHORGE_GOVERNANCE_GORGE_FILE_SHA256="$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" \
+          PHORGE_GOVERNANCE_GORGE_IMAGE_URI="$GORGE_TEST_IMAGE_URL" \
+          PHORGE_GOVERNANCE_GORGE_IMAGE_TOKEN="$GORGE_TEST_IMAGE_TOKEN" \
+          PHORGE_GOVERNANCE_GORGE_TASKQUEUE_BINARY="$RUNNER_TEMP/gorge-taskqueue" \
+          PHORGE_GOVERNANCE_GORGE_TASKQUEUE_SHA256="$(sha256sum "$RUNNER_TEMP/gorge-taskqueue" | cut -d ' ' -f1)" \
+          PHORGE_GOVERNANCE_GORGE_RENDER_BINARY="$RUNNER_TEMP/gorge-render" \
+          PHORGE_GOVERNANCE_GORGE_RENDER_SHA256="$(sha256sum "$RUNNER_TEMP/gorge-render" | cut -d ' ' -f1)" \
+          PHORGE_GOVERNANCE_GORGE_RENDER_SOURCE_REVISION="$GORGE_CONTRACT_REF" \
+          PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION="$EXPECTED_SOURCE_CHECKPOINT" \
+          python3 -B scripts/governance/run_task_directory_native_v2.py --root "$GITHUB_WORKSPACE" --expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT" --role full-native --directory "$RUNNER_TEMP/task-full-native-v2-private" --stdout "$RUNNER_TEMP/governance-native-organization/integration.json" --stderr "$RUNNER_TEMP/full-native.stderr.private"
+          mysql_image=$(docker inspect "$MYSQL_CONTAINER" --format '{{.Config.Image}}')
+          test "$mysql_image" = 'mysql:8.4.13@sha256:a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7'
+          FULL_NATIVE_MYSQL_OBSERVED_IMAGE="$mysql_image" php scripts/governance/probe_full_native_task_mysql84.php after "$EXPECTED_SOURCE_CHECKPOINT" > "$RUNNER_TEMP/governance-native-organization/mysql-after.pending.json"
+          mv "$RUNNER_TEMP/governance-native-organization/mysql-after.pending.json" "$RUNNER_TEMP/governance-native-organization/mysql-after.json"
+          python3 -B scripts/governance/check_full_native_task_schema_receipt_v2.py --root "$GITHUB_WORKSPACE" --expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT" --consumer native --envelope "$RUNNER_TEMP/governance-native-organization/integration.json" --native-body "$RUNNER_TEMP/task-full-native-v2-private/capture-native-body.private.json" --profile "$RUNNER_TEMP/task-full-native-v2-private/capture/schema-profile.private.json" --runtime-before "$RUNNER_TEMP/governance-native-organization/mysql-before.json" --runtime-after "$RUNNER_TEMP/governance-native-organization/mysql-after.json" --profile-sha "$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["profile_sha256"])' "$RUNNER_TEMP/task-full-native-v2-private/capture/binding.safe.json")" --file-binary "$RUNNER_TEMP/gorge-file-storage" --file-sha "$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" --render-binary "$RUNNER_TEMP/gorge-render" --render-sha "$(sha256sum "$RUNNER_TEMP/gorge-render" | cut -d ' ' -f1)" --taskqueue-binary "$RUNNER_TEMP/gorge-taskqueue" --taskqueue-sha "$(sha256sum "$RUNNER_TEMP/gorge-taskqueue" | cut -d ' ' -f1)" --runtime-profile php86-isolated-v1 > "$RUNNER_TEMP/governance-native-organization/accepted.json"
+          python3 -B scripts/governance/check_full_native_task_schema_receipt_v2.py --root "$GITHUB_WORKSPACE" --expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT" --consumer notifications --envelope "$RUNNER_TEMP/governance-native-organization/integration.json" --native-body "$RUNNER_TEMP/task-full-native-v2-private/capture-native-body.private.json" --profile "$RUNNER_TEMP/task-full-native-v2-private/capture/schema-profile.private.json" --runtime-before "$RUNNER_TEMP/governance-native-organization/mysql-before.json" --runtime-after "$RUNNER_TEMP/governance-native-organization/mysql-after.json" --profile-sha "$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["profile_sha256"])' "$RUNNER_TEMP/task-full-native-v2-private/capture/binding.safe.json")" --file-binary "$RUNNER_TEMP/gorge-file-storage" --file-sha "$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" --render-binary "$RUNNER_TEMP/gorge-render" --render-sha "$(sha256sum "$RUNNER_TEMP/gorge-render" | cut -d ' ' -f1)" --taskqueue-binary "$RUNNER_TEMP/gorge-taskqueue" --taskqueue-sha "$(sha256sum "$RUNNER_TEMP/gorge-taskqueue" | cut -d ' ' -f1)" --runtime-profile php86-isolated-v1 > "$RUNNER_TEMP/governance-native-organization/private-email-sources.json"
+      - name: Verify protected directory membership product paths
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 -B tests/governance/directory_product/test_runner.py
+          PHORGE_GOVERNANCE_ISOLATED_TEST=1 \
+          PHORGE_GOVERNANCE_FIXTURE_DSN='mysql:host=127.0.0.1;port=3306;dbname=governance_fixture_bootstrap;charset=utf8mb4' \
+          PHORGE_GOVERNANCE_FIXTURE_USER=root \
+          PHORGE_GOVERNANCE_FIXTURE_PASSWORD="$GORGE_TEST_MYSQL_PASSWORD" \
+          PHORGE_GOVERNANCE_GORGE_FILE_BINARY="$RUNNER_TEMP/gorge-file-storage" \
+          PHORGE_GOVERNANCE_GORGE_FILE_SHA256="$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" \
+          php support/governance/native-organization/directory-product-run.php > "$RUNNER_TEMP/governance-native-organization/directory-product.json"
+      - name: Verify explicit project policy handoff
+        run: |
+          set -euo pipefail
+          umask 077
+          php bin/unit src/applications/project/__tests__/PhorgeProjectHandoffRequestTestCase.php
+          python3 -B tests/governance/project_handoff/test_runner.py
+          PHORGE_GOVERNANCE_ISOLATED_TEST=1 \
+          PHORGE_GOVERNANCE_FIXTURE_DSN='mysql:host=127.0.0.1;port=3306;dbname=governance_fixture_bootstrap;charset=utf8mb4' \
+          PHORGE_GOVERNANCE_FIXTURE_USER=root \
+          PHORGE_GOVERNANCE_FIXTURE_PASSWORD="$GORGE_TEST_MYSQL_PASSWORD" \
+          PHORGE_GOVERNANCE_GORGE_FILE_BINARY="$RUNNER_TEMP/gorge-file-storage" \
+          PHORGE_GOVERNANCE_GORGE_FILE_SHA256="$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" \
+          php support/governance/native-organization/project-handoff-run.php > "$RUNNER_TEMP/governance-native-organization/project-handoff.json"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: governance-native-organization-php-8.6.0
+          path: ${{ runner.temp }}/governance-native-organization
+          if-no-files-found: error
+      - name: Build the non-production candidate image and run SQL with Chromium
+        run: |
+          python3 -B scripts/runtime/php86-candidate-dockerfile.py --output "$RUNNER_TEMP/php86.Dockerfile"
+          docker build -f "$RUNNER_TEMP/php86.Dockerfile" -t localhost/phorge-php86-isolated:ci .
+          npm install --prefix "$RUNNER_TEMP/php86-browser" --ignore-scripts --no-audit --no-fund playwright-core@1.64.1
+          python3 -B tests/governance/directory_product/run.py --runtime-profile php86-isolated-v1 --php-image localhost/phorge-php86-isolated:ci --mysql-image mysql:8.4.13@sha256:a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7 --gorge-file-binary "$RUNNER_TEMP/gorge-file-storage" --browser --playwright-module "$RUNNER_TEMP/php86-browser/node_modules/playwright-core" --chromium "$(command -v google-chrome)" --output "$RUNNER_TEMP/php86-browser-results"
+          python3 -B tests/governance/project_handoff/run.py --runtime-profile php86-isolated-v1 --php-image localhost/phorge-php86-isolated:ci --mysql-image mysql:8.4.13@sha256:a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7 --gorge-file-binary "$RUNNER_TEMP/gorge-file-storage" --browser --playwright-module "$RUNNER_TEMP/php86-browser/node_modules/playwright-core" --chromium "$(command -v google-chrome)" --output "$RUNNER_TEMP/php86-handoff-browser-results"
+      - name: Execute the complete current governance, atomic and release unit inventory
+        run: |
+          umask 022
+          python3 -B scripts/runtime/php86-unit-suite.py
+          python3 -B scripts/ci/core_guard.py unit --directory tests/atomic --pattern 'test_*.py'
+          python3 -B scripts/ci/core_guard.py unit --directory tests/release --pattern 'test_*.py'
+      - name: Collect safe candidate receipts
+        if: always()
+        run: |
+          mkdir -p "$RUNNER_TEMP/php86-evidence"
+          for name in accepted.json private-email-sources.json directory-product.json project-handoff.json source-admission.json; do
+            if [ -f "$RUNNER_TEMP/governance-native-organization/$name" ]; then cp "$RUNNER_TEMP/governance-native-organization/$name" "$RUNNER_TEMP/php86-evidence/$name"; fi
+          done
+          for name in result.json browser.json; do
+            if [ -f "$RUNNER_TEMP/php86-browser-results/$name" ]; then cp "$RUNNER_TEMP/php86-browser-results/$name" "$RUNNER_TEMP/php86-evidence/browser-$name"; fi
+          done
+          for name in result.json browser.json; do
+            if [ -f "$RUNNER_TEMP/php86-handoff-browser-results/$name" ]; then cp "$RUNNER_TEMP/php86-handoff-browser-results/$name" "$RUNNER_TEMP/php86-evidence/handoff-browser-$name"; fi
+          done
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: php86-isolated-compatibility
+          path: ${{ runner.temp }}/php86-evidence
+          if-no-files-found: error
+      - name: Remove only disposable paired services
+        if: always()
+        run: |
+          docker rm -f atomic-file atomic-image atomic-render atomic-search atomic-meili || true
+          docker network rm atomic-fixtures || true

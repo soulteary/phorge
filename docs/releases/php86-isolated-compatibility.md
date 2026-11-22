@@ -1,0 +1,76 @@
+# PHP 8.6 isolated compatibility
+
+The production baseline remains PHP 8.5.13. This change adds an explicit
+`php86-isolated-v1` profile for PHP 8.6.0 compatibility tests. It does not
+qualify PHP 8.6 for deployment or change native permissions.
+
+The production version predicate continues to reject PHP 8.6. The candidate
+bootstrap requires both `PHORGE_PHP_COMPATIBILITY_PROFILE=php86-isolated-v1`
+and `PHORGE_GOVERNANCE_ISOLATED_TEST=1`, the actual stable PHP 8.6 interpreter,
+and absence of deployment selectors and local deployment configuration. Unknown
+profiles, prereleases and dangling configuration links are refused. These
+checks do not themselves prove container or network isolation; the fixture
+runner supplies and verifies that boundary.
+
+## Changes
+
+- Temporary directory names use random bytes without lossy numeric conversion.
+  Atomic `mkdir` decides ownership; an existing path is never adopted or chmodded.
+- Pure and full-native receipt validators keep their production defaults. An
+  explicit candidate profile selects the exact PHP 8.6.0 target. The actual
+  runtime field is never rewritten to PHP 8.5.13. All original scenario IDs,
+  schema, binary, source, ownership, cleanup and failure checks remain required.
+- The candidate Dockerfile is rendered from the production recipe. Its
+  base image, explicit isolated environment and APCu build differ; the production Dockerfile
+  and release policy are unchanged. Images are local test inputs, not published
+  release artifacts. JIT remains disabled.
+- Closed PHP worker environments forward only the qualified candidate profile
+  after revalidation; existing credential and deployment selectors are not copied.
+- Source-admission compatibility uses exact inverse data and negative tests.
+  Historical bytes are metadata only; the current signed tree is still executed.
+  The trusted key set is unchanged.
+
+APCu 5.1.28 fails to build against PHP 8.6 because removed internal APIs are
+still referenced. The candidate pins upstream commit
+`90899684be91c4f750512c2f840f487286ecb807` and verifies the archive SHA-256
+`33f9038e98d236d4833b3e311c21e1d969a96d06b0d1e4427c8a0db2dd7123e2`.
+It builds with phpize because the PHP 8.6 image has no pecl executable.
+This unreleased dependency is a production-adoption blocker, not a change to
+the production APCu package.
+
+## Validation
+
+The candidate workflow discovers the complete Python inventory and uses the
+existing strict versioned successor routing. It also executes the existing
+pure native PHP suite, default-OFF boundaries, full native SQL with the paired
+Gorge source, notification-source validation, and SQL/browser tests for directory membership
+and explicit project policy handoff.
+The existing production CI is required separately and is not replaced.
+The manual Atomic feature regressions workflow accepts `php86_candidate=true`
+to run the candidate as an additional reusable job. Its default is false; no
+production check is skipped when the candidate is selected.
+
+Local validation has passed on PHP 8.6.0: 61 runtime controls, all 282 pure
+PHP governance tests, and 103 real SQL checks followed by 23 Chromium interaction
+checks across directory membership and project policy handoff. The SQL/browser runner verified unchanged source and removed its owned
+containers. The same 282 pure tests pass on PHP 8.5.13. Complete CI and the
+full native capture/receipt chain remain required; these local results do not
+qualify a release or prove production authentication.
+
+To render a local recipe:
+
+```sh
+python3 -B scripts/runtime/php86-candidate-dockerfile.py --output /tmp/php86.Dockerfile
+docker build -f /tmp/php86.Dockerfile -t localhost/phorge-php86-isolated:test .
+```
+
+Use the candidate image only with disposable schemas, synthetic identities and
+loopback-only fixture access. `tests/governance/directory_product/run.py` accepts
+`--runtime-profile php86-isolated-v1`; its default remains production PHP 8.5.13.
+In browser mode the runner requires separate successful SQL and Chromium results,
+verifies unchanged source and removes only exact owned resources.
+
+Synthetic browser sessions do not prove enterprise OTP delivery or production
+authentication. Candidate acceptance does not authorize optional features,
+deployment or permission migration. No production addresses, credentials or
+personnel data belong in shared receipts.

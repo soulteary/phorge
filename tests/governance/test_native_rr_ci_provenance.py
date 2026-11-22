@@ -2,6 +2,15 @@
 import copy,importlib.util,hashlib,json,os,sys,tempfile,types,unittest
 from unittest.mock import patch
 from pathlib import Path
+# CLI main functions intentionally restrict the process mask; contain that
+# process-wide effect within this host-test module on both success and failure.
+def setUpModule():
+ global _original_process_umask
+ _original_process_umask=os.umask(0o077)
+ os.umask(_original_process_umask)
+def tearDownModule():
+ os.umask(_original_process_umask)
+
 ROOT=Path(__file__).resolve().parents[2];sys.path.insert(0,str(ROOT/'tests/governance/native_rr_ci'))
 import provenance as p
 import build_owner as b

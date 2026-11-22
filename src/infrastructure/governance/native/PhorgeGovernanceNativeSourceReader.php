@@ -77,8 +77,8 @@ final class PhorgeGovernanceNativeSourceReader extends Phobject {
 
   public static function newFixture(array $config) {
     require_once dirname(__DIR__, 4).'/support/runtime/php-version.php';
-    phorge_assert_supported_php_version(PHP_VERSION);
     self::assertIsolatedScope();
+    phorge_assert_supported_php_version(PHP_VERSION);
     $config = self::validateConfig($config);
     mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
     $connection = null;

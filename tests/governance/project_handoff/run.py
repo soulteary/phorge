@@ -40,6 +40,7 @@ def cleanup_owned(ids,owner,runner=command):
 def main(argv=None):
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--php-image',required=True)
+    parser.add_argument('--runtime-profile',choices=('production','php86-isolated-v1'),default='production')
     parser.add_argument('--mysql-image',default='mysql:8.4.13')
     parser.add_argument('--gorge-file-binary',type=Path,required=True)
     parser.add_argument('--browser',action='store_true')
@@ -59,7 +60,9 @@ def main(argv=None):
         php_image=image_id(args.php_image);mysql_image=image_id(args.mysql_image)
         result.update(php_image_id=php_image,mysql_image_id=mysql_image)
         version=command(['docker','run','--rm','--network','none','--entrypoint','php',php_image,'-r','echo PHP_VERSION;'],timeout=20)
-        if version.returncode or version.stdout!=b'8.5.13':raise ValueError('PHP 8.5.13 required')
+        expected=b'8.6.0' if args.runtime_profile=='php86-isolated-v1' else b'8.5.13'
+        if version.returncode or version.stdout!=expected:raise ValueError('Exact profile runtime required')
+        result.update(runtime_profile=args.runtime_profile,runtime=expected.decode())
         binary=args.gorge_file_binary.resolve(strict=True)
         if not binary.is_file():raise ValueError('paired file executable required')
         binary_sha=hashlib.sha256(binary.read_bytes()).hexdigest()

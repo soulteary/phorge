@@ -50,10 +50,15 @@ function governance_native_revocation_http_cases($fixture,callable $check,array 
         'mailer_uri'=>'http://127.0.0.1:1','mailer_token'=>bin2hex(random_bytes(32)));
       foreach(array('owner'=>$nonce,'router.json'=>json_encode($config,JSON_THROW_ON_ERROR),'stdout.log'=>'','stderr.log'=>'')as$name=>$data){
         $file=$directory.'/'.$name;if(file_put_contents($file,$data)===false||!chmod($file,0600)){throw new RuntimeException('measurement_http_private_write_failed');}}
+      $php_environment=array('PATH'=>getenv('PATH')?:'/usr/bin:/bin','PHORGE_GOVERNANCE_ISOLATED_TEST'=>'1',
+          'PHORGE_GOVERNANCE_MEASUREMENT_HTTP_DIR'=>$directory,'PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION'=>$revision);
+      if(PHP_VERSION==='8.6.0'&&getenv('PHORGE_PHP_COMPATIBILITY_PROFILE')==='php86-isolated-v1'){
+        phorge_assert_supported_php_version(PHP_VERSION);
+        $php_environment['PHORGE_PHP_COMPATIBILITY_PROFILE']='php86-isolated-v1';
+      }
       $process=proc_open(array(PHP_BINARY,'-S','127.0.0.1:'.$port,$router),
         array(0=>array('file','/dev/null','r'),1=>array('file',$directory.'/stdout.log','a'),2=>array('file',$directory.'/stderr.log','a')),$pipes,null,
-        array('PATH'=>getenv('PATH')?:'/usr/bin:/bin','PHORGE_GOVERNANCE_ISOLATED_TEST'=>'1',
-          'PHORGE_GOVERNANCE_MEASUREMENT_HTTP_DIR'=>$directory,'PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION'=>$revision));
+        $php_environment);
       if(!is_resource($process)){throw new RuntimeException('measurement_http_spawn_failed');}$started++;
       $ready=null;$deadline=microtime(true)+8;
       do{if(!proc_get_status($process)['running']){throw new RuntimeException('measurement_http_server_failed');}

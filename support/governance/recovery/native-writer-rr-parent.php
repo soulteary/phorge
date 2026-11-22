@@ -91,7 +91,12 @@ final class GovernanceNativeRRWorker {
     governance_native_rr_write($this->directory,'payload.json',$payload,$this->owner,$this->stat['dev'],$this->stat['ino']);
     $logs=array();foreach(array('stdout.log','stderr.log')as$name){$logs[]=fopen($this->directory.'/'.$name,'x');if(!is_resource(end($logs))||!chmod($this->directory.'/'.$name,0600)){throw new RuntimeException('native_rr_log_open_failed');}}
     $php=$this->ciProfile?$this->ciProfile->getPHP():PHP_BINARY;
-    try{$this->process=proc_open(array($php,$root.'/support/governance/recovery/native-writer-rr-worker.php',$this->directory),array(0=>array('file','/dev/null','r'),1=>$logs[0],2=>$logs[1]),$pipes,$this->directory,array('PATH'=>getenv('PATH')?:'/usr/bin:/bin','PHORGE_GOVERNANCE_ISOLATED_TEST'=>'1','PHORGE_GOVERNANCE_NATIVE_RR_OWNER'=>$this->owner,'PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION'=>$revision));}finally{foreach($logs as$log){if(is_resource($log)){fclose($log);}}}
+    $php_environment=array('PATH'=>getenv('PATH')?:'/usr/bin:/bin','PHORGE_GOVERNANCE_ISOLATED_TEST'=>'1','PHORGE_GOVERNANCE_NATIVE_RR_OWNER'=>$this->owner,'PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION'=>$revision);
+    if(PHP_VERSION==='8.6.0'&&getenv('PHORGE_PHP_COMPATIBILITY_PROFILE')==='php86-isolated-v1'){
+      phorge_assert_supported_php_version(PHP_VERSION);
+      $php_environment['PHORGE_PHP_COMPATIBILITY_PROFILE']='php86-isolated-v1';
+    }
+    try{$this->process=proc_open(array($php,$root.'/support/governance/recovery/native-writer-rr-worker.php',$this->directory),array(0=>array('file','/dev/null','r'),1=>$logs[0],2=>$logs[1]),$pipes,$this->directory,$php_environment);}finally{foreach($logs as$log){if(is_resource($log)){fclose($log);}}}
     if(!is_resource($this->process)){throw new RuntimeException('native_rr_child_start_failed');}
     $deadline=hrtime(true)+12000000000;while(!is_file($this->directory.'/ready.json')&&hrtime(true)<$deadline&&$this->running()){usleep(20000);}
     if(!is_file($this->directory.'/identity.json')||!is_file($this->directory.'/ready.json')){throw new RuntimeException('native_rr_child_ready_unproved');}

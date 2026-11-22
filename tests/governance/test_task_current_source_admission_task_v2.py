@@ -21,6 +21,10 @@ class ExactHistoricalBridgeTaskV2(unittest.TestCase):
    for relative,pin in bridge.CURRENT_SHARED.items():
     with self.subTest(relative=relative):
      raw=(ROOT/relative).read_bytes();self.assertEqual(raw,context.current(relative))
+     if relative in source.task_admission.PHP86_COMPATIBILITY_PATHS:
+      profile_raw=context.current(source.task_admission.PHP86_COMPATIBILITY_HISTORY)
+      with self.assertRaises(ValueError):source.task_admission.php86_compatibility_inverse(relative,raw+b'\n',profile_raw)
+      raw=source.task_admission.php86_compatibility_inverse(relative,raw,profile_raw)
      if relative in source.task_admission.HANDOFF_PATHS:
       handoff_raw=context.current(source.task_admission.HANDOFF_HISTORY)
       with self.assertRaises(ValueError):source.task_admission.handoff_inverse(relative,raw+b'\n',handoff_raw)

@@ -38,14 +38,15 @@ def project_capture_cleanup(data,delta):
  # All three original fields are passed unchanged to the original strict body.
  return projected
 
-def accept(root,checkpoint,consumer,envelope_path,native_body_path,profile_path,profile_sha,runtime_before,runtime_after,file_binary,file_sha,render_binary,render_sha,taskqueue_binary,taskqueue_sha):
+def accept(root,checkpoint,consumer,envelope_path,native_body_path,profile_path,profile_sha,runtime_before,runtime_after,file_binary,file_sha,render_binary,render_sha,taskqueue_binary,taskqueue_sha,*,runtime_profile='production'):
+ need(runtime_profile in ('production','php86-isolated-v1'))
  root=Path(root);need(consumer in('native','notifications')and type(checkpoint)is str and re.fullmatch('[a-f0-9]{40}',checkpoint)is not None and checkpoint!='0'*40)
  with source.open_task_source_operation(root,expected_checkpoint=checkpoint)as operation:
   source.require_task_operation(operation,root);need(operation.code_root==ROOT and operation.producer_root==ROOT and source.ROOT==ROOT)
   proof=current_source.verify_in_operation(operation,root);context=operation._task_contexts[root]
   schema=captured(operation,root,'support/governance/task-additive-schema-v2/validate.py')
   envelope_raw=schema.private(envelope_path);envelope=schema.decode(envelope_raw)
-  projected,delta=schema.validate_envelope(envelope,profile_path,profile_sha,expected_mode='full-native-Task-OFF')
+  projected,delta=schema.validate_envelope(envelope,profile_path,profile_sha,expected_mode='full-native-Task-OFF',runtime_profile=runtime_profile)
   need(delta['source_revision']==checkpoint and delta['source_root']==str(root)and delta['native_profile_mode']=='full-native-Task-OFF')
   for path,pin in delta['source_pins'].items():need(hashlib.sha256(context.current(path)).hexdigest()==pin)
   profile=schema.profile(profile_path,profile_sha)
@@ -62,14 +63,18 @@ def accept(root,checkpoint,consumer,envelope_path,native_body_path,profile_path,
    notification=model['notification_validate'](manifest,root,operation=operation)
    need(notification['smtp_proved']is False and notification['all_producers_proved']is False and notification['activation_blocked']is True)
   projected=project_capture_cleanup(projected,delta)
-  accepted=model['native_validate'](projected,root,file_digest=binaries['file'],measurement_revision=checkpoint,render_digest=binaries['render'],operation=operation)
+  runtime_arguments={} if runtime_profile=='production' else {'expected_runtime':'8.6.0','runtime_profile':runtime_profile}
+  accepted=model['native_validate'](projected,root,file_digest=binaries['file'],measurement_revision=checkpoint,render_digest=binaries['render'],operation=operation,**runtime_arguments)
   need(accepted['schema_valid']is True and accepted['global_completion']is False and accepted['production_optional_features_enabled']is False and accepted['deployment_proved']is False and accepted['browser_proved']is False)
   need(schema.profile(profile_path,profile_sha)==profile)
   result={'schema':'default-full-native-Task-dual-consumer-receipt-v2','consumer':consumer,'original_full_native_strict':accepted,'original_private_notification_strict':notification,'Task_additive_schema':delta,'database_runtime':database,'actual_input_binary_sha256':binaries,'raw_envelope_sha256':hashlib.sha256(envelope_raw).hexdigest(),'raw_native_body_sha256':hashlib.sha256(native_raw).hexdigest(),'runtime_artifact_sha256':{'before':hashlib.sha256(before_raw).hexdigest(),'after':hashlib.sha256(after_raw).hexdigest()},'source_v2':proof,'source_operation_exit_verified':False,'checker_SQL_executed':False,'smtp_proved':False,'deployment_proved':False,'activation_authorized':False,'all_other14_Atomic_routes_qualified':False}
- result['source_operation_exit_verified']=True;result['source_v2']['source_operation_exit_verified']=True;return result
+ result['source_operation_exit_verified']=True;result['source_v2']['source_operation_exit_verified']=True
+ if runtime_profile!='production':result.update(runtime_profile=runtime_profile,production_runtime_qualified=False)
+ return result
 if __name__=='__main__':
  p=argparse.ArgumentParser();p.add_argument('--root',default=str(ROOT));p.add_argument('--consumer',required=True,choices=['native','notifications'])
  for name in('expected-checkpoint','envelope','native-body','profile','profile-sha','runtime-before','runtime-after','file-binary','file-sha','render-binary','render-sha','taskqueue-binary','taskqueue-sha'):p.add_argument('--'+name,required=True)
+ p.add_argument('--runtime-profile',choices=('production','php86-isolated-v1'),default='production')
  a=p.parse_args()
- try:print(json.dumps(accept(a.root,a.expected_checkpoint,a.consumer,a.envelope,a.native_body,a.profile,a.profile_sha,a.runtime_before,a.runtime_after,a.file_binary,a.file_sha,a.render_binary,a.render_sha,a.taskqueue_binary,a.taskqueue_sha),sort_keys=True))
+ try:print(json.dumps(accept(a.root,a.expected_checkpoint,a.consumer,a.envelope,a.native_body,a.profile,a.profile_sha,a.runtime_before,a.runtime_after,a.file_binary,a.file_sha,a.render_binary,a.render_sha,a.taskqueue_binary,a.taskqueue_sha,runtime_profile=a.runtime_profile),sort_keys=True))
  except Exception:print('{"full_native_or_notification_accepted":false,"source_operation_exit_verified":false,"checker_SQL_executed":false}');raise SystemExit(1)

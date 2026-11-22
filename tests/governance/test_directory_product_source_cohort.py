@@ -7,6 +7,8 @@ import task_source_operation_context as c
 class DirectoryProductCohort(unittest.TestCase):
  def current(self,p):
   raw=(ROOT/p).read_bytes()
+  if p in c.PHP86_COMPATIBILITY_PATHS:
+   raw=c.php86_compatibility_inverse(p,raw,(ROOT/c.PHP86_COMPATIBILITY_HISTORY).read_bytes())
   return c.handoff_inverse(p,raw,(ROOT/c.HANDOFF_HISTORY).read_bytes())if p in c.HANDOFF_PATHS else raw
  def raw(self):return (ROOT/c.DIRECTORY_PRODUCT_HISTORY).read_bytes()
  def test_all_selected_current_files_roundtrip_as_data(self):

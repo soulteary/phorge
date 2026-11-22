@@ -75,10 +75,15 @@ function governance_oauth_client_lifecycle_native_start_worker($fixture,array $a
     $payload['recovery_incarnation']=$incarnation;
   }
   governance_oauth_client_lifecycle_native_worker_atomic($path,'payload.json',$payload);
+  $php_environment=array('PATH'=>getenv('PATH')?:'/usr/bin:/bin','PHORGE_GOVERNANCE_ISOLATED_TEST'=>'1');
+  if(PHP_VERSION==='8.6.0'&&getenv('PHORGE_PHP_COMPATIBILITY_PROFILE')==='php86-isolated-v1'){
+    phorge_assert_supported_php_version(PHP_VERSION);
+    $php_environment['PHORGE_PHP_COMPATIBILITY_PROFILE']='php86-isolated-v1';
+  }
   $process=proc_open(array(PHP_BINARY,__DIR__.'/oauth-client-lifecycle-worker.php',$path),
     array(0=>array('file','/dev/null','r'),1=>array('file',$path.'/stdout.log','a'),
       2=>array('file',$path.'/stderr.log','a')),$pipes,null,
-    array('PATH'=>getenv('PATH')?:'/usr/bin:/bin','PHORGE_GOVERNANCE_ISOLATED_TEST'=>'1'));
+    $php_environment);
   if (!is_resource($process)) { throw new RuntimeException('native_worker_start_failed'); }
   $GLOBALS['governance_oauth_client_lifecycle_native_workers'][$index]['process']=$process;
   foreach (array('stdout.log','stderr.log') as $log) { if (is_file($path.'/'.$log)) { chmod($path.'/'.$log,0600); } }

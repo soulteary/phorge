@@ -3,7 +3,15 @@ ROOT=pathlib.Path(__file__).resolve().parents[2]
 class WorkflowContract(unittest.TestCase):
  def workflow(self):return yaml.safe_load((ROOT/'.github/workflows/atomic-feature-regressions.yml').read_text())
  def test_call_requires_exact_head_without_core_downgrade_input(self):
-  w=self.workflow();events=w.get('on',w.get(True));call=events['workflow_call'];self.assertEqual(set(call['inputs']),{'expected_head'});self.assertEqual(call['inputs']['expected_head']['required'],True);self.assertEqual(call['inputs']['expected_head']['type'],'string');self.assertEqual(events['workflow_dispatch'],None)
+  w=self.workflow();events=w.get('on',w.get(True));call=events['workflow_call'];self.assertEqual(set(call['inputs']),{'expected_head'});self.assertEqual(call['inputs']['expected_head']['required'],True);self.assertEqual(call['inputs']['expected_head']['type'],'string');self.assertEqual(set(events['workflow_dispatch']['inputs']),{'php86_candidate'});self.assertEqual(events['workflow_dispatch']['inputs']['php86_candidate']['type'],'boolean');self.assertIs(events['workflow_dispatch']['inputs']['php86_candidate']['default'],False)
+ def test_candidate_is_additive_manual_only_and_cannot_change_full_gate(self):
+  job=self.workflow()['jobs']['php86-candidate']
+  self.assertEqual(job['if'],"${{ github.event_name == 'workflow_dispatch' && inputs.php86_candidate == true }}")
+  self.assertEqual(job['uses'],'./.github/workflows/php86-isolated-compatibility.yml')
+  self.assertNotIn('continue-on-error',job)
+  candidate=yaml.safe_load((ROOT/'.github/workflows/php86-isolated-compatibility.yml').read_text())
+  self.assertIn('workflow_call',candidate.get('on',candidate.get(True)))
+  self.assertEqual(candidate['permissions'],{'contents':'read'})
  def test_every_heavy_job_runs_full_only_and_core_is_unconditional(self):
   jobs=self.workflow()['jobs'];core=jobs['core-boundaries'];self.assertNotIn('if',core);self.assertNotIn('services',core);self.assertEqual(core['needs'],'ci-plan')
   for name in ('native-packages','governance-unit-tests-0','governance-unit-tests-1','governance-tooling-tests'):

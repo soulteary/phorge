@@ -176,8 +176,9 @@ class ReleaseHistoryLiteralData(unittest.TestCase):
   spec=importlib.util.spec_from_file_location('release_history_DATA',path)
   cls.scope=importlib.util.module_from_spec(spec);spec.loader.exec_module(cls.scope)
   cls.raw=(ROOT/cls.scope.RELEASE_HISTORY).read_bytes();cls.doc=cls.scope.load_release_history(cls.raw)
-  cls.handoff_predecessor=cls.scope.handoff_cohort({path:(ROOT/path).read_bytes() for path in cls.scope.HANDOFF_PATHS},(ROOT/cls.scope.HANDOFF_HISTORY).read_bytes())
-  cls.directory_predecessor=cls.scope.directory_product_cohort({path:cls.handoff_predecessor.get(path,(ROOT/path).read_bytes()) for path in cls.scope.DIRECTORY_PRODUCT_PATHS},(ROOT/cls.scope.DIRECTORY_PRODUCT_HISTORY).read_bytes())
+  cls.php86_predecessor=cls.scope.php86_compatibility_cohort({path:(ROOT/path).read_bytes() for path in cls.scope.PHP86_COMPATIBILITY_PATHS},(ROOT/cls.scope.PHP86_COMPATIBILITY_HISTORY).read_bytes())
+  cls.handoff_predecessor=cls.scope.handoff_cohort({path:cls.php86_predecessor.get(path,(ROOT/path).read_bytes()) for path in cls.scope.HANDOFF_PATHS},(ROOT/cls.scope.HANDOFF_HISTORY).read_bytes())
+  cls.directory_predecessor=cls.scope.directory_product_cohort({path:cls.handoff_predecessor.get(path,cls.php86_predecessor.get(path,(ROOT/path).read_bytes())) for path in cls.scope.DIRECTORY_PRODUCT_PATHS},(ROOT/cls.scope.DIRECTORY_PRODUCT_HISTORY).read_bytes())
   cls.proxy_predecessor=cls.scope.proxy_identity_security_cohort({path:(ROOT/path).read_bytes() for path in cls.scope.PROXY_IDENTITY_SECURITY_PATHS})
   cls.sink_path=cls.scope.HEADER_EMISSION_SECURITY_PATH;cls.sink_current=(ROOT/cls.sink_path).read_bytes()
   cls.sink_predecessor=cls.scope.header_emission_security_inverse(cls.sink_path,cls.sink_current)
@@ -185,7 +186,7 @@ class ReleaseHistoryLiteralData(unittest.TestCase):
   spec=importlib.util.spec_from_file_location('unchanged_Task_reducer_DATA',path)
   cls.delta=importlib.util.module_from_spec(spec);spec.loader.exec_module(cls.delta)
  def historical(self,path):
-  return self.directory_predecessor.get(path,self.handoff_predecessor.get(path,(ROOT/path).read_bytes()))
+  return self.directory_predecessor.get(path,self.handoff_predecessor.get(path,self.php86_predecessor.get(path,(ROOT/path).read_bytes())))
  def test_all_21_current_payloads_roundtrip_and_original_parent_pins_still_match(self):
   # Retain the original 21 targets and the reviewed caller and self-check inputs.
   self.assertEqual(len(self.doc['files']),29+len(self.scope.WIKI_RETIREMENT_HISTORY_PATHS)+len(self.scope.PHP_SECURITY_HISTORY_PATHS))
@@ -220,6 +221,8 @@ class ReleaseHistoryLiteralData(unittest.TestCase):
     checked+=1
     continue
    raw=self.historical(path)
+   if path in self.php86_predecessor:raw=self.php86_predecessor[path]
+   if path in self.handoff_predecessor:raw=self.handoff_predecessor[path]
    if path in self.directory_predecessor:raw=self.directory_predecessor[path]
    if path in ci or path in api:
     entry=(ci if path in ci else api)[path];decoder=zlib.decompressobj()

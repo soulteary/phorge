@@ -29,6 +29,10 @@ function governance_project_handoff_browser($fixture,$sessions,$admin,$users,$pr
     $write('client.json',json_encode($client,JSON_THROW_ON_ERROR));
     $env=array('PATH'=>getenv('PATH')?:'/usr/bin:/bin','PHORGE_GOVERNANCE_ISOLATED_TEST'=>'1',
       'PHORGE_DIRECTORY_HTTP_FIXTURE'=>$directory);
+    if(PHP_VERSION==='8.6.0'&&getenv('PHORGE_PHP_COMPATIBILITY_PROFILE')==='php86-isolated-v1'){
+      phorge_assert_supported_php_version(PHP_VERSION);
+      $env['PHORGE_PHP_COMPATIBILITY_PROFILE']='php86-isolated-v1';
+    }
     $process=proc_open(array(PHP_BINARY,'-S','0.0.0.0:33388',__DIR__.'/project-handoff-http-router.php'),
       array(0=>array('file','/dev/null','r'),1=>array('file',$directory.'/server.log','a'),2=>array('file',$directory.'/server.log','a')),$pipes,null,$env);
     if(!is_resource($process)){throw new RuntimeException('directory_browser_start');}

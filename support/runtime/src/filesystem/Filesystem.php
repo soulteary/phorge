@@ -695,12 +695,18 @@ final class Filesystem extends Phobject {
 
     $tries = 3;
     do {
-      $dir = $base.substr(base_convert(md5((string)mt_rand()), 16, 36), 0, 16);
-      try {
-        self::createDirectory($dir, $umask);
+      // Do not convert a 128-bit hash through floating-point arithmetic.
+      // PHP 8.6 reports lossy base conversions; each attempt needs fresh bytes.
+      $dir = $base.bin2hex(random_bytes(8));
+      // mkdir is the ownership decision: never adopt/chmod an existing path.
+      if (@mkdir($dir, $umask)) {
+        try {
+          if ($umask) { self::changePermissions($dir, $umask); }
+        } catch (Throwable $error) {
+          @rmdir($dir);
+          throw $error;
+        }
         break;
-      } catch (FilesystemException $ex) {
-        // Ignore.
       }
     } while (--$tries);
 
