@@ -50,3 +50,13 @@ class UnitAccounting(unittest.TestCase):
         self.assertNotIn('continue-on-error', unit)
         self.assertNotIn('if:', unit)
         self.assertIn('git diff --exit-code -- src/__phutil_library_map__.php', preparation)
+
+    def test_owned_mysql_trigger_preparation_matches_baseline(self):
+        workflow = (ROOT/'.github/workflows/php86-isolated-compatibility.yml').read_text()
+        step = workflow.split('Start isolated disposable dependencies',1)[1].split('- name:',1)[0]
+        self.assertIn('MYSQL_CONTAINER: ${{ job.services.mysql.id }}', step)
+        self.assertIn('SET GLOBAL log_bin_trust_function_creators = 1', step)
+        self.assertIn('SELECT @@GLOBAL.log_bin_trust_function_creators', step)
+        self.assertIn('SET GLOBAL sql_mode =', step)
+        baseline = (ROOT/'.github/workflows/atomic-feature-regressions.yml').read_text()
+        self.assertIn('SET GLOBAL log_bin_trust_function_creators = 1', baseline)

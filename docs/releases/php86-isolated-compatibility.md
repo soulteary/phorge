@@ -40,7 +40,8 @@ the production APCu package.
 
 ## Validation
 
-The candidate workflow executes complete Python unit discovery, the existing
+The candidate workflow discovers the complete Python inventory and uses the
+existing strict versioned successor routing. It also executes the existing
 pure native PHP suite, default-OFF boundaries, full native SQL with the paired
 Gorge source, notification-source validation, and SQL/browser tests for directory membership
 and explicit project policy handoff.

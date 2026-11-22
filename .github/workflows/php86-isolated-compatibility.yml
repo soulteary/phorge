@@ -123,6 +123,9 @@ jobs:
           MYSQL_CONTAINER: ${{ job.services.mysql.id }}
         run: |
           docker exec -e MYSQL_PWD=atomic-regressions-only "$MYSQL_CONTAINER" mysql --user=root --execute="SET GLOBAL sql_mode = 'STRICT_ALL_TABLES'"
+          # Match baseline Completion preparation for owned trigger fault injection.
+          docker exec -e MYSQL_PWD="$GORGE_TEST_MYSQL_PASSWORD" "$MYSQL_CONTAINER" mysql --user=root --execute="SET GLOBAL log_bin_trust_function_creators = 1"
+          test "$(docker exec -e MYSQL_PWD="$GORGE_TEST_MYSQL_PASSWORD" "$MYSQL_CONTAINER" mysql --user=root --batch --skip-column-names --execute='SELECT @@GLOBAL.log_bin_trust_function_creators')" = 1
           docker network create atomic-fixtures
           docker run -d --name atomic-file --network atomic-fixtures -p 127.0.0.1:18100:8100 --read-only --tmpfs /var/lib/gorge/files:rw,uid=10001,gid=10001,mode=0700 --tmpfs /tmp:rw -e GORGE_SERVICE_TOKEN=atomic-file-only -e GORGE_FILE_LOCAL_DISK_PATH=/var/lib/gorge/files gorge-file-storage:atomic
           docker run -d --name atomic-image --network atomic-fixtures -p 127.0.0.1:18190:8190 --read-only --tmpfs /tmp:rw -e GORGE_SERVICE_TOKEN="$GORGE_TEST_IMAGE_TOKEN" gorge-image:atomic
