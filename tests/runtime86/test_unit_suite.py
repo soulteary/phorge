@@ -39,9 +39,14 @@ class UnitAccounting(unittest.TestCase):
 
     def test_candidate_prepares_maps_and_preserves_source_modes(self):
         workflow = (ROOT/'.github/workflows/php86-isolated-compatibility.yml').read_text()
-        preparation = workflow.split('Prepare candidate tools and execute complete unit discovery',1)[1].split('- name:',1)[0]
+        preparation = workflow.split('Prepare candidate tools and execute runtime controls',1)[1].split('- name:',1)[0]
         self.assertLess(preparation.index('umask 077'), preparation.index('mkdir -p'))
         self.assertLess(preparation.index('umask 022'), preparation.index('php scripts/runtime/build.php'))
         self.assertEqual(preparation.count('php bin/rebuild-library-map'),2)
-        self.assertLess(preparation.index('sha256sum --check'), preparation.index('python3 -B scripts/runtime/php86-unit-suite.py'))
+        self.assertIn('sha256sum --check', preparation)
+        unit = workflow.split('Execute the complete current governance, atomic and release unit inventory',1)[1].split('- name:',1)[0]
+        self.assertIn('umask 022', unit)
+        self.assertIn('python3 -B scripts/runtime/php86-unit-suite.py', unit)
+        self.assertNotIn('continue-on-error', unit)
+        self.assertNotIn('if:', unit)
         self.assertIn('git diff --exit-code -- src/__phutil_library_map__.php', preparation)

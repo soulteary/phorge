@@ -77,7 +77,7 @@ jobs:
       - uses: actions/setup-go@v6
         with:
           go-version: '1.27.4'
-      - name: Prepare candidate tools and execute complete unit discovery
+      - name: Prepare candidate tools and execute runtime controls
         run: |
           umask 077
           mkdir -p "$RUNNER_TEMP/php86-evidence"
@@ -101,9 +101,6 @@ jobs:
           export PATH="$RUNNER_TEMP/php86-python/bin:$PATH"
           echo "$RUNNER_TEMP/php86-python/bin" >> "$GITHUB_PATH"
           python3 -B scripts/ci/core_guard.py unit --directory tests/runtime86 --pattern 'test_*.py'
-          python3 -B scripts/runtime/php86-unit-suite.py
-          python3 -B scripts/ci/core_guard.py unit --directory tests/atomic --pattern 'test_*.py'
-          python3 -B scripts/ci/core_guard.py unit --directory tests/release --pattern 'test_*.py'
       - name: Require the same immutable Gorge revision as paired runtime contracts
         run: |
           revision=$(python3 tests/atomic/check_pair.py --print-revision)
@@ -231,6 +228,12 @@ jobs:
           npm install --prefix "$RUNNER_TEMP/php86-browser" --ignore-scripts --no-audit --no-fund playwright-core@1.64.1
           python3 -B tests/governance/directory_product/run.py --runtime-profile php86-isolated-v1 --php-image localhost/phorge-php86-isolated:ci --gorge-file-binary "$RUNNER_TEMP/gorge-file-storage" --browser --playwright-module "$RUNNER_TEMP/php86-browser/node_modules/playwright-core" --chromium "$(command -v google-chrome)" --output "$RUNNER_TEMP/php86-browser-results"
           python3 -B tests/governance/project_handoff/run.py --runtime-profile php86-isolated-v1 --php-image localhost/phorge-php86-isolated:ci --gorge-file-binary "$RUNNER_TEMP/gorge-file-storage" --browser --playwright-module "$RUNNER_TEMP/php86-browser/node_modules/playwright-core" --chromium "$(command -v google-chrome)" --output "$RUNNER_TEMP/php86-handoff-browser-results"
+      - name: Execute the complete current governance, atomic and release unit inventory
+        run: |
+          umask 022
+          python3 -B scripts/runtime/php86-unit-suite.py
+          python3 -B scripts/ci/core_guard.py unit --directory tests/atomic --pattern 'test_*.py'
+          python3 -B scripts/ci/core_guard.py unit --directory tests/release --pattern 'test_*.py'
       - name: Collect safe candidate receipts
         if: always()
         run: |
