@@ -71,3 +71,22 @@ class UnitAccounting(unittest.TestCase):
         for runner in ('directory_product', 'project_handoff'):
             line = next(line for line in commands.splitlines() if 'tests/governance/'+runner+'/run.py' in line)
             self.assertIn('--mysql-image '+expected+' ', line)
+
+    def test_cli_test_modules_restore_the_callers_process_mask(self):
+        import os
+        import sys
+        from unittest.mock import patch
+        sys.path.insert(0, str(ROOT/'tests/governance'))
+        for name in ('test_native_rr_ci_anchor','test_native_rr_ci_provenance','test_native_rr_ci_runner'):
+            module = __import__(name)
+            original = os.umask(0o022)
+            try:
+                module.setUpModule()
+                try:
+                    os.umask(0o077)  # The CLI failure/success paths set this mask.
+                finally:
+                    module.tearDownModule()
+                observed = os.umask(0o022)
+                self.assertEqual(observed, 0o022, name)
+            finally:
+                os.umask(original)
