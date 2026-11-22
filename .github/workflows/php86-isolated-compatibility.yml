@@ -197,21 +197,44 @@ jobs:
           PHORGE_GOVERNANCE_GORGE_FILE_BINARY="$RUNNER_TEMP/gorge-file-storage" \
           PHORGE_GOVERNANCE_GORGE_FILE_SHA256="$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" \
           php support/governance/native-organization/directory-product-run.php > "$RUNNER_TEMP/governance-native-organization/directory-product.json"
+      - name: Verify explicit project policy handoff
+        run: |
+          set -euo pipefail
+          umask 077
+          php bin/unit src/applications/project/__tests__/PhorgeProjectHandoffRequestTestCase.php
+          python3 -B tests/governance/project_handoff/test_runner.py
+          PHORGE_GOVERNANCE_ISOLATED_TEST=1 \
+          PHORGE_GOVERNANCE_FIXTURE_DSN='mysql:host=127.0.0.1;port=3306;dbname=governance_fixture_bootstrap;charset=utf8mb4' \
+          PHORGE_GOVERNANCE_FIXTURE_USER=root \
+          PHORGE_GOVERNANCE_FIXTURE_PASSWORD="$GORGE_TEST_MYSQL_PASSWORD" \
+          PHORGE_GOVERNANCE_GORGE_FILE_BINARY="$RUNNER_TEMP/gorge-file-storage" \
+          PHORGE_GOVERNANCE_GORGE_FILE_SHA256="$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" \
+          php support/governance/native-organization/project-handoff-run.php > "$RUNNER_TEMP/governance-native-organization/project-handoff.json"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: governance-native-organization-php-${{ matrix.php }}
+          path: ${{ runner.temp }}/governance-native-organization
+          if-no-files-found: error
       - name: Build the non-production candidate image and run SQL with Chromium
         run: |
           python3 -B scripts/runtime/php86-candidate-dockerfile.py --output "$RUNNER_TEMP/php86.Dockerfile"
           docker build -f "$RUNNER_TEMP/php86.Dockerfile" -t localhost/phorge-php86-isolated:ci .
           npm install --prefix "$RUNNER_TEMP/php86-browser" --ignore-scripts --no-audit --no-fund playwright-core@1.64.1
           python3 -B tests/governance/directory_product/run.py --runtime-profile php86-isolated-v1 --php-image localhost/phorge-php86-isolated:ci --gorge-file-binary "$RUNNER_TEMP/gorge-file-storage" --browser --playwright-module "$RUNNER_TEMP/php86-browser/node_modules/playwright-core" --chromium "$(command -v google-chrome)" --output "$RUNNER_TEMP/php86-browser-results"
+          python3 -B tests/governance/project_handoff/run.py --runtime-profile php86-isolated-v1 --php-image localhost/phorge-php86-isolated:ci --gorge-file-binary "$RUNNER_TEMP/gorge-file-storage" --browser --playwright-module "$RUNNER_TEMP/php86-browser/node_modules/playwright-core" --chromium "$(command -v google-chrome)" --output "$RUNNER_TEMP/php86-handoff-browser-results"
       - name: Collect safe candidate receipts
         if: always()
         run: |
           mkdir -p "$RUNNER_TEMP/php86-evidence"
-          for name in accepted.json private-email-sources.json directory-product.json source-admission.json; do
+          for name in accepted.json private-email-sources.json directory-product.json project-handoff.json source-admission.json; do
             if [ -f "$RUNNER_TEMP/governance-native-organization/$name" ]; then cp "$RUNNER_TEMP/governance-native-organization/$name" "$RUNNER_TEMP/php86-evidence/$name"; fi
           done
           for name in result.json browser.json; do
             if [ -f "$RUNNER_TEMP/php86-browser-results/$name" ]; then cp "$RUNNER_TEMP/php86-browser-results/$name" "$RUNNER_TEMP/php86-evidence/browser-$name"; fi
+          done
+          for name in result.json browser.json; do
+            if [ -f "$RUNNER_TEMP/php86-handoff-browser-results/$name" ]; then cp "$RUNNER_TEMP/php86-handoff-browser-results/$name" "$RUNNER_TEMP/php86-evidence/handoff-browser-$name"; fi
           done
       - uses: actions/upload-artifact@v4
         if: always()

@@ -5,14 +5,12 @@ ROOT=Path(__file__).resolve().parents[2]
 sys.path.insert(0,str(ROOT/'scripts/governance'))
 import task_source_operation_context as c
 class DirectoryProductCohort(unittest.TestCase):
+ def current(self,p):
+  raw=(ROOT/p).read_bytes()
+  if p in c.PHP86_COMPATIBILITY_PATHS:
+   raw=c.php86_compatibility_inverse(p,raw,(ROOT/c.PHP86_COMPATIBILITY_HISTORY).read_bytes())
+  return c.handoff_inverse(p,raw,(ROOT/c.HANDOFF_HISTORY).read_bytes())if p in c.HANDOFF_PATHS else raw
  def raw(self):return (ROOT/c.DIRECTORY_PRODUCT_HISTORY).read_bytes()
- def current(self,relative):
-  # Keep the earlier cohort oracle intact as authenticated predecessor DATA.
-  # Current bytes first pass the complete PHP 8.6 inverse; they are not executed.
-  raw=(ROOT/relative).read_bytes()
-  if relative in c.PHP86_COMPATIBILITY_PATHS:
-   raw=c.php86_compatibility_inverse(relative,raw,(ROOT/c.PHP86_COMPATIBILITY_HISTORY).read_bytes())
-  return raw
  def test_all_selected_current_files_roundtrip_as_data(self):
   doc=c.directory_product_history(self.raw())
   current={p:self.current(p)for p in c.DIRECTORY_PRODUCT_PATHS}

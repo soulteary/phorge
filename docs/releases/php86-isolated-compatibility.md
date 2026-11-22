@@ -40,7 +40,8 @@ the production APCu package.
 
 The candidate workflow executes complete Python unit discovery, the existing
 pure native PHP suite, default-OFF boundaries, full native SQL with the paired
-Gorge source, notification-source validation and directory SQL/browser tests.
+Gorge source, notification-source validation, and SQL/browser tests for directory membership
+and explicit project policy handoff.
 The existing production CI is required separately and is not replaced.
 The manual Atomic feature regressions workflow accepts `php86_candidate=true`
 to run the candidate as an additional reusable job. Its default is false; no

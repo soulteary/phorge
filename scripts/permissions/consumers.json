@@ -922,6 +922,16 @@
       "reviewStatus": "source-reviewed-not-route-certified",
       "sourceOperation": "native-project-policy-and-source-facts-unit-test",
       "candidateGenerationIntroduced": false
+    },
+    {
+      "path": "src/applications/project/handoff/PhorgeProjectHandoffService.php",
+      "discovery": true,
+      "kind": "native-project-policy-handoff",
+      "meaning": "Locks current native project and ancestor membership sources to evaluate the reviewed view/edit policy pair. Does not write members, infer directory grants, or alter native ancestor and automatic rules.",
+      "authority": "Current eligible system administrator with native view/edit access; no independent membership grant.",
+      "reviewStatus": "source-reviewed-isolated-route-tested-not-enabled",
+      "sourceOperation": "sealed-native-project-policy-transaction",
+      "candidateGenerationIntroduced": false
     }
   ]
 }

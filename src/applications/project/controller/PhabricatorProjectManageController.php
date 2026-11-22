@@ -80,6 +80,10 @@ final class PhabricatorProjectManageController
       PhabricatorPolicyCapability::CAN_EDIT);
 
     $curtain = $this->newCurtainView($project);
+    if(PhorgeProjectHandoffService::enabled()&&$viewer->getIsAdmin()&&$can_edit){
+      $curtain->addAction((new PhabricatorActionView())->setName(pht('Hand Off Project Permissions'))
+        ->setIcon('fa-exchange')->setHref($this->getApplicationURI("handoff/{$id}/")));
+    }
 
     $curtain->addAction(
       id(new PhabricatorActionView())
