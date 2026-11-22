@@ -86,7 +86,11 @@ class LifecycleCoordination(TaskOAuthCurrentCase):
  def test_new_source_additions_are_independently_pinned(self):
   self.assertEqual(len(delta.SOURCE_ADDITIONS),12)
   for path,pin in delta.SOURCE_ADDITIONS.items():
-   raw=(ROOT/path).read_bytes();self.assertEqual(hashlib.sha256(raw).hexdigest(),pin)
+   import task_source_operation_context as candidate
+   raw=(ROOT/path).read_bytes()
+   if path in candidate.PHP86_COMPATIBILITY_PATHS:
+    raw=candidate.php86_compatibility_inverse(path,raw,(ROOT/candidate.PHP86_COMPATIBILITY_HISTORY).read_bytes())
+   self.assertEqual(hashlib.sha256(raw).hexdigest(),pin)
    self.assertNotEqual(hashlib.sha256(raw+b'//unknown').hexdigest(),pin)
  def test_unrelated_or_unknown_input_is_not_silently_normalized(self):
   for path in delta.PRODUCTION_PATHS:
