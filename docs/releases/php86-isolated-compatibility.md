@@ -24,6 +24,8 @@ runner supplies and verifies that boundary.
   base image, explicit isolated environment and APCu build differ; the production Dockerfile
   and release policy are unchanged. Images are local test inputs, not published
   release artifacts. JIT remains disabled.
+- Closed PHP worker environments forward only the qualified candidate profile
+  after revalidation; existing credential and deployment selectors are not copied.
 - Source-admission compatibility uses exact inverse data and negative tests.
   Historical bytes are metadata only; the current signed tree is still executed.
   The trusted key set is unchanged.
@@ -48,8 +50,8 @@ to run the candidate as an additional reusable job. Its default is false; no
 production check is skipped when the candidate is selected.
 
 Local validation has passed on PHP 8.6.0: 61 runtime controls, all 282 pure
-PHP governance tests, and 47 real SQL checks followed by 11 Chromium interaction
-checks. The SQL/browser runner verified unchanged source and removed its owned
+PHP governance tests, and 103 real SQL checks followed by 23 Chromium interaction
+checks across directory membership and project policy handoff. The SQL/browser runner verified unchanged source and removed its owned
 containers. The same 282 pure tests pass on PHP 8.5.13. Complete CI and the
 full native capture/receipt chain remain required; these local results do not
 qualify a release or prove production authentication.

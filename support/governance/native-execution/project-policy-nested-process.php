@@ -85,9 +85,14 @@ function governance_project_policy_nested_process($fixture,callable $check,array
   // Register no kill-all/pool cleanup. A deadline or unknown owner remains a failure.
   $write('stdout.log','');$write('stderr.log','');
   $GLOBALS['governance_policy_nested_cleanup_permitted']=false;
+  $php_environment=array('PATH'=>getenv('PATH')?:'/usr/bin:/bin','PHORGE_GOVERNANCE_ISOLATED_TEST'=>'1');
+  if(PHP_VERSION==='8.6.0'&&getenv('PHORGE_PHP_COMPATIBILITY_PROFILE')==='php86-isolated-v1'){
+    phorge_assert_supported_php_version(PHP_VERSION);
+    $php_environment['PHORGE_PHP_COMPATIBILITY_PROFILE']='php86-isolated-v1';
+  }
   $process=proc_open(array(PHP_BINARY,__DIR__.'/project-policy-nested-worker.php',$path),
     array(0=>array('file','/dev/null','r'),1=>array('file',$path.'/stdout.log','a'),2=>array('file',$path.'/stderr.log','a')),
-    $pipes,null,array('PATH'=>getenv('PATH')?:'/usr/bin:/bin','PHORGE_GOVERNANCE_ISOLATED_TEST'=>'1'));
+    $pipes,null,$php_environment);
   if(!is_resource($process)){throw new RuntimeException('nested_fixture_exec_refused');}
   foreach(array('stdout.log','stderr.log')as$name){if(is_file($path.'/'.$name)){chmod($path.'/'.$name,0600);}}
   $read=function($name)use($path,$owned,$process){$until=microtime(true)+8;do{$owned();$f=$path.'/'.$name;
