@@ -586,6 +586,19 @@ jobs:
           PHORGE_GOVERNANCE_GORGE_FILE_BINARY="$RUNNER_TEMP/gorge-file-storage" \
           PHORGE_GOVERNANCE_GORGE_FILE_SHA256="$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" \
           php support/governance/native-organization/directory-product-run.php > "$RUNNER_TEMP/governance-native-organization/directory-product.json"
+      - name: Verify explicit project policy handoff
+        run: |
+          set -euo pipefail
+          umask 077
+          php bin/unit src/applications/project/__tests__/PhorgeProjectHandoffRequestTestCase.php
+          python3 -B tests/governance/project_handoff/test_runner.py
+          PHORGE_GOVERNANCE_ISOLATED_TEST=1 \
+          PHORGE_GOVERNANCE_FIXTURE_DSN='mysql:host=127.0.0.1;port=3306;dbname=governance_fixture_bootstrap;charset=utf8mb4' \
+          PHORGE_GOVERNANCE_FIXTURE_USER=root \
+          PHORGE_GOVERNANCE_FIXTURE_PASSWORD="$GORGE_TEST_MYSQL_PASSWORD" \
+          PHORGE_GOVERNANCE_GORGE_FILE_BINARY="$RUNNER_TEMP/gorge-file-storage" \
+          PHORGE_GOVERNANCE_GORGE_FILE_SHA256="$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" \
+          php support/governance/native-organization/project-handoff-run.php > "$RUNNER_TEMP/governance-native-organization/project-handoff.json"
       - uses: actions/upload-artifact@v4
         if: always()
         with:

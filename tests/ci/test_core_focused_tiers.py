@@ -176,13 +176,16 @@ class ReleaseHistoryLiteralData(unittest.TestCase):
   spec=importlib.util.spec_from_file_location('release_history_DATA',path)
   cls.scope=importlib.util.module_from_spec(spec);spec.loader.exec_module(cls.scope)
   cls.raw=(ROOT/cls.scope.RELEASE_HISTORY).read_bytes();cls.doc=cls.scope.load_release_history(cls.raw)
-  cls.directory_predecessor=cls.scope.directory_product_cohort({path:(ROOT/path).read_bytes() for path in cls.scope.DIRECTORY_PRODUCT_PATHS},(ROOT/cls.scope.DIRECTORY_PRODUCT_HISTORY).read_bytes())
+  cls.handoff_predecessor=cls.scope.handoff_cohort({path:(ROOT/path).read_bytes() for path in cls.scope.HANDOFF_PATHS},(ROOT/cls.scope.HANDOFF_HISTORY).read_bytes())
+  cls.directory_predecessor=cls.scope.directory_product_cohort({path:cls.handoff_predecessor.get(path,(ROOT/path).read_bytes()) for path in cls.scope.DIRECTORY_PRODUCT_PATHS},(ROOT/cls.scope.DIRECTORY_PRODUCT_HISTORY).read_bytes())
   cls.proxy_predecessor=cls.scope.proxy_identity_security_cohort({path:(ROOT/path).read_bytes() for path in cls.scope.PROXY_IDENTITY_SECURITY_PATHS})
   cls.sink_path=cls.scope.HEADER_EMISSION_SECURITY_PATH;cls.sink_current=(ROOT/cls.sink_path).read_bytes()
   cls.sink_predecessor=cls.scope.header_emission_security_inverse(cls.sink_path,cls.sink_current)
   path=ROOT/'scripts/governance/task_content_grant_source_delta.py'
   spec=importlib.util.spec_from_file_location('unchanged_Task_reducer_DATA',path)
   cls.delta=importlib.util.module_from_spec(spec);spec.loader.exec_module(cls.delta)
+ def historical(self,path):
+  return self.directory_predecessor.get(path,self.handoff_predecessor.get(path,(ROOT/path).read_bytes()))
  def test_all_21_current_payloads_roundtrip_and_original_parent_pins_still_match(self):
   # Retain the original 21 targets and the reviewed caller and self-check inputs.
   self.assertEqual(len(self.doc['files']),29+len(self.scope.WIKI_RETIREMENT_HISTORY_PATHS)+len(self.scope.PHP_SECURITY_HISTORY_PATHS))
@@ -194,7 +197,7 @@ class ReleaseHistoryLiteralData(unittest.TestCase):
   parent=json.loads((ROOT/self.scope.BASELINE).read_bytes())['entries']
   for path in self.doc['files']:
    with self.subTest(path=path):
-    current=(ROOT/path).read_bytes();historical=self.proxy_predecessor.get(path,self.directory_predecessor.get(path,current))
+    current=self.historical(path);historical=self.proxy_predecessor.get(path,self.directory_predecessor.get(path,current))
     target=self.scope.release_history_inverse(path,historical,self.doc)
     self.assertEqual(self.scope.release_history_roundtrip(path,target,self.doc),historical)
     if path in self.proxy_predecessor:
@@ -216,7 +219,7 @@ class ReleaseHistoryLiteralData(unittest.TestCase):
     self.assertEqual(hashes[path],pin['sha256'])
     checked+=1
     continue
-   raw=(ROOT/path).read_bytes()
+   raw=self.historical(path)
    if path in self.directory_predecessor:raw=self.directory_predecessor[path]
    if path in ci or path in api:
     entry=(ci if path in ci else api)[path];decoder=zlib.decompressobj()
@@ -233,7 +236,7 @@ class ReleaseHistoryLiteralData(unittest.TestCase):
    self.assertEqual((len(raw),hashlib.sha256(raw).hexdigest()),(pin['bytes'],pin['sha256']),path);checked+=1
   self.assertEqual(checked,9289)
  def test_library_map_targets_old_Task_intermediate_before_original_reducer(self):
-  path='src/__phutil_library_map__.php';target=self.scope.release_history_inverse(path,(ROOT/path).read_bytes(),self.doc)
+  path='src/__phutil_library_map__.php';target=self.scope.release_history_inverse(path,self.historical(path),self.doc)
   pin=self.delta.CURRENT_SHARED[path]
   self.assertEqual((len(target),hashlib.sha256(target).hexdigest()),(pin['current_bytes'],pin['current_sha256']))
   self.assertEqual(pin['current_sha256'],'081e5cf740a2aa893274774885a949f3d90fd233370517ce08f7f6ab007765a2')
@@ -242,12 +245,12 @@ class ReleaseHistoryLiteralData(unittest.TestCase):
   for changed in (self.sink_predecessor,self.sink_current+b' ',b'!'+self.sink_current[1:],bytearray(self.sink_current)):
    with self.subTest(path=self.sink_path),self.assertRaises(ValueError):self.scope.header_emission_security_inverse(self.sink_path,changed)
   for path in self.doc['files']:
-   raw=(ROOT/path).read_bytes()
+   raw=self.historical(path)
    for changed in (raw+b' ',b'!'+raw[1:],bytearray(raw)):
     with self.subTest(path=path),self.assertRaises(ValueError):self.scope.release_history_inverse(path,changed,self.doc)
   with self.assertRaises(ValueError):self.scope.release_history_inverse('src/unreviewed.php',b'unknown',self.doc)
  def test_wrong_hash_target_path_offset_fragment_and_duplicate_edits_refuse(self):
-  path=max(self.doc['files'],key=lambda p:len(self.doc['files'][p]['edits']));raw=(ROOT/path).read_bytes()
+  path=max(self.doc['files'],key=lambda p:len(self.doc['files'][p]['edits']));raw=self.historical(path)
   for mutation in ('current_hash','target_hash','target_size','missing_path','unknown_path','negative_offset',
                    'bool_offset','out_of_bounds','current_fragment','parent_fragment','duplicate_edit','reverse_edits'):
    doc=copy.deepcopy(self.doc);row=doc['files'][path]
@@ -272,8 +275,8 @@ class ReleaseHistoryLiteralData(unittest.TestCase):
   with self.assertRaises(ValueError):self.scope.decode(duplicate)
   # Negative DATA fault injection only; no real Source graph/owner is patched.
   with patch.object(self.scope,'release_history_roundtrip',return_value=b'wrong'):
-   with self.assertRaises(ValueError):self.scope.release_history_inverse(path,(ROOT/path).read_bytes(),self.doc)
-  target=self.scope.release_history_inverse(path,(ROOT/path).read_bytes(),self.doc)
+   with self.assertRaises(ValueError):self.scope.release_history_inverse(path,self.historical(path),self.doc)
+  target=self.scope.release_history_inverse(path,self.historical(path),self.doc)
   with self.assertRaises(ValueError):self.scope.release_history_roundtrip(path,target+b' ',self.doc)
 
 class CallerBinding(unittest.TestCase):

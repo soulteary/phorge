@@ -234,7 +234,7 @@
       "path": "src/applications/project/editor/PhabricatorProjectTransactionEditor.php",
       "symbol": "PhabricatorProjectTransactionEditor",
       "purpose_review": "business-producer",
-      "sha256": "1a568eb88dcadd805624ba7cf8259b999bdab2d4d189a8a9ebf4cb0e49041919",
+      "sha256": "3ae31b2908021555de18b52abd220e45a38bafb355fa2abd860cba21c0a1e977",
       "runtime_matrix_complete": false
     },
     {

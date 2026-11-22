@@ -182,7 +182,7 @@
       "coverage": "partial",
       "activation_blocked": true,
       "evidence_status": "static-reference-only",
-      "sha256": "1a568eb88dcadd805624ba7cf8259b999bdab2d4d189a8a9ebf4cb0e49041919"
+      "sha256": "3ae31b2908021555de18b52abd220e45a38bafb355fa2abd860cba21c0a1e977"
     },
     {
       "id": "PROJECT.MEMBER.INVERSE",
@@ -1319,8 +1319,8 @@
       "src/__phutil_library_map__.php"
     ],
     "excluded_test_directory": "__tests__",
-    "files_scanned": 4402,
-    "source_snapshot_sha256": "59145deff0ac04de2766121628147f030dda4a501f569ff6200505e894dfdd71",
+    "files_scanned": 4408,
+    "source_snapshot_sha256": "32424f7064d86f12e6f34f35a6b59f45ad53679608256b2fc4a57832688a0e12",
     "candidates": [
       {
         "id": "CALL-e71899f6e4e06c5b",
@@ -4324,7 +4324,7 @@
       {
         "id": "CALL-ad9c861b073f0418",
         "path": "src/applications/project/editor/PhabricatorProjectTransactionEditor.php",
-        "sha256": "1a568eb88dcadd805624ba7cf8259b999bdab2d4d189a8a9ebf4cb0e49041919",
+        "sha256": "3ae31b2908021555de18b52abd220e45a38bafb355fa2abd860cba21c0a1e977",
         "matches": [
           {
             "pattern": "edge_writer",
@@ -4406,6 +4406,33 @@
             "pattern": "member_edge",
             "lines": [
               38
+            ]
+          }
+        ]
+      },
+      {
+        "id": "CALL-d67ea3e004ada643",
+        "path": "src/applications/project/handoff/PhorgeProjectHandoffService.php",
+        "sha256": "4667ddeab55b7545be228927d8643c720b8c5065d3ab32acc7ea895162200687",
+        "matches": [
+          {
+            "pattern": "transaction_apply",
+            "lines": [
+              278
+            ]
+          },
+          {
+            "pattern": "member_edge",
+            "lines": [
+              135,
+              136,
+              147
+            ]
+          },
+          {
+            "pattern": "project_editor",
+            "lines": [
+              23
             ]
           }
         ]
@@ -6811,6 +6838,13 @@
       "disposition": "unsupported",
       "activation_blocked": true,
       "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-d67ea3e004ada643",
+      "disposition": "unsupported",
+      "consumer_ids": [],
+      "activation_blocked": true,
+      "reason": "Explicit default-off handoff is reviewed and tested separately; this static graph does not certify its runtime behavior."
     },
     {
       "id": "CALL-2ea50744f3063bc3",
