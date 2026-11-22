@@ -1,6 +1,7 @@
 name: PHP 8.6 isolated compatibility
 on:
   workflow_dispatch:
+  workflow_call:
   pull_request:
     paths:
       - 'support/runtime/**'

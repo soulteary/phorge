@@ -5,6 +5,11 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      php86_candidate:
+        description: Run the isolated PHP 8.6 candidate in addition to all production-baseline checks
+        type: boolean
+        default: false
   workflow_call:
     inputs:
       expected_head:
@@ -24,6 +29,10 @@ permissions:
   contents: read
 
 jobs:
+  php86-candidate:
+    name: Isolated PHP 8.6 candidate
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.php86_candidate == true }}
+    uses: ./.github/workflows/php86-isolated-compatibility.yml
   ci-plan:
     name: Select exact-source CI tier
     runs-on: ubuntu-latest

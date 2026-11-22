@@ -42,6 +42,9 @@ The candidate workflow executes complete Python unit discovery, the existing
 pure native PHP suite, default-OFF boundaries, full native SQL with the paired
 Gorge source, notification-source validation and directory SQL/browser tests.
 The existing production CI is required separately and is not replaced.
+The manual Atomic feature regressions workflow accepts `php86_candidate=true`
+to run the candidate as an additional reusable job. Its default is false; no
+production check is skipped when the candidate is selected.
 
 To render a local recipe:
 
