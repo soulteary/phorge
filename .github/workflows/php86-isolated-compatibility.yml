@@ -229,8 +229,8 @@ jobs:
           python3 -B scripts/runtime/php86-candidate-dockerfile.py --output "$RUNNER_TEMP/php86.Dockerfile"
           docker build -f "$RUNNER_TEMP/php86.Dockerfile" -t localhost/phorge-php86-isolated:ci .
           npm install --prefix "$RUNNER_TEMP/php86-browser" --ignore-scripts --no-audit --no-fund playwright-core@1.64.1
-          python3 -B tests/governance/directory_product/run.py --runtime-profile php86-isolated-v1 --php-image localhost/phorge-php86-isolated:ci --gorge-file-binary "$RUNNER_TEMP/gorge-file-storage" --browser --playwright-module "$RUNNER_TEMP/php86-browser/node_modules/playwright-core" --chromium "$(command -v google-chrome)" --output "$RUNNER_TEMP/php86-browser-results"
-          python3 -B tests/governance/project_handoff/run.py --runtime-profile php86-isolated-v1 --php-image localhost/phorge-php86-isolated:ci --gorge-file-binary "$RUNNER_TEMP/gorge-file-storage" --browser --playwright-module "$RUNNER_TEMP/php86-browser/node_modules/playwright-core" --chromium "$(command -v google-chrome)" --output "$RUNNER_TEMP/php86-handoff-browser-results"
+          python3 -B tests/governance/directory_product/run.py --runtime-profile php86-isolated-v1 --php-image localhost/phorge-php86-isolated:ci --mysql-image mysql:8.4.13@sha256:a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7 --gorge-file-binary "$RUNNER_TEMP/gorge-file-storage" --browser --playwright-module "$RUNNER_TEMP/php86-browser/node_modules/playwright-core" --chromium "$(command -v google-chrome)" --output "$RUNNER_TEMP/php86-browser-results"
+          python3 -B tests/governance/project_handoff/run.py --runtime-profile php86-isolated-v1 --php-image localhost/phorge-php86-isolated:ci --mysql-image mysql:8.4.13@sha256:a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7 --gorge-file-binary "$RUNNER_TEMP/gorge-file-storage" --browser --playwright-module "$RUNNER_TEMP/php86-browser/node_modules/playwright-core" --chromium "$(command -v google-chrome)" --output "$RUNNER_TEMP/php86-handoff-browser-results"
       - name: Execute the complete current governance, atomic and release unit inventory
         run: |
           umask 022

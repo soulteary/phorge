@@ -60,3 +60,14 @@ class UnitAccounting(unittest.TestCase):
         self.assertIn('SET GLOBAL sql_mode =', step)
         baseline = (ROOT/'.github/workflows/atomic-feature-regressions.yml').read_text()
         self.assertIn('SET GLOBAL log_bin_trust_function_creators = 1', baseline)
+
+    def test_browser_uses_the_same_pinned_mysql_image_without_tag_aliases(self):
+        import yaml
+        workflow = yaml.safe_load((ROOT/'.github/workflows/php86-isolated-compatibility.yml').read_text())
+        job = workflow['jobs']['candidate']
+        expected = job['services']['mysql']['image']
+        self.assertIn('@sha256:', expected)
+        commands = next(step['run'] for step in job['steps'] if step.get('name') == 'Build the non-production candidate image and run SQL with Chromium')
+        for runner in ('directory_product', 'project_handoff'):
+            line = next(line for line in commands.splitlines() if 'tests/governance/'+runner+'/run.py' in line)
+            self.assertIn('--mysql-image '+expected+' ', line)
