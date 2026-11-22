@@ -421,7 +421,7 @@ class CalendarConduitUnion(unittest.TestCase):
                 if path == 'support/governance/native-organization/workers.php':
                     sys.path.insert(0, str(ROOT / 'scripts/governance'))
                     import recovery_worker_terminal_delta as worker_delta
-                    raw = worker_delta.reduce_current(path, raw)
+                    raw = worker_delta.reduce_current(path, candidate_predecessor_DATA(path,raw))
                 self.assertEqual(raw, git('show', MAIN + ':' + path))
 
     def test_private_mail_pair_toolchain_continuation_is_exact(self):
