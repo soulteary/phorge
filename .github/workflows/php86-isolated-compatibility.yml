@@ -72,7 +72,7 @@ jobs:
           ./configure --enable-apcu
           make -j2
           sudo make install
-          echo 'extension=apcu.so' | sudo tee "$(php --ini | sed -n 's/^Scan for additional .ini files in: *//p')/99-php86-apcu.ini" >/dev/null
+          echo 'extension=apcu.so' | sudo tee "$(php -r 'echo PHP_CONFIG_FILE_SCAN_DIR;')/99-php86-apcu.ini" >/dev/null
           php -r 'if (!extension_loaded("apcu")) { exit(1); }'
       - uses: actions/setup-go@v6
         with:
