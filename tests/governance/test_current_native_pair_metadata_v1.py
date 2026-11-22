@@ -13,7 +13,10 @@ class MetadataControls(unittest.TestCase):
    with self.subTest(pin=pin),self.assertRaises(ValueError):h.parent_DATA(raw,pin)
   self.assertEqual(h.current_DATA(h.parent_DATA(self.raw,h.PARENT_SHA)),self.raw)
  def test_all_selected_native_bodies_and_constants_are_unchanged(self):
-  old=ast.parse(self.helper.parent_DATA(self.raw,self.helper.PARENT_SHA));current=ast.parse(self.raw)
+  old=ast.parse(self.helper.parent_DATA(self.raw,self.helper.PARENT_SHA))
+  import task_source_operation_context as candidate
+  prior=candidate.php86_compatibility_inverse('scripts/governance/check_native_organization.py',self.raw,(REFERENCE/candidate.PHP86_COMPATIBILITY_HISTORY).read_bytes())
+  current=ast.parse(prior)
   for name in ['exact_tree','validate_restore']:
    a=next(n for n in old.body if isinstance(n,ast.FunctionDef)and n.name==name);b=next(n for n in current.body if isinstance(n,ast.FunctionDef)and n.name==name);self.assertEqual(ast.dump(a,include_attributes=False),ast.dump(b,include_attributes=False))
   old_validate=copy.deepcopy(next(n for n in old.body if isinstance(n,ast.FunctionDef)and n.name=='validate'))
@@ -75,7 +78,7 @@ class MetadataControls(unittest.TestCase):
   unknown=self.raw+b'\n';ns['description']=types.SimpleNamespace(checked_bytes=lambda path:unknown)
   with self.assertRaises(ValueError):ns['_exact'](ns['_admitted_bytes'](None,REFERENCE,REFERENCE/native),ns['CURRENT_METADATA'][native])
   oldfn=next(n for n in original.body if isinstance(n,ast.FunctionDef)and n.name=='_normalize_metadata');newfn=next(copy.deepcopy(n)for n in tree.body if isinstance(n,ast.FunctionDef)and n.name=='_normalize_metadata')
-  additions=[n for n in newfn.body if isinstance(n,ast.If)and '49ff3c53cd415a0d441d79f9471461dae6f8cca5dfc62ed1accd9f38e9332572'in ast.unparse(n.test)];self.assertEqual(len(additions),1);newfn.body.remove(additions[0]);self.assertEqual(ast.dump(newfn,include_attributes=False),ast.dump(oldfn,include_attributes=False))
+  additions=[n for n in newfn.body if isinstance(n,ast.If)and '3c5971f3be56827b68ba9bf1254e1d8a0bb00a88add1153163c860e5b82fbf11'in ast.unparse(n.test)];self.assertEqual(len(additions),1);newfn.body.remove(additions[0]);self.assertEqual(ast.dump(newfn,include_attributes=False),ast.dump(oldfn,include_attributes=False))
  def test_genuine_public_fixture_positive_and_metadata_tamper(self):
   self.assertEqual(REFERENCE,ROOT,'genuine fixture replay requires the complete signed CURRENT checkout')
   from task_inverse_test_api_v2 import owner

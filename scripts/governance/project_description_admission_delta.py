@@ -27,12 +27,12 @@ def native_pair_parent_DATA(raw,expected_parent_sha):
  # Exact CURRENT pure helper, never ambient import or historical executable code.
  path=Path(__file__).resolve(strict=True).with_name('current_native_pair_metadata_v1.py')
  before=path.lstat();stamp=lambda s:(s.st_dev,s.st_ino,s.st_mode,s.st_uid,s.st_gid,s.st_nlink,s.st_size,s.st_mtime_ns,s.st_ctime_ns)
- if not stat.S_ISREG(before.st_mode)or before.st_nlink!=1 or stat.S_IMODE(before.st_mode)!=0o644 or before.st_size>4096:raise ValueError('current_native_pair_helper_refused')
+ if not stat.S_ISREG(before.st_mode)or before.st_nlink!=1 or stat.S_IMODE(before.st_mode)!=0o644 or before.st_size>8192:raise ValueError('current_native_pair_helper_refused')
  fd=os.open(path,os.O_RDONLY|os.O_NOFOLLOW|os.O_NONBLOCK)
  try:
   if stamp(os.fstat(fd))!=stamp(before):raise ValueError('current_native_pair_helper_refused')
-  helper=os.read(fd,4097)
-  if len(helper)!=before.st_size or stamp(os.fstat(fd))!=stamp(before)or stamp(path.lstat())!=stamp(before)or hashlib.sha256(helper).hexdigest()!='37e7857d61c35f89129c558e7d952c86d9f98d19ad412d52b9145d92e52beb02':raise ValueError('current_native_pair_helper_refused')
+  helper=os.read(fd,8193)
+  if len(helper)!=before.st_size or stamp(os.fstat(fd))!=stamp(before)or stamp(path.lstat())!=stamp(before)or hashlib.sha256(helper).hexdigest()!='39523555b91cb66051d71c395079a1da97428b773ba404cb5a8c60c7f7983d50':raise ValueError('current_native_pair_helper_refused')
  finally:os.close(fd)
  namespace={'__file__':str(path),'__name__':'CURRENT_native_pair_metadata_DATA'}
  exec(compile(helper,str(path),'exec'),namespace)
@@ -66,7 +66,7 @@ def manifest_bytes(root=ROOT,operation=None):return (json.dumps(expected_manifes
 def _admitted_bytes(operation,root,path):
     if operation is None:
         raw=description.checked_bytes(path)
-        if Path(path)==root/'scripts/governance/check_native_organization.py'and sha(raw)=='49ff3c53cd415a0d441d79f9471461dae6f8cca5dfc62ed1accd9f38e9332572':return native_pair_parent_DATA(raw,CURRENT_METADATA['scripts/governance/check_native_organization.py']['sha256'])
+        if Path(path)==root/'scripts/governance/check_native_organization.py'and sha(raw)=='3c5971f3be56827b68ba9bf1254e1d8a0bb00a88add1153163c860e5b82fbf11':return native_pair_parent_DATA(raw,CURRENT_METADATA['scripts/governance/check_native_organization.py']['sha256'])
         return raw
     from source_operation_snapshot import require_task_operation
     require_task_operation(operation,root)
@@ -87,7 +87,7 @@ def _normalize_metadata(path,raw):
         need(raw==manifest_bytes(ROOT));return _original_manifest()
     if path not in CURRENT_METADATA:return raw
     row=CURRENT_METADATA[path]
-    if path=='scripts/governance/check_native_organization.py'and sha(raw)=='49ff3c53cd415a0d441d79f9471461dae6f8cca5dfc62ed1accd9f38e9332572':
+    if path=='scripts/governance/check_native_organization.py'and sha(raw)=='3c5971f3be56827b68ba9bf1254e1d8a0bb00a88add1153163c860e5b82fbf11':
         raw=native_pair_parent_DATA(raw,row['sha256'])
     if sha(raw)==row['sha256']:_exact(raw,row);return _target_bytes(path)
     if sha(raw)==row['target_sha256']:return raw

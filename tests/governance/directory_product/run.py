@@ -46,6 +46,7 @@ def main(argv=None):
     parser.add_argument('--playwright-module')
     parser.add_argument('--chromium')
     parser.add_argument('--output',type=Path)
+    parser.add_argument('--runtime-profile',choices=('production','php86-isolated-v1'),default='production')
     args=parser.parse_args(argv)
     os.umask(0o077)
     out=args.output.resolve() if args.output else Path(tempfile.mkdtemp(prefix='directory-product-'))
@@ -59,7 +60,9 @@ def main(argv=None):
         php_image=image_id(args.php_image);mysql_image=image_id(args.mysql_image)
         result.update(php_image_id=php_image,mysql_image_id=mysql_image)
         version=command(['docker','run','--rm','--network','none','--entrypoint','php',php_image,'-r','echo PHP_VERSION;'],timeout=20)
-        if version.returncode or version.stdout!=b'8.5.13':raise ValueError('PHP 8.5.13 required')
+        expected=b'8.6.0' if args.runtime_profile=='php86-isolated-v1' else b'8.5.13'
+        if version.returncode or version.stdout!=expected:raise ValueError('Exact profile runtime required')
+        result.update(runtime_profile=args.runtime_profile,runtime=expected.decode())
         binary=args.gorge_file_binary.resolve(strict=True)
         if not binary.is_file():raise ValueError('paired file executable required')
         binary_sha=hashlib.sha256(binary.read_bytes()).hexdigest()

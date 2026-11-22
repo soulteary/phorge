@@ -4,7 +4,7 @@
     "libraryName": "arcanist",
     "upstreamRevision": null,
     "upstreamSnapshotSHA256": "a1d8fd74c7e68da6a54f114aac253bb2c0c8a7fe971eae5882b45fe99541f42a",
-    "contentSHA256": "de725ca6bb3e6abe6f09568e7e816e6f1b0cc8a3ad853886340556d5adc32e03",
+    "contentSHA256": "6e3375b632250324ccb7073a2a4f6f88a2fd8e66c7af33b4290663dfe5738dc6",
     "generatedPaths": [
         "src/.phutil_module_cache",
         "src/parser/xhpast/bin/xhpast",
@@ -181,7 +181,7 @@
             "path": "php-version.php",
             "sourceSHA256": null,
             "reason": "project-runtime-maintenance",
-            "sha256": "346a79867d6d53c925f60834dabefdee919282953633f1f8dcbfc485ad3f8d6d"
+            "sha256": "d6d22c3fe4251d4734238d9a5786906c028ebc81cb5540c1db5af899dc52c00a"
         },
         {
             "path": "resources/php/symbol-information.json",
@@ -539,7 +539,7 @@
         },
         {
             "path": "src/filesystem/Filesystem.php",
-            "sha256": "c1a204323580392482a9e4b2a9b92a7f00ded42df9e9d0f0e95c44c16ebf9532",
+            "sha256": "3b184145bfe59c239d88286960ee9a866a8193ac4a157cd060b2f09140db7873",
             "sourceSHA256": "c1a204323580392482a9e4b2a9b92a7f00ded42df9e9d0f0e95c44c16ebf9532",
             "reason": "project-and-tool-root"
         },

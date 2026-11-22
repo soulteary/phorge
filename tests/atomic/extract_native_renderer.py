@@ -11,11 +11,12 @@ def image_identity(info,revision):
     if type(labels)is not dict or labels.get('phorge.gorge-revision')!=revision:raise ValueError('renderer_source_label_refused')
     return info['Id']
 
-def extract(output,provenance,revision,runner=subprocess.run):
+def extract(output,provenance,revision,runner=subprocess.run,service='gorge-render'):
+    if service not in ('gorge-render','gorge-file-storage','gorge-taskqueue'):raise ValueError('reviewed fixture service required')
     output=Path(output);provenance=Path(provenance)
     if output.exists()or output.is_symlink()or provenance.exists()or provenance.is_symlink():raise ValueError('renderer_output_exists')
     def run(args,check=True):return runner(args,check=check,capture_output=True,text=True)
-    info=json.loads(run(['docker','image','inspect','gorge-render:atomic']).stdout)
+    info=json.loads(run(['docker','image','inspect',service+':atomic']).stdout)
     if type(info)is not list or len(info)!=1:raise ValueError('renderer_image_metadata_refused')
     image=image_identity(info[0],revision);owner=secrets.token_hex(16);name='atomic-native-renderer-'+owner;create_attempted=False
     output.parent.mkdir(parents=True,exist_ok=True);provenance.parent.mkdir(parents=True,exist_ok=True)
@@ -25,8 +26,8 @@ def extract(output,provenance,revision,runner=subprocess.run):
             create_attempted=True
             run(['docker','create','--name',name,'--label','governance.fixture.owner='+owner,
                 '--network','none','--read-only',image])
-            target=Path(private)/'gorge-render'
-            run(['docker','cp',name+':/usr/local/bin/gorge-render',str(target)])
+            target=Path(private)/service
+            run(['docker','cp',name+':/usr/local/bin/'+service,str(target)])
             if not target.is_file()or target.is_symlink()or not 0<target.stat().st_size<=134217728:raise ValueError('renderer_binary_refused')
             digest=hashlib.sha256(target.read_bytes()).hexdigest()
             # Exclusive create preserves any unexpected prior output.
@@ -57,6 +58,7 @@ def extract(output,provenance,revision,runner=subprocess.run):
 
 def main():
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('--output',type=Path,required=True)
-    p.add_argument('--provenance',type=Path,required=True);p.add_argument('--revision',required=True);a=p.parse_args()
-    extract(a.output,a.provenance,a.revision)
+    p.add_argument('--provenance',type=Path,required=True);p.add_argument('--revision',required=True)
+    p.add_argument('--service',choices=('gorge-render','gorge-file-storage','gorge-taskqueue'),default='gorge-render');a=p.parse_args()
+    extract(a.output,a.provenance,a.revision,service=a.service)
 if __name__=='__main__':main()

@@ -417,6 +417,51 @@ def directory_product_cohort(current,raw):
  need(type(current)is dict and set(current)==DIRECTORY_PRODUCT_PATHS)
  return {name:directory_product_inverse(name,current[name],raw)for name in sorted(DIRECTORY_PRODUCT_PATHS)}
 
+PHP86_COMPATIBILITY_HISTORY='support/governance/source-operation/php86-isolated-inverse-v1.json'
+PHP86_COMPATIBILITY_HISTORY_SHA='dd77285d1f1c6cca347068cd1249a1ed474872691ef3c443e3c043d43b4b6b1e'
+PHP86_COMPATIBILITY_HISTORY_BYTES=21805
+PHP86_COMPATIBILITY_PATHS=frozenset(('scripts/governance/check_full_native_task_schema_receipt_v2.py', 'scripts/governance/check_native_organization.py', 'scripts/governance/current_native_pair_metadata_v1.py', 'scripts/governance/full_native_task_strict_body_v2.py', 'scripts/governance/oauth_task_strict_body_v2.py', 'scripts/governance/project_description_admission_delta.py', 'support/runtime/manifest.json', 'support/runtime/php-version.php', 'support/runtime/src/filesystem/Filesystem.php', 'tests/atomic/extract_native_renderer.py', 'tests/ci/test_core_focused_tiers.py', 'tests/governance/assessment_legacy_DATA_model_v3.py', 'tests/governance/directory_product/run.py', 'tests/governance/native_rr_ci/execution.py', 'tests/governance/test_current_native_pair_metadata_v1.py'))
+PHP86_COMPATIBILITY_NEW_PINS={'.github/workflows/php86-isolated-compatibility.yml': {'bytes': 18617, 'sha256': 'c96c0359cd2ff53d4f45f8c6d3da50337a889b67b4353a355fc869beaa6daf6b', 'mode': 420}, 'docs/releases/php86-isolated-compatibility.md': {'bytes': 3361, 'sha256': 'd74ebcc8fab1d0ea74228bcce79a64f58c2a2d52d5b4c5079b363cc022452fae', 'mode': 420}, 'scripts/runtime/php86-candidate-dockerfile.py': {'bytes': 2215, 'sha256': '9e93a0f4fa88735313e18a2710fb77b189c86fc865adaf2148b060b395fbe031', 'mode': 420}, 'scripts/runtime/verify-php86-candidate.php': {'bytes': 1146, 'sha256': '72879974d51c92a079b60d48ce464097b92e23610c236239d952c3fc8aca75f0', 'mode': 420}, 'support/governance/source-operation/php86-isolated-inverse-v1.json': {'bytes': 21805, 'sha256': 'dd77285d1f1c6cca347068cd1249a1ed474872691ef3c443e3c043d43b4b6b1e', 'mode': 420}, 'tests/operations/php86_runtime_controls.php': {'bytes': 4790, 'sha256': '0e6b7f27e97b1a2249bd681f23f94a577fadfe679afea8ec09f1d13f225c9845', 'mode': 420}, 'tests/runtime86/test_controls.py': {'bytes': 4482, 'sha256': '1a101551ca98f8a7d199c989a2b5e356bbc84f426eb17b03a229763dc756ad01', 'mode': 420}, 'tests/runtime86/test_source_cohort.py': {'bytes': 2721, 'sha256': '605ed550b6392d2dfbf20687b6323c7e8c95d21d23c1c46db1c1bf3307fdc190', 'mode': 420}}
+
+def php86_compatibility_history(raw):
+ need(type(raw)is bytes and len(raw)==PHP86_COMPATIBILITY_HISTORY_BYTES and sha(raw)==PHP86_COMPATIBILITY_HISTORY_SHA)
+ doc=decode(raw)
+ need(type(doc)is dict and set(doc)=={'schema','base_checkpoint','not_runtime_authority','files'})
+ need(doc['schema']=='php86-isolated-source-inverse-v1'and doc['base_checkpoint']=='212eb2a65d12a0fc3d07edc3acff9077de3437d7'and doc['not_runtime_authority']is True)
+ need(type(doc['files'])is dict and set(doc['files'])==PHP86_COMPATIBILITY_PATHS)
+ for item in doc['files'].values():
+  need(type(item)is dict and set(item)=={'parent_bytes','parent_sha256','current_bytes','current_sha256','edits'})
+  need(type(item['edits'])is list and bool(item['edits']))
+  for edit in item['edits']:
+   need(type(edit)is dict and set(edit)=={'parent_offset','current_offset','parent','current'})
+   need(type(edit['parent_offset'])is int and edit['parent_offset']>=0 and type(edit['current_offset'])is int and edit['current_offset']>=0)
+   need(type(edit['parent'])is str and type(edit['current'])is str and edit['parent']!=edit['current'])
+ return doc
+
+def _php86_compatibility_apply(relative,value,raw,reverse):
+ doc=php86_compatibility_history(raw)
+ need(relative in PHP86_COMPATIBILITY_PATHS and type(value)is bytes)
+ item=doc['files'][relative];origin='current'if reverse else'parent';target='parent'if reverse else'current'
+ need(len(value)==item[origin+'_bytes']and sha(value)==item[origin+'_sha256'])
+ pieces=[];offset=0
+ for edit in item['edits']:
+  start=edit[origin+'_offset'];old=edit[origin].encode('utf-8');new=edit[target].encode('utf-8')
+  need(offset<=start<=len(value)and value[start:start+len(old)]==old)
+  pieces.extend((value[offset:start],new));offset=start+len(old)
+ pieces.append(value[offset:]);result=b''.join(pieces)
+ need(len(result)==item[target+'_bytes']and sha(result)==item[target+'_sha256']);return result
+
+def php86_compatibility_roundtrip(relative,parent,raw):
+ return _php86_compatibility_apply(relative,parent,raw,False)
+
+def php86_compatibility_inverse(relative,current,raw):
+ parent=_php86_compatibility_apply(relative,current,raw,True)
+ need(php86_compatibility_roundtrip(relative,parent,raw)==current);return parent
+
+def php86_compatibility_cohort(current,raw):
+ need(type(current)is dict and set(current)==PHP86_COMPATIBILITY_PATHS)
+ return {name:php86_compatibility_inverse(name,current[name],raw)for name in sorted(PHP86_COMPATIBILITY_PATHS)}
+
 def git_tree(root,expected_checkpoint):
  need(type(expected_checkpoint)is str and re.fullmatch('[a-f0-9]{40}',expected_checkpoint)is not None)
  env={'PATH':'/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin','HOME':str(Path.home()),'LANG':'C','GIT_NO_REPLACE_OBJECTS':'1','GIT_OPTIONAL_LOCKS':'0'}
@@ -491,16 +536,19 @@ class TaskContext:
   need(sha(self.current_raw[CI_INVERSE])==CI_INVERSE_SHA)
   ci=decode(self.current_raw[CI_INVERSE]);need(set(ci)=={'schema','parent_revision','files'}and ci['schema']=='Task-CI-modified-parent5903-v1'and ci['parent_revision']=='5903d98b14926401f0be49cb0a9d6168026a2642')
   self.ci_inverse=ci['files'];need(set(self.ci_inverse)=={'tests/governance/test_recovery_spaces_source_gate.py', 'tests/governance/test_restore_current_schema_profile.py', 'tests/governance/test_recovery_borrowed_native_producer.py', 'tests/governance/test_application_config_atomic_ci.py', 'scripts/governance/check_native_organization.py', '.github/workflows/atomic-feature-regressions.yml', 'tests/atomic/test_current_pair_consumers.py', 'tests/governance/test_recovery_session_lease_ci.py', 'tests/governance/recovery_oauth_code_test_cohort.py', 'tests/governance/test_task_owner_atomic_ci.py', 'tests/governance/test_recovery_oauth_access_sql.py', 'src/applications/auth/__tests__/PhabricatorTraefikAuthProviderTestCase.php', 'deploy/acceptance/build-lock.json', 'tests/governance/test_recovery_oauth_authorization_coordination.py', 'support/governance/notification/wiki-render-service.php', 'tests/governance/test_private_calendar_sql_gate.py', 'tests/governance/test_notice_native_admin_wire_source.py', 'tests/governance/test_callers.py', 'tests/governance/test_n05_r3_historical_test_view.py', 'tests/governance/test_directory_transports_receipt_v1.py', 'tests/governance/test_recovery_session_lease_gate.py', 'tests/governance/test_recovery_conduit_participant.py', 'tests/governance/test_native_directory.py', 'tests/governance/test_media_fixture_contentgrant_migration.py', 'tests/governance/test_directory_terminal_failure_v1.py', 'tests/governance/test_directory_transport_failure_v1.py', 'tests/governance/test_organization_approval_workbench_atomic_ci.py', 'tests/governance/test_recovery_borrowed_wiring.py', 'tests/governance/test_project_content_grant_source_cohort.py', 'tests/governance/test_source_operation_snapshot.py', 'tests/governance/test_recovery_oauth_code_ci.py', '.github/workflows/private-mail-wire.yml', '.github/workflows/native-media-session-positive-sql.yml', 'tests/governance/test_project_content_grant_ci_runtime.py', 'tests/governance/test_recovery_assessment_current.py', 'tests/governance/test_project_content_grant_ci_workflow.py', 'tests/governance/test_recovery_oauth_authorization_mysql84.py', 'tests/governance/test_file_source_atomic_ci.py', 'tests/atomic/packages/D01.json', 'tests/governance/test_recovery_oauth_authorization_sql.py', 'scripts/governance/project_description_admission_delta.py', 'tests/governance/test_recovery_borrowed_session.py', 'tests/atomic/paired-gorge.json', 'src/applications/config/schema/PhabricatorConfigSchemaSpec.php', 'tests/governance/test_native_worker_terminal.py', '.github/workflows/oauth-access-producer-focused.yml', '.github/workflows/project-content-grants-focused.yml', 'tests/governance/test_recovery_conduit_wiring.py', 'tests/governance/test_private_calendar_wire.py', 'tests/governance/test_recovery_borrowed_worker_diagnostic.py', 'support/governance/project-content-grants-ci/ci.py', 'tests/governance/test_recovery_assessment_credentials.py', 'tests/governance/test_recovery_oauth_access_source.py', 'tests/governance/test_recovery_oauth_authorization_ci.py', 'tests/governance/test_recovery_session_actor_order.py', 'tests/governance/test_notice_history_lifecycle.py', 'tests/governance/test_recovery_file_parent_ci.py', '.github/workflows/oauth-authorization-producer-focused.yml', 'tests/atomic/extract_native_renderer.py', '.github/workflows/conduit-producer-focused.yml', 'tests/governance/test_project_content_grant_target_binding.py', 'tests/governance/test_calendar_conduit_union.py', 'docs/governance/batch-2-callers.json', 'tests/governance/test_api_concurrency_atomic_ci.py', '.github/workflows/project-description-focused.yml', 'tests/governance/test_recovery_oauth_code_sql.py', '.github/workflows/native-directory-transports-v1.yml', 'tests/governance/test_project_source_atomic_ci.py', 'tests/governance/test_media_remote_native_profile.py', 'tests/governance/test_recovery_oauth_code_media_binding.py', '.github/workflows/oauth-code-producer-focused.yml', 'tests/governance/test_private_calendar_failure_diagnostic.py', 'tests/governance/test_recovery_assessment_credential_sql.py', 'tests/governance/test_recovery_oauth_code_coordination.py', 'tests/governance/test_native_organization.py', 'tests/governance/test_directory_source_inventory_pin.py', 'tests/governance/test_recovery_oauth_access_ci.py', 'tests/governance/test_recovery_file_parent_gate.py', 'support/governance/project-description-ci/ci.py', '.github/workflows/assessment-credential-focused.yml', 'support/governance/media-session-ci/test_ci.py', 'tests/governance/test_recovery_file_parent_policy.py', 'tests/governance/test_recovery_oauth_client_lifecycle_ci.py', 'tests/governance/test_n05_legacy_audit_test_view.py', 'tests/governance/test_recovery_partial_wiring.py', '.github/workflows/oauth-client-lifecycle-focused.yml', 'tests/governance/test_recovery_oauth_client_lifecycle_coordination.py', 'tests/governance/test_recovery_partial_schema_coordination.py'})
-  need(set(entries)==(set(self.parent_pins)-WIKI_RETIRED_PATHS)|set(TASK_NEW_PINS)|{BASELINE,INVERSE,'scripts/governance/task_source_operation_context.py'}|V2_PATHS|CI_V2_NEW_PATHS|set(DIRECTORY_PRODUCT_NEW_PINS))
-  for rel,pin in DIRECTORY_PRODUCT_NEW_PINS.items():
+  need(set(entries)==(set(self.parent_pins)-WIKI_RETIRED_PATHS)|set(TASK_NEW_PINS)|{BASELINE,INVERSE,'scripts/governance/task_source_operation_context.py'}|V2_PATHS|CI_V2_NEW_PATHS|set(DIRECTORY_PRODUCT_NEW_PINS)|set(PHP86_COMPATIBILITY_NEW_PINS))
+  for rel,pin in PHP86_COMPATIBILITY_NEW_PINS.items():
    need(entries[rel]['kind']=='file'and entries[rel]['mode']==pin['mode']and len(self.current_raw[rel])==pin['bytes']and sha(self.current_raw[rel])==pin['sha256'])
-  directory_predecessor=directory_product_cohort({name:self.current_raw[name]for name in DIRECTORY_PRODUCT_PATHS},self.current_raw[DIRECTORY_PRODUCT_HISTORY])
+  php86_predecessor=php86_compatibility_cohort({name:self.current_raw[name]for name in PHP86_COMPATIBILITY_PATHS},self.current_raw[PHP86_COMPATIBILITY_HISTORY])
+  for rel,pin in DIRECTORY_PRODUCT_NEW_PINS.items():
+   need(entries[rel]['kind']=='file'and entries[rel]['mode']==pin['mode']and len(php86_predecessor.get(rel,self.current_raw[rel]))==pin['bytes']and sha(php86_predecessor.get(rel,self.current_raw[rel]))==pin['sha256'])
+  directory_predecessor=directory_product_cohort({name:php86_predecessor.get(name,self.current_raw[name])for name in DIRECTORY_PRODUCT_PATHS},self.current_raw[DIRECTORY_PRODUCT_HISTORY])
   for rel,pin in TASK_NEW_PINS.items():need(len(self.current_raw[rel])==pin['bytes']and sha(self.current_raw[rel])==pin['sha256'])
   # Compile CURRENT Task inverse, captured from this real source; never Git old code.
   path='scripts/governance/task_content_grant_source_delta.py';namespace={'__file__':str(self.root/path),'__name__':'TaskOperation_current_inverse'};exec(compile(self.current_raw[path],str(self.root/path),'exec'),namespace);self.reduce=namespace['reduce_selected']
   for rel,pin in entries.items():
    if pin['kind']!='file':continue
-   raw=directory_predecessor.get(rel,self.current_raw[rel])
+   raw=directory_predecessor.get(rel,php86_predecessor.get(rel,self.current_raw[rel]))
    if rel in self.ci_inverse:
     inverse=self.ci_inverse[rel];decoder=zlib.decompressobj();raw=decoder.decompress(base64.b64decode(inverse['zlib_base64'],validate=True),inverse['bytes']+1);need(decoder.eof and not decoder.unused_data and not decoder.unconsumed_tail and len(raw)==inverse['bytes']and sha(raw)==inverse['sha256'])
    elif rel in self.api_inverse:

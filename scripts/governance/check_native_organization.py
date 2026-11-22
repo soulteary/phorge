@@ -1297,7 +1297,11 @@ WIKI_CONTENT_CHECKS = WIKI_CONTENT_CHECKS | frozenset(['private-wiki-content-pai
 REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset(['retired-wiki-mail-refused-policy-on','retired-wiki-mail-refused-policy-off'])
 NATIVE['private_mail_tests']['wiki_content_publication_tests'] = {'status':'retired-runtime-removed','historical_mail_refused':True}
 
-def validate(data, root=ROOT, file_digest=None, measurement_revision=None, render_digest=None):
+def validate(data, root=ROOT, file_digest=None, measurement_revision=None, render_digest=None,
+             expected_runtime='8.5.13', runtime_profile='production'):
+    if (runtime_profile, expected_runtime) not in {
+        ('production', '8.5.13'), ('php86-isolated-v1', '8.6.0')}:
+        raise ValueError('unqualified native runtime profile refused')
     if type(data) is not dict or set(data) != FIELDS:
         raise ValueError('native receipt fields refused')
     native=data['native']
@@ -1394,7 +1398,7 @@ def validate(data, root=ROOT, file_digest=None, measurement_revision=None, rende
     expected_native['conduit_HTTP_revocation_measurement_tests']=http_observed
     exact_tree(native,expected_native)
     for key, target in {'batch': 'native-organization-media-integration', 'passed': True,
-        'scope': 'owned-full-native-source-synthetic-accounts', 'php_version': '8.5.13',
+        'scope': 'owned-full-native-source-synthetic-accounts', 'php_version': expected_runtime,
         'failure': None, 'cleanup_failures': [], 'terminal_failure_cleanup_rollbacks': 0,
         'production_deployment': False, 'production_executor': False,
         'production_optional_features_enabled': False, 'native_permission_axes_changed': False,
