@@ -33,6 +33,14 @@ class CandidateControls(unittest.TestCase):
         self.assertIn('sha256sum -c -',candidate)
         self.assertIn('phpize && ./configure --enable-apcu',candidate)
         self.assertNotIn('8.6',original)
+    def test_apcu_build_drift_is_not_silently_accepted(self):
+        source=(ROOT/'Dockerfile').read_text()
+        for old,new in [('APCU_VERSION=5.1.28','APCU_VERSION=5.1.29'),
+                        ('ca9c1820810a168786f8048a4c3f8c9e3fd941407ad1553259fb2e30b5f057bf','0'*64),
+                        ('pecl install /tmp/apcu.tgz','pecl install apcu')]:
+            with self.assertRaisesRegex(ValueError,'APCu recipe drift'):
+                recipe.render(source.replace(old,new))
+
     def test_unknown_fixture_service_never_contacts_docker(self):
         path=ROOT/'tests/atomic/extract_native_renderer.py'
         spec=importlib.util.spec_from_file_location('candidate_extract',path)
