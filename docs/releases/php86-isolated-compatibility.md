@@ -46,6 +46,13 @@ The manual Atomic feature regressions workflow accepts `php86_candidate=true`
 to run the candidate as an additional reusable job. Its default is false; no
 production check is skipped when the candidate is selected.
 
+Local validation has passed on PHP 8.6.0: 61 runtime controls, all 282 pure
+PHP governance tests, and 47 real SQL checks followed by 11 Chromium interaction
+checks. The SQL/browser runner verified unchanged source and removed its owned
+containers. The same 282 pure tests pass on PHP 8.5.13. Complete CI and the
+full native capture/receipt chain remain required; these local results do not
+qualify a release or prove production authentication.
+
 To render a local recipe:
 
 ```sh

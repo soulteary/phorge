@@ -46,7 +46,7 @@ def accept(root,checkpoint,consumer,envelope_path,native_body_path,profile_path,
   proof=current_source.verify_in_operation(operation,root);context=operation._task_contexts[root]
   schema=captured(operation,root,'support/governance/task-additive-schema-v2/validate.py')
   envelope_raw=schema.private(envelope_path);envelope=schema.decode(envelope_raw)
-  projected,delta=schema.validate_envelope(envelope,profile_path,profile_sha,expected_mode='full-native-Task-OFF')
+  projected,delta=schema.validate_envelope(envelope,profile_path,profile_sha,expected_mode='full-native-Task-OFF',runtime_profile=runtime_profile)
   need(delta['source_revision']==checkpoint and delta['source_root']==str(root)and delta['native_profile_mode']=='full-native-Task-OFF')
   for path,pin in delta['source_pins'].items():need(hashlib.sha256(context.current(path)).hexdigest()==pin)
   profile=schema.profile(profile_path,profile_sha)

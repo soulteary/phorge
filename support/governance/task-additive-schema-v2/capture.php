@@ -99,7 +99,7 @@ final class PhorgeTaskAdditiveSchemaCaptureV2 {
   }
   public static function capture(PhorgeGovernanceCompletionFixture $fixture,$profile_path,$phase) {
     $p=self::boundProfile($profile_path);self::need(in_array($phase,array('before','after'),true));
-    self::need(PHP_VERSION==='8.5.13'&&ini_get('opcache.jit')==='disable'&&ini_get('opcache.jit_buffer_size')==='0'&&ini_get('opcache.enable_cli')==='0');
+    self::need((PHP_VERSION==='8.5.13'||(PHP_VERSION==='8.6.0'&&getenv('PHORGE_PHP_COMPATIBILITY_PROFILE')==='php86-isolated-v1'&&getenv('PHORGE_GOVERNANCE_ISOLATED_TEST')==='1'))&&ini_get('opcache.jit')==='disable'&&ini_get('opcache.jit_buffer_size')==='0'&&ini_get('opcache.enable_cli')==='0');
     self::need(dirname(phutil_get_library_root('phabricator'))===$p['source_root']&&self::gitValue($p,'--show-toplevel')===$p['source_root']&&self::gitValue($p,'HEAD')===$p['source_revision']);
     self::need((new ReflectionClass($fixture))->getName()===PhorgeGovernanceCompletionFixture::class&&(new ReflectionClass($fixture))->getFileName()===$p['source_root'].'/support/governance/completion/fixture.php');
     self::need($fixture->getNamespace()===$p['namespace']&&PhabricatorEnv::getEnvConfig('storage.default-namespace')===$p['namespace']&&PhabricatorEnv::getEnvConfig('governance.task-content-grants.enabled')===false);

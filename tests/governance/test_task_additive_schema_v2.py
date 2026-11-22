@@ -113,6 +113,27 @@ class TaskAdditiveSchemaVectors(unittest.TestCase):
   projected,proof=gate.validate_envelope(e,self.path,self.pin,expected_mode='full-native-Task-OFF')
   self.assertEqual(projected['cleanup'],cleanup)
   self.assertNotIn('capture_auxiliary_setup_connections',proof['exact_projection'])
+ def test_candidate_runtime_requires_explicit_profile_without_rewriting_capture(self):
+  e=copy.deepcopy(self.env)
+  for phase in ('before','after'):e[phase]['payload']['php_version']='8.6.0'
+  self.reseal(e);original=copy.deepcopy(e)
+  with self.assertRaises(ValueError):self.validate(e)
+  projected,proof=gate.validate_envelope(e,self.path,self.pin,runtime_profile='php86-isolated-v1')
+  self.assertEqual(e,original);self.assertEqual(e['before']['payload']['php_version'],'8.6.0')
+  self.assertFalse(proof['actual_SQL_executed_by_validator'])
+  with self.assertRaises(ValueError):gate.validate_envelope(self.env,self.path,self.pin,runtime_profile='php86-isolated-v1')
+  for profile in ('unknown','',False,None):
+   with self.assertRaises(ValueError):gate.validate_envelope(e,self.path,self.pin,runtime_profile=profile)
+ def test_candidate_retains_mac_and_pair_failures(self):
+  for mutation in ('mac','mixed-runtime','prerelease','extra'):
+   e=copy.deepcopy(self.env)
+   for phase in ('before','after'):e[phase]['payload']['php_version']='8.6.0'
+   if mutation=='mixed-runtime':e['after']['payload']['php_version']='8.5.13'
+   if mutation=='prerelease':e['before']['payload']['php_version']='8.6.0RC1'
+   if mutation=='extra':e['before']['payload']['candidate_passed']=True
+   self.reseal(e)
+   if mutation=='mac':e['mac']='0'*64
+   with self.assertRaises(ValueError):gate.validate_envelope(e,self.path,self.pin,runtime_profile='php86-isolated-v1')
  def test_bound_pair_permits_only_exact_copy_projection_and_preserves_original(self):
   original=copy.deepcopy(self.env);projected,proof=self.validate();self.assertEqual(self.env,original);self.assertEqual(projected['source_restore']['current_table_count'],549);self.assertEqual(projected['source_restore']['patch_audit']['source_patch_count'],1575);self.assertEqual(projected['source_restore']['patch_audit']['migrations_executed'],1);self.assertEqual(projected['untouched_business_vector'],['unchanged']);self.assertTrue(proof['legacy_v1_validation_still_required']);self.assertFalse(proof['actual_SQL_executed_by_validator'])
  def test_explicit_OAuth_role_modes_refuse_default_or_cross_role_projection(self):

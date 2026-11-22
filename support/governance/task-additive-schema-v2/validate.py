@@ -67,12 +67,14 @@ def profile(path,expected_sha):
  need(type(p['parent_migration_hashes'])is dict and d['full_key']not in p['parent_migration_hashes']and all(type(k)is str and hex64(v)for k,v in p['parent_migration_hashes'].items()))
  return p
 CAPTURE_KEYS={'schema','profile_sha256','run_id','phase','capture_id','source_root','source_revision','source_pins','namespace','server_uuid','fixture_nonce_sha256','task_feature_enabled','standard_upgrade_receipt_sha256','patch_discovery','source_schema_spec','observed_schema','row_counts','table_inventory','source_patch_keys','patch_ledger','restore','read_only_transaction','raw_user_rows_exported','php_version','mysql_version','config_epoch'}
-def check_capture(sealed,p,pin,phase):
+def check_capture(sealed,p,pin,phase,*,runtime_profile='production'):
+ need(runtime_profile in ('production','php86-isolated-v1'))
+ expected_runtime='8.6.0' if runtime_profile=='php86-isolated-v1' else '8.5.13'
  need(type(sealed)is dict and set(sealed)=={'payload','mac'}and hex64(sealed['mac']));d=sealed['payload'];need(type(d)is dict and set(d)==CAPTURE_KEYS)
  need(hmac.compare_digest(hmac.new(bytes.fromhex(p['hmac_key']),encoded(d),hashlib.sha256).hexdigest(),sealed['mac']))
  need(d['schema']=='Task-additive-schema-capture-v1'and d['profile_sha256']==pin and d['run_id']==p['run_id']and d['phase']==phase and re.fullmatch('[a-f0-9]{32}',d['capture_id'])is not None)
  for k in('source_root','source_revision','source_pins','namespace','server_uuid','fixture_nonce_sha256','standard_upgrade_receipt_sha256','patch_discovery'):need(d[k]==p[k])
- need(d['php_version']=='8.5.13'and d['mysql_version']==p['mysql_version'])
+ need(d['php_version']==expected_runtime and d['mysql_version']==p['mysql_version'])
  need(d['task_feature_enabled']is False and d['read_only_transaction']is True and d['raw_user_rows_exported']is False)
  need(encoded(d['source_schema_spec'])==encoded(expected_schema())and encoded(d['observed_schema'])==encoded(expected_schema()))
  need(encoded(d['config_epoch'])==encoded([{'namespace':'default','config_key':'governance.task-content-grants.enabled','epoch':1}]))
@@ -84,13 +86,14 @@ def check_capture(sealed,p,pin,phase):
  need(a.get('migration_source_hashes')=={**p['parent_migration_hashes'],p['patch_discovery']['full_key']:SQL_SHA}and a.get('migrations_executed')==len(p['parent_migration_hashes'])+1)
  return d
 
-def validate_envelope(envelope,profile_path,expected_profile_sha,*,expected_mode="directory-Task-OFF"):
+def validate_envelope(envelope,profile_path,expected_profile_sha,*,expected_mode="directory-Task-OFF",runtime_profile='production'):
+ need(runtime_profile in ('production','php86-isolated-v1'))
  p=profile(profile_path,expected_profile_sha)
  need(expected_mode in{"directory-Task-OFF","oauth-authorization-Task-OFF","oauth-client-lifecycle-Task-OFF","conduit-Task-OFF","oauth-access-Task-OFF","oauth-code-Task-OFF","assessment-credential-Task-OFF","api-credential-concurrency-Task-OFF","application-config-facts-Task-OFF","project-source-facts-Task-OFF","spaces-source-facts-Task-OFF","recovery-partial-composition-Task-OFF","task-owner-source-facts-Task-OFF","file-source-facts-Task-OFF","file-parent-policy-Task-OFF","session-producer-lease-Task-OFF","session-borrowed-owner-Task-OFF","organization-approval-workbench-Task-OFF","calendar-reminders-Task-OFF","full-native-Task-OFF"}and p["mode"]==expected_mode)
  envelope_schema="Task-directory-native-envelope-v2"if expected_mode=="directory-Task-OFF"else"Task-native-envelope-v3"
  need(type(envelope)is dict and set(envelope)=={'schema','profile_sha256','native_receipt','before','after','mac'}and envelope['schema']==envelope_schema and envelope['profile_sha256']==expected_profile_sha and hex64(envelope['mac']))
  unsigned={k:v for k,v in envelope.items()if k!='mac'};need(hmac.compare_digest(hmac.new(bytes.fromhex(p['hmac_key']),encoded(unsigned),hashlib.sha256).hexdigest(),envelope['mac']))
- before=check_capture(envelope['before'],p,expected_profile_sha,'before');after=check_capture(envelope['after'],p,expected_profile_sha,'after');need(before['capture_id']!=after['capture_id'])
+ before=check_capture(envelope['before'],p,expected_profile_sha,'before',runtime_profile=runtime_profile);after=check_capture(envelope['after'],p,expected_profile_sha,'after',runtime_profile=runtime_profile);need(before['capture_id']!=after['capture_id'])
  b={k:v for k,v in before.items()if k not in('phase','capture_id')};a={k:v for k,v in after.items()if k not in('phase','capture_id')};need(b==a)
  native=envelope['native_receipt'];need(type(native)is dict and native.get('source_restore')==before['restore'])
  # Copy only AFTER bound native SchemaSpec/ledger/namespace/nonce/source/MAC
