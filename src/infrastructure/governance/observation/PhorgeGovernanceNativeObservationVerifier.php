@@ -11,10 +11,10 @@ final class PhorgeGovernanceNativeObservationVerifier extends Phobject {
 
   public static function newIsolated() {
     require_once dirname(__DIR__, 4).'/support/runtime/php-version.php';
-    phorge_assert_supported_php_version(PHP_VERSION);
     if (!self::hasIsolatedScope()) {
       throw new LogicException('Explicit isolated native observation required.');
     }
+    phorge_assert_supported_php_version(PHP_VERSION);
     return new self();
   }
 

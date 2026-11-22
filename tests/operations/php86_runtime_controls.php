@@ -44,6 +44,25 @@ try {
   if (PHP_VERSION === '8.6.0') {
     phorge_assert_supported_php_version(PHP_VERSION);
     $check(true,'actual-candidate-explicitly-admitted');
+    $runtime = static function(array $flags) use ($root) {
+      $process=proc_open(array_merge(array(PHP_BINARY),$flags,
+        array($root.'/scripts/runtime/verify-php86-candidate.php')),
+        array(0=>array('pipe','r'),1=>array('pipe','w'),2=>array('pipe','w')),$pipes);
+      if(!is_resource($process)){throw new RuntimeException('Runtime verifier child failed.');}
+      fclose($pipes[0]);$out=stream_get_contents($pipes[1]);fclose($pipes[1]);
+      stream_get_contents($pipes[2]);fclose($pipes[2]);
+      return array(proc_close($process),$out);
+    };
+    $valid=$runtime(array());
+    $check($valid[0]===0&&json_decode($valid[1],true)['passed']===true,
+      'actual-runtime-verifier-positive');
+    foreach(array('jit-mode'=>array('-d','opcache.jit=tracing'),
+      'jit-buffer'=>array('-d','opcache.jit_buffer_size=1M'),
+      'session-strict'=>array('-d','session.use_strict_mode=0'),
+      'upload-progress'=>array('-d','session.upload_progress.enabled=1'),
+      'missing-security-settings'=>array('-n')) as $name=>$flags){
+      $check($runtime($flags)[0]!==0,'runtime-verifier-refuses-'.$name);
+    }
     $sandbox = sys_get_temp_dir().'/php86-gate-'.bin2hex(random_bytes(8));
     mkdir($sandbox,0700);mkdir($sandbox.'/support',0700);
     mkdir($sandbox.'/support/runtime',0700);mkdir($sandbox.'/conf',0700);
