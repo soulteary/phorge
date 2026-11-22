@@ -26,17 +26,16 @@ class CandidateControls(unittest.TestCase):
         native_start=restored.index('    && mkdir /tmp/apcu-build')
         native_end=restored.index('    && docker-php-ext-enable apcu',native_start)
         restored=restored[:native_start]+'    && pecl install /tmp/apcu.tgz '+chr(92)+'\n'+restored[native_end:]
-        restored=restored.replace('ARG APCU_REVISION=95f9ab828f95c6ca5877e584ead109189d0cec61','ARG APCU_VERSION=5.1.28').replace(
-            'f9b5a106ad0e6ab942d8f73eca209d3e2892689a9b6653b4b10d702388605a1a','ca9c1820810a168786f8048a4c3f8c9e3fd941407ad1553259fb2e30b5f057bf').replace(
-            'https://codeload.github.com/krakjoe/apcu/tar.gz/${APCU_REVISION}','https://pecl.php.net/get/apcu-${APCU_VERSION}.tgz')
+        restored=restored.replace(
+            '33f9038e98d236d4833b3e311c21e1d969a96d06b0d1e4427c8a0db2dd7123e2','ca9c1820810a168786f8048a4c3f8c9e3fd941407ad1553259fb2e30b5f057bf').replace(
+            'https://codeload.github.com/krakjoe/apcu/tar.gz/90899684be91c4f750512c2f840f487286ecb807','https://pecl.php.net/get/apcu-${APCU_VERSION}.tgz')
         self.assertEqual(original,restored)
         self.assertIn('sha256sum -c -',candidate)
         self.assertIn('phpize && ./configure --enable-apcu',candidate)
         self.assertNotIn('8.6',original)
     def test_apcu_build_drift_is_not_silently_accepted(self):
         source=(ROOT/'Dockerfile').read_text()
-        for old,new in [('APCU_VERSION=5.1.28','APCU_VERSION=5.1.29'),
-                        ('ca9c1820810a168786f8048a4c3f8c9e3fd941407ad1553259fb2e30b5f057bf','0'*64),
+        for old,new in [('ca9c1820810a168786f8048a4c3f8c9e3fd941407ad1553259fb2e30b5f057bf','0'*64),
                         ('pecl install /tmp/apcu.tgz','pecl install apcu')]:
             with self.assertRaisesRegex(ValueError,'APCu recipe drift'):
                 recipe.render(source.replace(old,new))

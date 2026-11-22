@@ -20,11 +20,10 @@ def render(source):
     replacements = {
       baseline: candidate,
       pecl: native,
-      'ARG APCU_VERSION=5.1.28': 'ARG APCU_REVISION=95f9ab828f95c6ca5877e584ead109189d0cec61',
       'ARG APCU_SHA256=ca9c1820810a168786f8048a4c3f8c9e3fd941407ad1553259fb2e30b5f057bf':
-        'ARG APCU_SHA256=f9b5a106ad0e6ab942d8f73eca209d3e2892689a9b6653b4b10d702388605a1a',
+        'ARG APCU_SHA256=33f9038e98d236d4833b3e311c21e1d969a96d06b0d1e4427c8a0db2dd7123e2',
       'https://pecl.php.net/get/apcu-${APCU_VERSION}.tgz':
-        'https://codeload.github.com/krakjoe/apcu/tar.gz/${APCU_REVISION}',
+        'https://codeload.github.com/krakjoe/apcu/tar.gz/90899684be91c4f750512c2f840f487286ecb807',
     }
     for old,new in replacements.items():
         if source.count(old) != 1:

@@ -64,8 +64,8 @@ jobs:
         run: |
           umask 077
           apcu_source=$(mktemp -d "$RUNNER_TEMP/php86-apcu.XXXXXX")
-          curl -fsSL --retry 3 --max-time 60 https://codeload.github.com/krakjoe/apcu/tar.gz/95f9ab828f95c6ca5877e584ead109189d0cec61 -o "$apcu_source/source.tgz"
-          echo "f9b5a106ad0e6ab942d8f73eca209d3e2892689a9b6653b4b10d702388605a1a  $apcu_source/source.tgz" | sha256sum -c -
+          curl -fsSL --retry 3 --max-time 60 https://codeload.github.com/krakjoe/apcu/tar.gz/90899684be91c4f750512c2f840f487286ecb807 -o "$apcu_source/source.tgz"
+          echo "33f9038e98d236d4833b3e311c21e1d969a96d06b0d1e4427c8a0db2dd7123e2  $apcu_source/source.tgz" | sha256sum -c -
           tar -xzf "$apcu_source/source.tgz" -C "$apcu_source" --strip-components=1
           cd "$apcu_source"
           phpize

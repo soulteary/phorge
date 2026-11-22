@@ -30,8 +30,8 @@ runner supplies and verifies that boundary.
 
 APCu 5.1.28 fails to build against PHP 8.6 because removed internal APIs are
 still referenced. The candidate pins upstream commit
-`95f9ab828f95c6ca5877e584ead109189d0cec61` and verifies the archive SHA-256
-`f9b5a106ad0e6ab942d8f73eca209d3e2892689a9b6653b4b10d702388605a1a`.
+`90899684be91c4f750512c2f840f487286ecb807` and verifies the archive SHA-256
+`33f9038e98d236d4833b3e311c21e1d969a96d06b0d1e4427c8a0db2dd7123e2`.
 It builds with phpize because the PHP 8.6 image has no pecl executable.
 This unreleased dependency is a production-adoption blocker, not a change to
 the production APCu package.
