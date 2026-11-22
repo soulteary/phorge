@@ -32,6 +32,7 @@ function governance_directory_product_browser($fixture,$service,$sessions,$admin
     // Child environments are deliberately closed. Forward only the qualified
     // candidate profile so its HTTP interpreter is checked under the same gate.
     if(PHP_VERSION==='8.6.0'&&getenv('PHORGE_PHP_COMPATIBILITY_PROFILE')==='php86-isolated-v1'){
+      phorge_assert_supported_php_version(PHP_VERSION);
       $env['PHORGE_PHP_COMPATIBILITY_PROFILE']='php86-isolated-v1';
     }
     $process=proc_open(array(PHP_BINARY,'-S','0.0.0.0:33388',__DIR__.'/directory-product-http-router.php'),

@@ -55,7 +55,10 @@ final class PhorgeGovernanceCompletionFixture {
   /** Explicit isolated pre-Task bootstrap; create() keeps its original default. */
   public function createBeforeTaskMetadataPatchV1() {
     $this->assertTaskMetadataFreshV1();
-    if (PHP_VERSION !== '8.5.13' ||
+    $candidate = PHP_VERSION === '8.6.0' &&
+      getenv('PHORGE_PHP_COMPATIBILITY_PROFILE') === 'php86-isolated-v1' &&
+      getenv('PHORGE_GOVERNANCE_ISOLATED_TEST') === '1';
+    if ((PHP_VERSION !== '8.5.13' && !$candidate) ||
         ini_get('opcache.jit') !== 'disable' ||
         ini_get('opcache.jit_buffer_size') !== '0' ||
         ini_get('opcache.enable_cli') !== '0') {
