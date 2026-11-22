@@ -81,8 +81,16 @@ jobs:
         run: |
           umask 077
           mkdir -p "$RUNNER_TEMP/php86-evidence"
+          # Source clones and generated maps require the same modes as baseline CI.
+          # Private receipt producers establish their own restrictive masks.
+          umask 022
           php scripts/runtime/build.php xhpast
           php scripts/runtime/build.php php-parser
+          php bin/rebuild-library-map
+          git diff --exit-code -- src/__phutil_library_map__.php support/runtime/src/__phutil_library_map__.php support/runtime/manifest.json
+          sha256sum src/__phutil_library_map__.php support/runtime/src/__phutil_library_map__.php support/runtime/manifest.json > "$RUNNER_TEMP/php86-maps.sha256"
+          php bin/rebuild-library-map
+          sha256sum --check "$RUNNER_TEMP/php86-maps.sha256"
           php scripts/runtime/verify.php
           php tests/operations/php86_runtime_controls.php > "$RUNNER_TEMP/php86-evidence/controls.json"
           php scripts/runtime/verify-php86-candidate.php > "$RUNNER_TEMP/php86-evidence/runtime.json"
@@ -213,7 +221,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: governance-native-organization-php-${{ matrix.php }}
+          name: governance-native-organization-php-8.6.0
           path: ${{ runner.temp }}/governance-native-organization
           if-no-files-found: error
       - name: Build the non-production candidate image and run SQL with Chromium

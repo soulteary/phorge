@@ -36,3 +36,12 @@ class UnitAccounting(unittest.TestCase):
         self.assertIn('validate_routed_inventory(routed, metadata)', source)
         workflow = (ROOT/'.github/workflows/php86-isolated-compatibility.yml').read_text()
         self.assertIn('python3 -B scripts/runtime/php86-unit-suite.py', workflow)
+
+    def test_candidate_prepares_maps_and_preserves_source_modes(self):
+        workflow = (ROOT/'.github/workflows/php86-isolated-compatibility.yml').read_text()
+        preparation = workflow.split('Prepare candidate tools and execute complete unit discovery',1)[1].split('- name:',1)[0]
+        self.assertLess(preparation.index('umask 077'), preparation.index('mkdir -p'))
+        self.assertLess(preparation.index('umask 022'), preparation.index('php scripts/runtime/build.php'))
+        self.assertEqual(preparation.count('php bin/rebuild-library-map'),2)
+        self.assertLess(preparation.index('sha256sum --check'), preparation.index('python3 -B scripts/runtime/php86-unit-suite.py'))
+        self.assertIn('git diff --exit-code -- src/__phutil_library_map__.php', preparation)
