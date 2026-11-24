@@ -8,7 +8,7 @@ def check(text):
  assert body.count('        id: push-groups\n')==1
  assert body.count('        '+GUARD+'\n')==1
  assert body.count('if-no-files-found: error')==1
- assert body.count('actions/upload-artifact@v4')==1
+ assert body.count('actions/upload-artifact@')==1
  assert "--profile push-groups-regression"in body
  assert 'continue-on-error'not in body and '|| true'not in body
  return body

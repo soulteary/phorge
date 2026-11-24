@@ -9,7 +9,7 @@ def valid():
  d.update({k:True for k in ('completion_DATA_validated','completion_v3_accepted','producer_window_proven','consumer_source_exit_verified','driver_executed_actual_producer','SQL_executed_by_driver')});d.update({k:False for k in ('raw_current_receipt_modified','SQL_executed_by_checker','deployment_proved','activation_authorized','full_CI_qualified')});return d
 class IntegrationControls(unittest.TestCase):
  def block(self):
-  text=(ROOT/'.github/workflows/atomic-feature-regressions.yml').read_text();a=text.index('      - name: Test actual Completion-v3 same-owner integration');b=text.index('      - uses: actions/upload-artifact@v4',a);return text[a:b]
+  text=(ROOT/'.github/workflows/atomic-feature-regressions.yml').read_text();a=text.index('      - name: Test actual Completion-v3 same-owner integration');b=text.index('      - uses: actions/upload-artifact@',a);return text[a:b]
  def test_actual_driver_external_checkpoint_public_trust_real_image_and_pairs_required(self):
   block=self.block()
   for text in ('--event-file "$GITHUB_EVENT_PATH"','--event-name "$GITHUB_EVENT_NAME"','--expected-head "$EXPECTED_SOURCE_CHECKPOINT"','--prepare-public-trust','export HOME="$trust_home"','mysql_image=$(docker inspect "$MYSQL_CONTAINER"',"mysql:8.4.13@sha256:a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7",'--observed-mysql-image "$mysql_image"','--file-binary "$RUNNER_TEMP/gorge-file-storage"','--taskqueue-binary "$RUNNER_TEMP/gorge-taskqueue"','--expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT"'):

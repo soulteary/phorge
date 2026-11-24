@@ -9,7 +9,7 @@ from test_native_rr_ci_provenance import info,REV
 from test_native_rr_ci_execution import service,ID
 from test_native_user_rr_mdl_gate import template
 def artifact_upload_policy():
- workflow=(ROOT/'.github/workflows/native-rr-owner-build.yml').read_text();upload=workflow.split('uses: actions/upload-artifact@v4',1)[1]
+ workflow=(ROOT/'.github/workflows/native-rr-owner-build.yml').read_text();upload=workflow.split('uses: actions/upload-artifact@',1)[1]
  if '        if: success()'not in upload or 'if: always()'in upload:raise AssertionError('unknown/failed runner must not upload a directory')
  if '--execute-sql'not in workflow:raise AssertionError('hosted profile execution required')
  return 'successful-runner-only'
