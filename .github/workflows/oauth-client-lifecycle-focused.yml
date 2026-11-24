@@ -85,8 +85,8 @@ jobs:
       - name: Provision isolated offline-control Python dependencies
         run: |
           python3 -m venv "$RUNNER_TEMP/oauth-client-lifecycle-control-python"
-          "$RUNNER_TEMP/oauth-client-lifecycle-control-python/bin/python" -m pip --disable-pip-version-check install --only-binary=:all: 'PyYAML==6.0.3'
-          "$RUNNER_TEMP/oauth-client-lifecycle-control-python/bin/python" -c 'import yaml; assert yaml.__version__ == "6.0.3"'
+          "$RUNNER_TEMP/oauth-client-lifecycle-control-python/bin/python" -m pip --disable-pip-version-check install --only-binary=:all: 'PyYAML==6.0.4'
+          "$RUNNER_TEMP/oauth-client-lifecycle-control-python/bin/python" -c 'import yaml; assert yaml.__version__ == "6.0.4"'
           echo "$RUNNER_TEMP/oauth-client-lifecycle-control-python/bin" >> "$GITHUB_PATH"
       - name: Offline focused phase, source and failure controls
         run: |

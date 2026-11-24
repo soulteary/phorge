@@ -77,7 +77,7 @@ jobs:
           php -r 'if (PHP_VERSION !== "8.5.13" || ini_get("opcache.jit") !== "disable" || ini_get("opcache.jit_buffer_size") !== "0" || ini_get("opcache.enable_cli") !== "0") { exit(1); }'
           python3 -B scripts/governance/check_directory_transports_task_source_v2.py --expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT"
           python3 -m venv "$RUNNER_TEMP/n05-controls-python"
-          "$RUNNER_TEMP/n05-controls-python/bin/python" -m pip --disable-pip-version-check install --only-binary=:all: 'PyYAML==6.0.3'
+          "$RUNNER_TEMP/n05-controls-python/bin/python" -m pip --disable-pip-version-check install --only-binary=:all: 'PyYAML==6.0.4'
           "$RUNNER_TEMP/n05-controls-python/bin/python" -B -m unittest discover -s tests/governance -p 'test_project_content_grant*.py' -v
       - name: Prepare fresh exact baseline and target native dependencies
         run: |

@@ -132,7 +132,7 @@ class LifecycleWorkflow(unittest.TestCase):
    self.assertIn(required,current)
   self.assertNotIn("module['build'](",current);self.assertNotIn('secrets.',current)
   self.assertLess(current.index('check_directory_transports_task_source_v2.py --expected-checkpoint'),current.index('php scripts/runtime/build.php all'))
-  self.assertLess(current.index('PyYAML==6.0.3'),current.index('-p \'test_recovery_oauth_client_lifecycle*.py\''))
+  self.assertLess(current.index('PyYAML==6.0.4'),current.index('-p \'test_recovery_oauth_client_lifecycle*.py\''))
  def test_actual_workflow_shells_parse_and_failure_artifact_is_fixed_safe_path(self):
   import yaml
   workflow=yaml.safe_load(WORKFLOW.read_text());job=workflow['jobs']['oauth-client-lifecycle-owner'];runs=[v['run']for v in job['steps']if'run'in v]

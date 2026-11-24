@@ -77,7 +77,7 @@ jobs:
       - name: Prepare the small pinned workflow-policy dependency
         run: |
           python3 -m venv "$RUNNER_TEMP/core-ci-venv"
-          "$RUNNER_TEMP/core-ci-venv/bin/python" -m pip install --disable-pip-version-check PyYAML==6.0.3
+          "$RUNNER_TEMP/core-ci-venv/bin/python" -m pip install --disable-pip-version-check PyYAML==6.0.4
           echo "$RUNNER_TEMP/core-ci-venv/bin" >> "$GITHUB_PATH"
       - name: Run actual fast OFF and native core checks
         env:
