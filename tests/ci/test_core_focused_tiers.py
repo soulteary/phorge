@@ -14,6 +14,31 @@ def security_version(value):
  if isinstance(value,list):return [security_version(x)for x in value]
  if isinstance(value,dict):return {k:security_version(v)for k,v in value.items()}
  return value
+def dependency_versions(jobs):
+ # Project only these reviewed dependency fields in the historical DATA oracle.
+ # The current job still has to match every field, command, condition and input.
+ jobs=copy.deepcopy(jobs)
+ actions={
+  'actions/checkout@v6':'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1',
+  'actions/upload-artifact@v4':'actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9',
+  'actions/setup-go@v6':'actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5',
+  'actions/setup-python@v6':'actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0',
+  'shivammathur/setup-php@v2':'shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962'}
+ lines={}
+ for environment in ('oauth-authorization-control-python','oauth-code-control-python','oauth-client-lifecycle-control-python','n05-controls-python'):
+  prefix='"$RUNNER_TEMP/'+environment+'/bin/python"'
+  for suffix in (" -m pip --disable-pip-version-check install --only-binary=:all: 'PyYAML==6.0.3'\n", " -c 'import yaml; assert yaml.__version__ == \"6.0.3\"'\n"):
+   line=prefix+suffix;lines[line]=line.replace('6.0.3','6.0.4')
+ line='go -C support/governance/recovery/owned-process mod download golang.org/x/sys@v0.49.0\n'
+ lines[line]=line.replace('v0.49.0','v0.50.0')
+ for job in jobs.values():
+  for step in job['steps']:
+   if step.get('uses')in actions:step['uses']=actions[step['uses']]
+   settings=step.get('with',{})
+   if settings.get('tools')=='composer:2.11.1':settings['tools']='composer:2.11.3'
+   if settings.get('go-version')=='1.27.3':settings['go-version']='1.27.4'
+   if 'run'in step:step['run']=''.join(lines.get(line,line)for line in step['run'].splitlines(keepends=True))
+ return jobs
 def media_build_step_inverse(step):
  # Read only two fixed AST string DATA literals; never import the media tests.
  tree=ast.parse((ROOT/'support/governance/media-session-ci/test_ci.py').read_bytes())
@@ -36,31 +61,52 @@ class FocusedInventory(unittest.TestCase):
  def baseline(self):return json.loads((ROOT/'docs/ci/support-baseline.json').read_text())
  def test_actual_twelve_full_only_and_thirteen_fanout(self):
   self.assertEqual(m.inventory(ROOT)['focused_full_workflows'],12);self.assertEqual(len(m.FULL),13)
- def test_every_original_runtime_job_body_preserved(self):
+ def test_inventory_requires_the_reviewed_parser_version(self):
+  for version in ('6.0.3','6.0.5','unknown'):
+   with self.subTest(version=version),patch.object(yaml,'__version__',version),self.assertRaisesRegex(ValueError,'focused_full_ci_refused:yaml_version'):
+    m.inventory(ROOT)
+ def assert_runtime_job_body_preserved(self,name,current):
   # The reviewed pre-tier bodies are DATA regression oracles; CURRENT bodies
   # still execute. No old workflow is executed or substituted as authority.
+  raw=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'show',BASE+':.github/workflows/'+name],timeout=10)
+  original=parse(raw);current=copy.deepcopy(current)
+  self.assertEqual(set(original['jobs']),set(current['jobs']))
+  for job in current['jobs'].values():
+   job['steps']=[s for s in job['steps']if s.get('name')!=m.BIND_STEP]
+   if name=='native-media-session-positive-sql.yml':
+    matches=[i for i,step in enumerate(job['steps'])if step.get('name')=='Build current locked PHP runtime and pull fixed MySQL index']
+    self.assertEqual(len(matches),1)
+    index=matches[0];job['steps'][index]=media_build_step_inverse(job['steps'][index])
+   if name=='native-rr-owner-build.yml':
+    for key,value in {'NATIVE_RR_EXPECTED_HEAD':'${{ inputs.expected_head }}','NATIVE_RR_WORKFLOW_SHA':'${{ github.workflow_sha }}','NATIVE_RR_RELEASE_TAG':'${{ github.event.inputs.release_tag }}'}.items():
+     self.assertEqual(job['env'].pop(key),value)
+   if name in m.PROOF_FOCUSED:
+    admission=next(s for s in job['steps']if 'check_task_ci_head_v1.py --root' in s.get('run',''))
+    flag=' --external-proof-tag "source-proof/$EXPECTED_SOURCE_CHECKPOINT"'
+    self.assertEqual(admission['run'].count(flag),1)
+    self.assertEqual(admission['run'].count(m.PROOF_ENV),1)
+    admission['run']=admission['run'].replace(flag,'').replace(m.PROOF_ENV+'\n','')
+  self.assertEqual(current['jobs'],dependency_versions(security_version(original['jobs'])))
+  for key in set(original)-{'on','jobs'}:self.assertEqual(current[key],original[key])
+ def test_every_original_runtime_job_body_preserved(self):
   for name in m.FOCUSED:
    with self.subTest(workflow=name):
-    raw=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'show',BASE+':.github/workflows/'+name],timeout=10)
-    original=parse(raw);current=self.workflow(name)
-    self.assertEqual(set(original['jobs']),set(current['jobs']))
-    for job in current['jobs'].values():
-     job['steps']=[s for s in job['steps']if s.get('name')!=m.BIND_STEP]
-     if name=='native-media-session-positive-sql.yml':
-      matches=[i for i,step in enumerate(job['steps'])if step.get('name')=='Build current locked PHP runtime and pull fixed MySQL index']
-      self.assertEqual(len(matches),1)
-      index=matches[0];job['steps'][index]=media_build_step_inverse(job['steps'][index])
-     if name=='native-rr-owner-build.yml':
-      for key,value in {'NATIVE_RR_EXPECTED_HEAD':'${{ inputs.expected_head }}','NATIVE_RR_WORKFLOW_SHA':'${{ github.workflow_sha }}','NATIVE_RR_RELEASE_TAG':'${{ github.event.inputs.release_tag }}'}.items():
-       self.assertEqual(job['env'].pop(key),value)
-     if name in m.PROOF_FOCUSED:
-      admission=next(s for s in job['steps']if 'check_task_ci_head_v1.py --root' in s.get('run',''))
-      flag=' --external-proof-tag "source-proof/$EXPECTED_SOURCE_CHECKPOINT"'
-      self.assertEqual(admission['run'].count(flag),1)
-      self.assertEqual(admission['run'].count(m.PROOF_ENV),1)
-      admission['run']=admission['run'].replace(flag,'').replace(m.PROOF_ENV+'\n','')
-    self.assertEqual(current['jobs'],security_version(original['jobs']))
-    for key in set(original)-{'on','jobs'}:self.assertEqual(current[key],original[key])
+    self.assert_runtime_job_body_preserved(name,self.workflow(name))
+ def test_dependency_projection_refuses_unreviewed_runtime_changes(self):
+  name='oauth-code-producer-focused.yml'
+  for mutation in ('action','tool','yaml','command','skip','continuing','upload'):
+   document=self.workflow(name);job=next(iter(document['jobs'].values()));steps=job['steps']
+   if mutation=='action':steps[0]['uses']='actions/checkout@main'
+   elif mutation=='tool':next(s for s in steps if s.get('with',{}).get('tools'))['with']['tools']='composer:latest'
+   elif mutation in ('yaml','command'):
+    step=next(s for s in steps if 'PyYAML=='in s.get('run',''))
+    if mutation=='yaml':step['run']=step['run'].replace('PyYAML==6.0.4','PyYAML')
+    else:step['run']+='echo unreviewed-command\n'
+   elif mutation=='skip':job['if']='false'
+   elif mutation=='continuing':job['continue-on-error']='true'
+   else:next(s for s in steps if s.get('uses','').startswith('actions/upload-artifact@'))['if']='always()'
+   with self.subTest(mutation=mutation),self.assertRaises(AssertionError):
+    self.assert_runtime_job_body_preserved(name,document)
  def test_media_build_continuation_refuses_unknown_step_fields_and_commands(self):
   workflow=self.workflow('native-media-session-positive-sql.yml')
   job=next(iter(workflow['jobs'].values()))

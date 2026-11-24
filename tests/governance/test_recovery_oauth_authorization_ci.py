@@ -135,13 +135,13 @@ class OAuthAuthorizationCI(unittest.TestCase):
    controls=next(i for i,v in enumerate(items)if v.get('name')=='Offline focused phase, source and failure controls')
    self.assertLess(dependency,controls)
    body=items[dependency]['run']
-   for required in ['python3 -m venv', '"$RUNNER_TEMP/oauth-authorization-control-python/bin/python" -m pip', "--only-binary=:all: 'PyYAML==6.0.3'", 'import yaml; assert yaml.__version__ == "6.0.3"', '>> "$GITHUB_PATH"']:self.assertIn(required,body)
+   for required in ['python3 -m venv', '"$RUNNER_TEMP/oauth-authorization-control-python/bin/python" -m pip', "--only-binary=:all: 'PyYAML==6.0.4'", 'import yaml; assert yaml.__version__ == "6.0.4"', '>> "$GITHUB_PATH"']:self.assertIn(required,body)
   check(steps)
   for mutate in ['remove','late','unpin']:
    altered=copy.deepcopy(steps);i=next(i for i,v in enumerate(altered)if v.get('name')=='Provision isolated offline-control Python dependencies')
    if mutate=='remove':altered.pop(i)
    elif mutate=='late':altered.append(altered.pop(i))
-   else:altered[i]['run']=altered[i]['run'].replace('PyYAML==6.0.3','PyYAML')
+   else:altered[i]['run']=altered[i]['run'].replace('PyYAML==6.0.4','PyYAML')
    with self.assertRaises((AssertionError,StopIteration)):check(altered)
  def test_code_only_PR_changes_schedule_job_and_unrelated_docs_do_not(self):
   import fnmatch,yaml

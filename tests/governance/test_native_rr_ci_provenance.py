@@ -6,7 +6,7 @@ ROOT=Path(__file__).resolve().parents[2];sys.path.insert(0,str(ROOT/'tests/gover
 import provenance as p
 import build_owner as b
 REV='a'*40
-def info():return {'GoVersion':'go1.27.3','Path':p.MODULE,'Main':{'Path':p.MODULE,'Version':'(devel)'},'Deps':[p.DEP.copy()],'Settings':[{'Key':k,'Value':v}for k,v in {'-buildmode':'exe','-compiler':'gc','-trimpath':'true','CGO_ENABLED':'0','GOARCH':'amd64','GOOS':'linux','GOAMD64':'v1','vcs':'git','vcs.revision':REV,'vcs.time':'2026-11-05T00:00:00Z','vcs.modified':'false'}.items()]}
+def info():return {'GoVersion':'go1.27.4','Path':p.MODULE,'Main':{'Path':p.MODULE,'Version':'(devel)'},'Deps':[p.DEP.copy()],'Settings':[{'Key':k,'Value':v}for k,v in {'-buildmode':'exe','-compiler':'gc','-trimpath':'true','CGO_ENABLED':'0','GOARCH':'amd64','GOOS':'linux','GOAMD64':'v1','vcs':'git','vcs.revision':REV,'vcs.time':'2026-11-05T00:00:00Z','vcs.modified':'false'}.items()]}
 class Controls(unittest.TestCase):
  def test_complete_provenance_and_settings_mutations(self):
   self.assertFalse(p.verify_build_info(info(),REV,'amd64')['modified'])
@@ -147,7 +147,7 @@ class MainFlow(unittest.TestCase):
       status_count+=1
       return b' M changed'if fault=='dirty-before'or(fault=='dirty-after'and status_count>1)else b''
      if 'show'in args:return args[-1].split(':',1)[1].encode()
-    if args[1:]==['version']:return b'go version go1.27.3 linux/amd64\n'
+    if args[1:]==['version']:return b'go version go1.27.4 linux/amd64\n'
     if args[1:3]==['mod','verify']:
      verify_count+=1
      if fault=='module-verify'or(fault=='module-verify-after'and verify_count==2):return b'invalid modules'

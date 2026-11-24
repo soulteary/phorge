@@ -46,7 +46,7 @@ class PartialDiagnostic(unittest.TestCase):
   for row in d:self.assertEqual(row,{'schema':'native-partial-failure-diagnostic-v1','passed':False,'stage':'unknown-stage','error_type':'other-error-type','source_file':None,'source_line':None})
  def test_driver_stdout_status_and_success_only_artifact_remain(self):
   s=(ROOT/'support/governance/native-organization/test-native-organization-mysql.php').read_text();self.assertIn("if($phase==='recovery-partial-composition'&&$passed===false)",s);self.assertIn('fwrite(STDERR,json_encode($diagnostic,JSON_UNESCAPED_SLASHES)',s);self.assertTrue(s.rstrip().endswith('exit($passed?0:1);'))
-  workflow=(ROOT/'.github/workflows/atomic-feature-regressions.yml').read_text();upload=workflow.split('name: governance-recovery-partial-composition-php-',1)[0].rsplit('      - uses: actions/upload-artifact@v4',1)[1];self.assertIn('if: success()',upload);self.assertNotIn('always()',upload)
+  workflow=(ROOT/'.github/workflows/atomic-feature-regressions.yml').read_text();upload=workflow.split('name: governance-recovery-partial-composition-php-',1)[0].rsplit('      - uses: actions/upload-artifact@',1)[1];self.assertIn('if: success()',upload);self.assertNotIn('always()',upload)
 
  def test_actual_runtime_tokenizer_product_cut_and_excluded_type_stays_scrubbed(self):
   import tempfile

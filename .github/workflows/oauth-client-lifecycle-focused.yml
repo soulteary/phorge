@@ -43,7 +43,7 @@ jobs:
       EXPECTED_SOURCE_CHECKPOINT: ${{ github.event.pull_request.head.sha || github.sha }}
       PHORGE_TASK_TEST_CHECKPOINT: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
@@ -64,12 +64,12 @@ jobs:
             --expected-head "$EXPECTED_SOURCE_CHECKPOINT" --github-sha "$GITHUB_SHA" --trust-home "$trust_home" --external-proof-tag "source-proof/$EXPECTED_SOURCE_CHECKPOINT"
           echo "PHORGE_CI_MERGE_SOURCE_PROOF=source-proof/$EXPECTED_SOURCE_CHECKPOINT" >> "$GITHUB_ENV"
           echo "HOME=$trust_home" >> "$GITHUB_ENV"
-      - uses: shivammathur/setup-php@v2
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
         with:
           php-version: '8.5.13'
           ini-values: opcache.enable_cli=0, opcache.jit=disable, opcache.jit_buffer_size=0
           extensions: mysqli, mbstring, curl, gd, zip, dom, xmlreader, xmlwriter
-          tools: composer:2.11.1
+          tools: composer:2.11.3
           coverage: none
       - name: Own fresh focused output and require the reviewed pair
         run: |
@@ -85,13 +85,13 @@ jobs:
       - name: Provision isolated offline-control Python dependencies
         run: |
           python3 -m venv "$RUNNER_TEMP/oauth-client-lifecycle-control-python"
-          "$RUNNER_TEMP/oauth-client-lifecycle-control-python/bin/python" -m pip --disable-pip-version-check install --only-binary=:all: 'PyYAML==6.0.3'
-          "$RUNNER_TEMP/oauth-client-lifecycle-control-python/bin/python" -c 'import yaml; assert yaml.__version__ == "6.0.3"'
+          "$RUNNER_TEMP/oauth-client-lifecycle-control-python/bin/python" -m pip --disable-pip-version-check install --only-binary=:all: 'PyYAML==6.0.4'
+          "$RUNNER_TEMP/oauth-client-lifecycle-control-python/bin/python" -c 'import yaml; assert yaml.__version__ == "6.0.4"'
           echo "$RUNNER_TEMP/oauth-client-lifecycle-control-python/bin" >> "$GITHUB_PATH"
       - name: Offline focused phase, source and failure controls
         run: |
           python3 -B -m unittest discover -s tests/governance -p 'test_recovery_oauth_client_lifecycle*.py' -v
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: soulteary/gorge
           ref: ${{ env.GORGE_CONTRACT_REF }}
@@ -197,13 +197,13 @@ jobs:
           mv "$RUNNER_TEMP/governance-oauth-client-lifecycle-focused/mysql-after.pending.json" "$RUNNER_TEMP/governance-oauth-client-lifecycle-focused/mysql-after.json"
           python3 -B scripts/governance/check_oauth_task_schema_receipt_v2.py --root "$GITHUB_WORKSPACE" --expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT" --role oauth-client-lifecycle --runtime-before "$RUNNER_TEMP/governance-oauth-client-lifecycle-focused/mysql-before.json" --runtime-after "$RUNNER_TEMP/governance-oauth-client-lifecycle-focused/mysql-after.json" --envelope "$RUNNER_TEMP/governance-oauth-client-lifecycle-focused/integration.json" --profile "$RUNNER_TEMP/task-oauth-client-lifecycle-v2-private/capture/schema-profile.private.json" --profile-sha "$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["profile_sha256"])' "$RUNNER_TEMP/task-oauth-client-lifecycle-v2-private/capture/binding.safe.json")" --file-binary "$RUNNER_TEMP/oauth-client-lifecycle-focused-binary/gorge-file-storage" --file-sha "$(sha256sum "$RUNNER_TEMP/oauth-client-lifecycle-focused-binary/gorge-file-storage" | cut -d ' ' -f1)" > "$RUNNER_TEMP/governance-oauth-client-lifecycle-focused/accepted.pending.json"
           mv "$RUNNER_TEMP/governance-oauth-client-lifecycle-focused/accepted.pending.json" "$RUNNER_TEMP/governance-oauth-client-lifecycle-focused/accepted.json"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: success()
         with:
           name: focused-oauth-client-lifecycle-owner-php-8.5.13
           path: ${{ runner.temp }}/governance-oauth-client-lifecycle-focused
           if-no-files-found: error
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: failure() && steps.oauth-client-lifecycle-owner.outputs.diagnostic_owned == 'true'
         with:
           name: focused-oauth-client-lifecycle-failure-php-8.5.13

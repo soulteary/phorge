@@ -102,13 +102,13 @@ def execute(here,root,env,private,check):
     check(service.poll() is not None,'paired Gorge queue stopped after isolated tests')
     for key,value in call('recovery-legacy-running').items():check(value is True,'legacy interrupted item '+key)
     for key,value in call('recovery-baseline').items():check(value is True,'isolated override cleanup '+key)
-    return {'xlsxWorkbooks':2,'dependencyVersion':'5.10.0','dependencyLockSHA256':hashlib.sha256((here/'xlsx/composer.lock').read_bytes()).hexdigest(),'permissionInFlight':outcomes,'crashBoundaries':crashes,'queueOwners':['native','gorge'],'gorgeTransientRetryCases':1,'serviceStopped':True,'productionConfigurationChanged':False,'legacyRunningPolicy':'manual-reconciliation-no-write','creatorReplay':'acknowledge-versioned-atomic-batch'}
+    return {'xlsxWorkbooks':2,'dependencyVersion':'5.12.0','dependencyLockSHA256':hashlib.sha256((here/'xlsx/composer.lock').read_bytes()).hexdigest(),'permissionInFlight':outcomes,'crashBoundaries':crashes,'queueOwners':['native','gorge'],'gorgeTransientRetryCases':1,'serviceStopped':True,'productionConfigurationChanged':False,'legacyRunningPolicy':'manual-reconciliation-no-write','creatorReplay':'acknowledge-versioned-atomic-batch'}
 
 
 def validate(report):
     c=report.get('recoveryCoverage',{})
     if report.get('boundarySchemaVersion')!=7:raise ValueError('Recovery receipt v7 required.')
-    if c.get('xlsxWorkbooks')!=2 or c.get('dependencyVersion')!='5.10.0':raise ValueError('Positive XLSX evidence missing.')
+    if c.get('xlsxWorkbooks')!=2 or c.get('dependencyVersion')!='5.12.0':raise ValueError('Positive XLSX evidence missing.')
     expected=hashlib.sha256((Path(__file__).parent/'xlsx/composer.lock').read_bytes()).hexdigest()
     if c.get('dependencyLockSHA256')!=expected:raise ValueError('Dependency lock mismatch.')
     if c.get('permissionInFlight')!={'member':False,'space':True}:raise ValueError('Native in-flight boundaries differ.')

@@ -20,5 +20,5 @@ class WorkflowContract(unittest.TestCase):
   for value in ['check_task_ci_head_v1.py --prepare-public-trust','support/governance/source-operation/ci-source-verifier.asc','--event-file "$GITHUB_EVENT_PATH" --event-name "$GITHUB_EVENT_NAME"','--expected-head "$CORE_EXPECTED_HEAD" --github-sha "$GITHUB_SHA" --trust-home "$trust_home"']:self.assertIn(value,code)
   self.assertEqual(signature['env']['CORE_EXPECTED_HEAD'],'${{ needs.ci-plan.outputs.head }}');self.assertLess(steps.index(signature),next(i for i,x in enumerate(steps)if x.get('name')=='Run actual fast OFF and native core checks'))
  def test_core_executes_real_guard_with_pinned_yaml_and_source_head(self):
-  core=self.workflow()['jobs']['core-boundaries'];text=str(core);self.assertIn('PyYAML==6.0.3',text);self.assertIn('scripts/ci/core_guard.py run --expected-head',text);self.assertIn('${{ needs.ci-plan.outputs.head }}',text)
+  core=self.workflow()['jobs']['core-boundaries'];text=str(core);self.assertIn('PyYAML==6.0.4',text);self.assertIn('scripts/ci/core_guard.py run --expected-head',text);self.assertIn('${{ needs.ci-plan.outputs.head }}',text)
 if __name__=='__main__':unittest.main()

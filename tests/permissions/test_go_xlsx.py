@@ -3,7 +3,7 @@ from go_xlsx import validate
 
 
 def receipt():
-    return {'boundarySchemaVersion':7,'goXLSXCoverage':{'engine':'go-stdlib-ooxml-v1','goVersion':'go1.27.3','workbooks':6,'assertions':48,'dataRows':[2,1,2,1,1001,1000],'thirdPartyModules':0,'softwareAcceptanceRequired':False,'productionDependenciesChanged':False}}
+    return {'boundarySchemaVersion':7,'goXLSXCoverage':{'engine':'go-stdlib-ooxml-v1','goVersion':'go1.27.4','workbooks':6,'assertions':48,'dataRows':[2,1,2,1,1001,1000],'thirdPartyModules':0,'softwareAcceptanceRequired':False,'productionDependenciesChanged':False}}
 
 
 class GoXLSXEvidenceTests(unittest.TestCase):

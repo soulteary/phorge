@@ -37,7 +37,7 @@ jobs:
       GORGE_TEST_MYSQL_PASSWORD: private-wire-disposable-only
       PYTHONDONTWRITEBYTECODE: '1'
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -50,26 +50,26 @@ jobs:
         run: |
           [[ "$GORGE_MAIL_WIRE_REF" =~ ^[a-f0-9]{40}$ ]]
           [[ "$OWLMAIL_WIRE_REF" =~ ^[a-f0-9]{40}$ ]]
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: soulteary/gorge
           ref: ${{ env.GORGE_MAIL_WIRE_REF }}
           path: .wire-gorge
           persist-credentials: false
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: soulteary/owlmail
           ref: ${{ env.OWLMAIL_WIRE_REF }}
           path: .wire-owlmail
           persist-credentials: false
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: '3.13'
-      - uses: actions/setup-go@v6
+      - uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
         with:
           go-version: '1.27.4'
           cache: false
-      - uses: shivammathur/setup-php@v2
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
         with:
           php-version: '8.5.13'
           extensions: mysqli, mbstring, curl, gd, zip, dom, xmlreader, xmlwriter
@@ -103,7 +103,7 @@ jobs:
       - name: Execute current-source pending and provider-security matrix
         run: |
           python3 tests/governance/private_mail_ci/run_hosted.py --source "$RUNNER_TEMP/private-mail-source" --binaries "$RUNNER_TEMP/private-mail-binaries" --output "$RUNNER_TEMP/private-mail-receipts" --gorge-revision "$GORGE_MAIL_WIRE_REF" --owlmail-revision "$OWLMAIL_WIRE_REF"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: private-mail-physical-wire-sanitized

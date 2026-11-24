@@ -79,7 +79,7 @@ def main(argv=None):
  if not go.is_absolute()or go.is_symlink()or not go.is_file()or not os.access(go,os.X_OK):raise ValueError('explicit regular Go toolchain required')
  env={key:os.environ[key]for key in ('HOME','TMPDIR')if key in os.environ}
  env.update(PATH=str(go.parent)+':/usr/bin:/bin',GOENV='off',GOWORK='off',GOTOOLCHAIN='local',GOFLAGS='',GOEXPERIMENT='',GOPROXY='off',GOSUMDB='off',GONOPROXY='',GONOSUMDB='',GOVCS='*:off',CGO_ENABLED='0',GOOS='linux',GOARCH='amd64',GOAMD64='v1')
- if command([str(go),'version'],env=env).strip()!=b'go version go1.27.3 linux/amd64':raise ValueError('fixed native CI toolchain required')
+ if command([str(go),'version'],env=env).strip()!=b'go version go1.27.4 linux/amd64':raise ValueError('fixed native CI toolchain required')
  output=a.output_dir
  if not output.is_absolute()or output.exists()or output.is_symlink()or ROOT==output or ROOT in output.parents:raise ValueError('fresh external output directory required')
  # Validate the prefilled module-cache boundary before creating any output.

@@ -29,7 +29,7 @@ jobs:
       run:
         shell: bash
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
@@ -47,7 +47,7 @@ jobs:
           python3 -B scripts/governance/check_task_ci_head_v1.py --prepare-public-trust --public-key "$GITHUB_WORKSPACE/support/governance/source-operation/ci-source-verifier.asc" --trust-home "$trust_home"
           python3 -B scripts/governance/check_task_ci_head_v1.py --root "$GITHUB_WORKSPACE" --event-file "$GITHUB_EVENT_PATH" --event-name "$GITHUB_EVENT_NAME" --expected-head "$EXPECTED_SOURCE_CHECKPOINT" --github-sha "$GITHUB_SHA" --trust-home "$trust_home" --external-proof-tag "source-proof/$EXPECTED_SOURCE_CHECKPOINT"
           echo "PHORGE_CI_MERGE_SOURCE_PROOF=source-proof/$EXPECTED_SOURCE_CHECKPOINT" >> "$GITHUB_ENV"
-      - uses: shivammathur/setup-php@v2
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
         with:
           php-version: '8.5.13'
           ini-values: opcache.jit=disable, opcache.jit_buffer_size=0, opcache.enable_cli=0
@@ -91,7 +91,7 @@ jobs:
           else
             python3 -c 'import json; print(json.dumps({"schema":"media-Task-current-selected-driver-failure-v2","selected_SQL_accepted":False,"source_operation_exit_verified":False,"cleanup_verified":False,"browser_TLS_or_file_authorization_proved":False,"production_changed":False}))' > media-positive-safe/selected-safe.json
           fi
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: native-media-session-selected-safe

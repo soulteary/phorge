@@ -66,7 +66,7 @@ def fanout_contract(document,baseline):
  return True
 def inventory(root=ROOT):
  import yaml
- need(yaml.__version__=='6.0.3','yaml_version')
+ need(yaml.__version__=='6.0.4','yaml_version')
  load=lambda p:yaml.load(p.read_text(),Loader=yaml.BaseLoader)
  workflows=root/'.github/workflows'
  for name in FOCUSED:focused_contract(load(workflows/name),name)
