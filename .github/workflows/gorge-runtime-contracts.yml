@@ -34,8 +34,8 @@ jobs:
         ports: ['3306:3306']
         options: --health-cmd "mysqladmin --protocol=tcp --host=127.0.0.1 ping --silent" --health-interval 5s --health-timeout 3s --health-retries 30
     steps:
-      - uses: actions/checkout@v6
-      - uses: shivammathur/setup-php@v2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
         with:
           php-version: '8.5.13'
           ini-values: opcache.jit=disable, opcache.jit_buffer_size=0
@@ -62,8 +62,8 @@ jobs:
         ports: ['3306:3306']
         options: --health-cmd "mysqladmin ping -pproxy-session-test-only" --health-interval 5s --health-timeout 3s --health-retries 30
     steps:
-      - uses: actions/checkout@v6
-      - uses: shivammathur/setup-php@v2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
         with:
           php-version: '8.5.13'
           ini-values: opcache.jit=disable, opcache.jit_buffer_size=0
@@ -88,8 +88,8 @@ jobs:
       matrix:
         php: ['8.5.13']
     steps:
-      - uses: actions/checkout@v6
-      - uses: shivammathur/setup-php@v2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
         with:
           php-version: ${{ matrix.php }}
           ini-values: opcache.jit=disable, opcache.jit_buffer_size=0
@@ -132,8 +132,8 @@ jobs:
         ports: ['3306:3306']
         options: --health-cmd "mysqladmin ping -pgorge-contract-only" --health-interval 5s --health-timeout 3s --health-retries 30
     steps:
-      - uses: actions/checkout@v6
-      - uses: shivammathur/setup-php@v2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
         with:
           php-version: '8.5.13'
           ini-values: opcache.jit=disable, opcache.jit_buffer_size=0
@@ -174,12 +174,12 @@ jobs:
         run: |
           revision=$(python3 tests/atomic/check_pair.py --print-revision)
           echo "GORGE_CONTRACT_REF=$revision" >> "$GITHUB_ENV"
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: soulteary/gorge
           ref: ${{ env.GORGE_CONTRACT_REF }}
           path: .test-gorge
-      - uses: actions/setup-go@v6
+      - uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
         with:
           go-version-file: .test-gorge/go/go.mod
           cache-dependency-path: .test-gorge/go/go.sum
@@ -231,7 +231,7 @@ jobs:
           GORGE_TEST_ACCEPTANCE_MANIFEST: ${{ runner.temp }}/paired-acceptance.json
           PYTHONDONTWRITEBYTECODE: '1'
         run: python3 tests/contract/worker/acceptance.py
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: paired-source-identities
           path: ${{ runner.temp }}/paired-acceptance.json
@@ -294,8 +294,8 @@ jobs:
     if: github.event_name == 'workflow_dispatch' && inputs.image_ref != ''
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
-      - uses: shivammathur/setup-php@v2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
         with:
           php-version: '8.5.13'
           ini-values: opcache.jit=disable, opcache.jit_buffer_size=0
@@ -317,7 +317,7 @@ jobs:
         run: |
           revision=$(python3 tests/atomic/check_pair.py --print-revision)
           echo "GORGE_CONTRACT_REF=$revision" >> "$GITHUB_ENV"
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: soulteary/gorge
           ref: ${{ env.GORGE_CONTRACT_REF }}

@@ -32,7 +32,7 @@ jobs:
       mode: ${{ steps.plan.outputs.mode }}
       head: ${{ steps.plan.outputs.head }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           persist-credentials: false
@@ -52,7 +52,7 @@ jobs:
     env:
       PYTHONDONTWRITEBYTECODE: '1'
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ needs.ci-plan.outputs.head }}
           fetch-depth: 0
@@ -68,7 +68,7 @@ jobs:
           python3 -B scripts/governance/check_task_ci_head_v1.py --root "$GITHUB_WORKSPACE" \
             --event-file "$GITHUB_EVENT_PATH" --event-name "$GITHUB_EVENT_NAME" \
             --expected-head "$CORE_EXPECTED_HEAD" --github-sha "$GITHUB_SHA" --trust-home "$trust_home" --external-proof-tag "source-proof/$CORE_EXPECTED_HEAD"
-      - uses: shivammathur/setup-php@v2
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
         with:
           php-version: '8.5.13'
           ini-values: opcache.jit=disable, opcache.jit_buffer_size=0
@@ -84,7 +84,7 @@ jobs:
           CORE_EXPECTED_HEAD: ${{ needs.ci-plan.outputs.head }}
         run: python3 -B scripts/ci/core_guard.py run --expected-head "$CORE_EXPECTED_HEAD" --output "$RUNNER_TEMP/core-boundaries.json"
       - name: Upload successful core-only scope and lineage
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: atomic-core-boundaries-attempt-${{ github.run_attempt }}
           path: ${{ runner.temp }}/core-boundaries.json
@@ -123,17 +123,17 @@ jobs:
       PYTHONDONTWRITEBYTECODE: '1'
       EXPECTED_SOURCE_CHECKPOINT: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
           persist-credentials: false
-      - uses: shivammathur/setup-php@v2
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
         with:
           php-version: ${{ matrix.php }}
           ini-values: opcache.jit=disable, opcache.jit_buffer_size=0
           extensions: mysqli, mbstring, curl, gd, zip, dom, xmlreader, xmlwriter
-          tools: composer:2.11.1
+          tools: composer:2.11.3
           coverage: none
       - name: Install the retained product-boundary checker dependency
         timeout-minutes: 5
@@ -241,7 +241,7 @@ jobs:
         run: |
           revision=$(python3 tests/atomic/check_pair.py --print-revision)
           echo "GORGE_CONTRACT_REF=$revision" >> "$GITHUB_ENV"
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: soulteary/gorge
           ref: ${{ env.GORGE_CONTRACT_REF }}
@@ -312,7 +312,7 @@ jobs:
           bash .github/scripts/check-retired-app-references.sh
           python3 "$RUNNER_TEMP/atomic-footprint/collector.py" after_verify
       - name: Upload successful parser preparation source footprints early
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: atomic-prepared-pre-footprint-php-${{ matrix.php }}
           path: |
@@ -338,14 +338,14 @@ jobs:
         run: python3 "$RUNNER_TEMP/atomic-footprint/collector.py" after_governance
       - name: Upload metadata-only source footprint diagnostics
         if: ${{ always() && steps.atomic-footprint.outcome == 'success' }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: atomic-source-footprint-php-${{ matrix.php }}
           path: ${{ runner.temp }}/atomic-footprint/records/*.json
           if-no-files-found: error
           retention-days: 3
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: governance-batch-1-php-${{ matrix.php }}
@@ -361,7 +361,7 @@ jobs:
           PHORGE_GOVERNANCE_FIXTURE_USER=root \
           PHORGE_GOVERNANCE_FIXTURE_PASSWORD="$GORGE_TEST_MYSQL_PASSWORD" \
           php support/governance/fixtures/test-readset-mysql.php > "$RUNNER_TEMP/governance-batch-2/readset.json"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: governance-batch-2-php-${{ matrix.php }}
@@ -377,7 +377,7 @@ jobs:
           PHORGE_GOVERNANCE_FIXTURE_USER=root \
           PHORGE_GOVERNANCE_FIXTURE_PASSWORD="$GORGE_TEST_MYSQL_PASSWORD" \
           php support/governance/fixtures/test-native-source-mysql.php > "$RUNNER_TEMP/governance-batch-3/native-source.json"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: governance-batch-3-php-${{ matrix.php }}
@@ -394,7 +394,7 @@ jobs:
           PHORGE_GOVERNANCE_FIXTURE_USER=root \
           PHORGE_GOVERNANCE_FIXTURE_PASSWORD="$GORGE_TEST_MYSQL_PASSWORD" \
           php support/governance/fixtures/test-native-rule-branches-mysql.php > "$RUNNER_TEMP/governance-batch-4/native-rule-branches.json"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: governance-batch-4-php-${{ matrix.php }}
@@ -413,7 +413,7 @@ jobs:
           PHORGE_GOVERNANCE_FIXTURE_USER=root \
           PHORGE_GOVERNANCE_FIXTURE_PASSWORD="$GORGE_TEST_MYSQL_PASSWORD" \
           php support/governance/fixtures/test-native-pipeline-composition-mysql.php > "$RUNNER_TEMP/governance-batch-5/native-pipeline-composition.json"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: governance-batch-5-php-${{ matrix.php }}
@@ -427,7 +427,7 @@ jobs:
       - name: Verify native workspace HTTP and persistence contracts when installed
         if: ${{ hashFiles('tests/atomic/packages/D06.json') != '' }}
         run: python3 tests/project-workspace/serve.py --require-clean-worktree --exit-after-http --output "$RUNNER_TEMP/workspace-http-evidence"
-      - uses: actions/setup-go@v6
+      - uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
         with:
           go-version-file: tests/permissions/xlsx-go/go.mod
           cache: false
@@ -505,13 +505,13 @@ jobs:
           php tests/operations/wiki_retirement_native.php > "$RUNNER_TEMP/wiki-retirement/native.json"
           php tests/operations/wiki_retirement_migrations.php > "$RUNNER_TEMP/wiki-retirement/migrations.json"
           php tests/operations/wiki_retirement_http.php > "$RUNNER_TEMP/wiki-retirement/http.json"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: ${{ always() && steps.wiki-retirement.outcome != 'skipped' }}
         with:
           name: wiki-retirement-php-${{ matrix.php }}
           path: ${{ runner.temp }}/wiki-retirement
           if-no-files-found: error
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: governance-completion-php-${{ matrix.php }}
@@ -527,7 +527,7 @@ jobs:
           PHORGE_GOVERNANCE_FIXTURE_PASSWORD="$GORGE_TEST_MYSQL_PASSWORD" \
           php support/governance/organization/test-organization-mysql.php > "$RUNNER_TEMP/governance-organization/organization.json"
           python3 scripts/governance/check_organization.py --receipt "$RUNNER_TEMP/governance-organization/organization.json" > "$RUNNER_TEMP/governance-organization/accepted.json"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: governance-organization-php-${{ matrix.php }}
@@ -599,7 +599,7 @@ jobs:
           PHORGE_GOVERNANCE_GORGE_FILE_BINARY="$RUNNER_TEMP/gorge-file-storage" \
           PHORGE_GOVERNANCE_GORGE_FILE_SHA256="$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" \
           php support/governance/native-organization/project-handoff-run.php > "$RUNNER_TEMP/governance-native-organization/project-handoff.json"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: governance-native-organization-php-${{ matrix.php }}
@@ -645,7 +645,7 @@ jobs:
           python3 -B scripts/governance/check_api_credential_task_schema_receipt_v2.py --root "$GITHUB_WORKSPACE" --expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT" --envelope "$RUNNER_TEMP/governance-api-credential-concurrency/integration.json" --native-body "$RUNNER_TEMP/task-api-credential-v2-private/capture-native-body.private.json" --profile "$RUNNER_TEMP/task-api-credential-v2-private/capture/schema-profile.private.json" --profile-sha "$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["profile_sha256"])' "$RUNNER_TEMP/task-api-credential-v2-private/capture/binding.safe.json")" --runtime-before "$RUNNER_TEMP/governance-api-credential-concurrency/mysql-before.json" --runtime-after "$RUNNER_TEMP/governance-api-credential-concurrency/mysql-after.json" --file-binary "$RUNNER_TEMP/gorge-file-storage" --file-sha "$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" > "$RUNNER_TEMP/governance-api-credential-concurrency/accepted.json"
           cp "$RUNNER_TEMP/governance-native-organization/accepted.json" "$RUNNER_TEMP/governance-api-credential-concurrency/normal-regression-accepted.json"
           cp "$RUNNER_TEMP/governance-batch-1/native.json" "$RUNNER_TEMP/governance-api-credential-concurrency/shared-native-pure.json"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: governance-api-credential-concurrency-php-${{ matrix.php }}
@@ -681,7 +681,7 @@ jobs:
           FULL_NATIVE_MYSQL_OBSERVED_IMAGE="$mysql_image" php scripts/governance/probe_full_native_task_mysql84.php after "$EXPECTED_SOURCE_CHECKPOINT" > "$RUNNER_TEMP/governance-application-config-facts/mysql-after.pending.json"
           mv "$RUNNER_TEMP/governance-application-config-facts/mysql-after.pending.json" "$RUNNER_TEMP/governance-application-config-facts/mysql-after.json"
           python3 -B scripts/governance/check_source_facts_task_schema_receipt_v2.py --root "$GITHUB_WORKSPACE" --expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT" --role application-config-facts --envelope "$RUNNER_TEMP/governance-application-config-facts/integration.json" --native-body "$RUNNER_TEMP/task-application-config-facts-v2-private/capture-native-body.private.json" --profile "$RUNNER_TEMP/task-application-config-facts-v2-private/capture/schema-profile.private.json" --profile-sha "$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["profile_sha256"])' "$RUNNER_TEMP/task-application-config-facts-v2-private/capture/binding.safe.json")" --runtime-before "$RUNNER_TEMP/governance-application-config-facts/mysql-before.json" --runtime-after "$RUNNER_TEMP/governance-application-config-facts/mysql-after.json" > "$RUNNER_TEMP/governance-application-config-facts/accepted.json"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: governance-application-config-facts-php-${{ matrix.php }}
@@ -717,7 +717,7 @@ jobs:
           FULL_NATIVE_MYSQL_OBSERVED_IMAGE="$mysql_image" php scripts/governance/probe_full_native_task_mysql84.php after "$EXPECTED_SOURCE_CHECKPOINT" > "$RUNNER_TEMP/governance-project-source-facts/mysql-after.pending.json"
           mv "$RUNNER_TEMP/governance-project-source-facts/mysql-after.pending.json" "$RUNNER_TEMP/governance-project-source-facts/mysql-after.json"
           python3 -B scripts/governance/check_source_facts_task_schema_receipt_v2.py --root "$GITHUB_WORKSPACE" --expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT" --role project-source-facts --envelope "$RUNNER_TEMP/governance-project-source-facts/integration.json" --native-body "$RUNNER_TEMP/task-project-source-facts-v2-private/capture-native-body.private.json" --profile "$RUNNER_TEMP/task-project-source-facts-v2-private/capture/schema-profile.private.json" --profile-sha "$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["profile_sha256"])' "$RUNNER_TEMP/task-project-source-facts-v2-private/capture/binding.safe.json")" --runtime-before "$RUNNER_TEMP/governance-project-source-facts/mysql-before.json" --runtime-after "$RUNNER_TEMP/governance-project-source-facts/mysql-after.json" > "$RUNNER_TEMP/governance-project-source-facts/accepted.json"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: success()
         with:
           name: governance-project-source-facts-php-${{ matrix.php }}
@@ -753,7 +753,7 @@ jobs:
           FULL_NATIVE_MYSQL_OBSERVED_IMAGE="$mysql_image" php scripts/governance/probe_full_native_task_mysql84.php after "$EXPECTED_SOURCE_CHECKPOINT" > "$RUNNER_TEMP/governance-spaces-source-facts/mysql-after.pending.json"
           mv "$RUNNER_TEMP/governance-spaces-source-facts/mysql-after.pending.json" "$RUNNER_TEMP/governance-spaces-source-facts/mysql-after.json"
           python3 -B scripts/governance/check_source_facts_task_schema_receipt_v2.py --root "$GITHUB_WORKSPACE" --expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT" --role spaces-source-facts --envelope "$RUNNER_TEMP/governance-spaces-source-facts/integration.json" --native-body "$RUNNER_TEMP/task-spaces-source-facts-v2-private/capture-native-body.private.json" --profile "$RUNNER_TEMP/task-spaces-source-facts-v2-private/capture/schema-profile.private.json" --profile-sha "$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["profile_sha256"])' "$RUNNER_TEMP/task-spaces-source-facts-v2-private/capture/binding.safe.json")" --runtime-before "$RUNNER_TEMP/governance-spaces-source-facts/mysql-before.json" --runtime-after "$RUNNER_TEMP/governance-spaces-source-facts/mysql-after.json" > "$RUNNER_TEMP/governance-spaces-source-facts/accepted.json"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: success()
         with:
           name: governance-spaces-source-facts-php-${{ matrix.php }}
@@ -792,7 +792,7 @@ jobs:
           mv "$RUNNER_TEMP/governance-recovery-partial-composition/mysql-after.pending.json" "$RUNNER_TEMP/governance-recovery-partial-composition/mysql-after.json"
           python3 -B scripts/governance/check_paired_source_facts_task_schema_receipt_v2.py --root "$GITHUB_WORKSPACE" --expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT" --role recovery-partial-composition --envelope "$RUNNER_TEMP/governance-recovery-partial-composition/integration.json" --native-body "$RUNNER_TEMP/task-recovery-partial-composition-v2-private/capture-native-body.private.json" --profile "$RUNNER_TEMP/task-recovery-partial-composition-v2-private/capture/schema-profile.private.json" --profile-sha "$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["profile_sha256"])' "$RUNNER_TEMP/task-recovery-partial-composition-v2-private/capture/binding.safe.json")" --runtime-before "$RUNNER_TEMP/governance-recovery-partial-composition/mysql-before.json" --runtime-after "$RUNNER_TEMP/governance-recovery-partial-composition/mysql-after.json" --file-binary "$RUNNER_TEMP/gorge-file-storage" --file-sha "$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" > "$RUNNER_TEMP/governance-recovery-partial-composition/accepted.pending.json"
           mv "$RUNNER_TEMP/governance-recovery-partial-composition/accepted.pending.json" "$RUNNER_TEMP/governance-recovery-partial-composition/accepted.json"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: success()
         with:
           name: governance-recovery-partial-composition-php-${{ matrix.php }}
@@ -830,7 +830,7 @@ jobs:
           FULL_NATIVE_MYSQL_OBSERVED_IMAGE="$mysql_image" php scripts/governance/probe_full_native_task_mysql84.php after "$EXPECTED_SOURCE_CHECKPOINT" > "$RUNNER_TEMP/governance-task-owner-source-facts/mysql-after.pending.json"
           mv "$RUNNER_TEMP/governance-task-owner-source-facts/mysql-after.pending.json" "$RUNNER_TEMP/governance-task-owner-source-facts/mysql-after.json"
           python3 -B scripts/governance/check_paired_source_facts_task_schema_receipt_v2.py --root "$GITHUB_WORKSPACE" --expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT" --role task-owner-source-facts --envelope "$RUNNER_TEMP/governance-task-owner-source-facts/integration.json" --native-body "$RUNNER_TEMP/task-task-owner-source-facts-v2-private/capture-native-body.private.json" --profile "$RUNNER_TEMP/task-task-owner-source-facts-v2-private/capture/schema-profile.private.json" --profile-sha "$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["profile_sha256"])' "$RUNNER_TEMP/task-task-owner-source-facts-v2-private/capture/binding.safe.json")" --runtime-before "$RUNNER_TEMP/governance-task-owner-source-facts/mysql-before.json" --runtime-after "$RUNNER_TEMP/governance-task-owner-source-facts/mysql-after.json" --file-binary "$RUNNER_TEMP/gorge-file-storage" --file-sha "$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" > "$RUNNER_TEMP/governance-task-owner-source-facts/accepted.json"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: success()
         with:
           name: governance-task-owner-source-facts-php-${{ matrix.php }}
@@ -868,7 +868,7 @@ jobs:
           FULL_NATIVE_MYSQL_OBSERVED_IMAGE="$mysql_image" php scripts/governance/probe_full_native_task_mysql84.php after "$EXPECTED_SOURCE_CHECKPOINT" > "$RUNNER_TEMP/governance-file-source-facts/mysql-after.pending.json"
           mv "$RUNNER_TEMP/governance-file-source-facts/mysql-after.pending.json" "$RUNNER_TEMP/governance-file-source-facts/mysql-after.json"
           python3 -B scripts/governance/check_paired_source_facts_task_schema_receipt_v2.py --root "$GITHUB_WORKSPACE" --expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT" --role file-source-facts --envelope "$RUNNER_TEMP/governance-file-source-facts/integration.json" --native-body "$RUNNER_TEMP/task-file-source-facts-v2-private/capture-native-body.private.json" --profile "$RUNNER_TEMP/task-file-source-facts-v2-private/capture/schema-profile.private.json" --profile-sha "$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["profile_sha256"])' "$RUNNER_TEMP/task-file-source-facts-v2-private/capture/binding.safe.json")" --runtime-before "$RUNNER_TEMP/governance-file-source-facts/mysql-before.json" --runtime-after "$RUNNER_TEMP/governance-file-source-facts/mysql-after.json" --file-binary "$RUNNER_TEMP/gorge-file-storage" --file-sha "$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" > "$RUNNER_TEMP/governance-file-source-facts/accepted.json"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: success()
         with:
           name: governance-file-source-facts-php-${{ matrix.php }}
@@ -909,7 +909,7 @@ jobs:
           mv "$RUNNER_TEMP/governance-file-parent-policy/mysql-after.pending.json" "$RUNNER_TEMP/governance-file-parent-policy/mysql-after.json"
           python3 -B scripts/governance/check_paired_session_facts_task_schema_receipt_v2.py --root "$GITHUB_WORKSPACE" --expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT" --role file-parent-policy --envelope "$RUNNER_TEMP/governance-file-parent-policy/integration.json" --native-body "$RUNNER_TEMP/task-file-parent-policy-v2-private/capture-native-body.private.json" --profile "$RUNNER_TEMP/task-file-parent-policy-v2-private/capture/schema-profile.private.json" --profile-sha "$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["profile_sha256"])' "$RUNNER_TEMP/task-file-parent-policy-v2-private/capture/binding.safe.json")" --runtime-before "$RUNNER_TEMP/governance-file-parent-policy/mysql-before.json" --runtime-after "$RUNNER_TEMP/governance-file-parent-policy/mysql-after.json" --file-binary "$RUNNER_TEMP/gorge-file-storage" --file-sha "$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" > "$RUNNER_TEMP/governance-file-parent-policy/accepted.pending.json"
           mv "$RUNNER_TEMP/governance-file-parent-policy/accepted.pending.json" "$RUNNER_TEMP/governance-file-parent-policy/accepted.json"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: success()
         with:
           name: governance-file-parent-policy-php-${{ matrix.php }}
@@ -950,7 +950,7 @@ jobs:
           mv "$RUNNER_TEMP/governance-session-producer-lease/mysql-after.pending.json" "$RUNNER_TEMP/governance-session-producer-lease/mysql-after.json"
           python3 -B scripts/governance/check_paired_session_facts_task_schema_receipt_v2.py --root "$GITHUB_WORKSPACE" --expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT" --role session-producer-lease --envelope "$RUNNER_TEMP/governance-session-producer-lease/integration.json" --native-body "$RUNNER_TEMP/task-session-producer-lease-v2-private/capture-native-body.private.json" --profile "$RUNNER_TEMP/task-session-producer-lease-v2-private/capture/schema-profile.private.json" --profile-sha "$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["profile_sha256"])' "$RUNNER_TEMP/task-session-producer-lease-v2-private/capture/binding.safe.json")" --runtime-before "$RUNNER_TEMP/governance-session-producer-lease/mysql-before.json" --runtime-after "$RUNNER_TEMP/governance-session-producer-lease/mysql-after.json" --file-binary "$RUNNER_TEMP/gorge-file-storage" --file-sha "$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" > "$RUNNER_TEMP/governance-session-producer-lease/accepted.pending.json"
           mv "$RUNNER_TEMP/governance-session-producer-lease/accepted.pending.json" "$RUNNER_TEMP/governance-session-producer-lease/accepted.json"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: success()
         with:
           name: governance-session-producer-lease-php-${{ matrix.php }}
@@ -992,13 +992,13 @@ jobs:
           mv "$RUNNER_TEMP/governance-borrowed-session-owner/mysql-after.pending.json" "$RUNNER_TEMP/governance-borrowed-session-owner/mysql-after.json"
           python3 -B scripts/governance/check_paired_session_facts_task_schema_receipt_v2.py --root "$GITHUB_WORKSPACE" --expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT" --role session-borrowed-owner --envelope "$RUNNER_TEMP/governance-borrowed-session-owner/integration.json" --native-body "$RUNNER_TEMP/task-session-borrowed-owner-v2-private/capture-native-body.private.json" --profile "$RUNNER_TEMP/task-session-borrowed-owner-v2-private/capture/schema-profile.private.json" --profile-sha "$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["profile_sha256"])' "$RUNNER_TEMP/task-session-borrowed-owner-v2-private/capture/binding.safe.json")" --runtime-before "$RUNNER_TEMP/governance-borrowed-session-owner/mysql-before.json" --runtime-after "$RUNNER_TEMP/governance-borrowed-session-owner/mysql-after.json" --file-binary "$RUNNER_TEMP/gorge-file-storage" --file-sha "$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" > "$RUNNER_TEMP/governance-borrowed-session-owner/accepted.pending.json"
           mv "$RUNNER_TEMP/governance-borrowed-session-owner/accepted.pending.json" "$RUNNER_TEMP/governance-borrowed-session-owner/accepted.json"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: success()
         with:
           name: governance-borrowed-session-owner-php-${{ matrix.php }}
           path: ${{ runner.temp }}/governance-borrowed-session-owner
           if-no-files-found: error
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: failure() && steps.borrowed-owner.outputs.diagnostic_owned == 'true'
         with:
           name: governance-borrowed-session-failure-php-${{ matrix.php }}
@@ -1051,13 +1051,13 @@ jobs:
           mv "$RUNNER_TEMP/governance-conduit-producer-owner/mysql-after.pending.json" "$RUNNER_TEMP/governance-conduit-producer-owner/mysql-after.json"
           python3 -B scripts/governance/check_conduit_task_schema_receipt_v2.py --root "$GITHUB_WORKSPACE" --expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT" --envelope "$RUNNER_TEMP/governance-conduit-producer-owner/integration.json" --profile "$RUNNER_TEMP/task-conduit-v2-private/capture/schema-profile.private.json" --profile-sha "$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["profile_sha256"])' "$RUNNER_TEMP/task-conduit-v2-private/capture/binding.safe.json")" --runtime-before "$RUNNER_TEMP/governance-conduit-producer-owner/mysql-before.json" --runtime-after "$RUNNER_TEMP/governance-conduit-producer-owner/mysql-after.json" --file-binary "$RUNNER_TEMP/gorge-file-storage" --file-sha "$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" > "$RUNNER_TEMP/governance-conduit-producer-owner/accepted.pending.json"
           mv "$RUNNER_TEMP/governance-conduit-producer-owner/accepted.pending.json" "$RUNNER_TEMP/governance-conduit-producer-owner/accepted.json"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: success()
         with:
           name: governance-conduit-producer-owner-php-${{ matrix.php }}
           path: ${{ runner.temp }}/governance-conduit-producer-owner
           if-no-files-found: error
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: failure() && steps.conduit-owner.outputs.diagnostic_owned == 'true'
         with:
           name: governance-conduit-producer-failure-php-${{ matrix.php }}
@@ -1113,13 +1113,13 @@ jobs:
           mv "$RUNNER_TEMP/governance-oauth-access-producer-owner/mysql-after.pending.json" "$RUNNER_TEMP/governance-oauth-access-producer-owner/mysql-after.json"
           python3 -B scripts/governance/check_oauth_access_task_schema_receipt_v2.py --root "$GITHUB_WORKSPACE" --expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT" --envelope "$RUNNER_TEMP/governance-oauth-access-producer-owner/integration.json" --profile "$RUNNER_TEMP/task-oauth-access-v2-private/capture/schema-profile.private.json" --profile-sha "$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["profile_sha256"])' "$RUNNER_TEMP/task-oauth-access-v2-private/capture/binding.safe.json")" --runtime-before "$RUNNER_TEMP/governance-oauth-access-producer-owner/mysql-before.json" --runtime-after "$RUNNER_TEMP/governance-oauth-access-producer-owner/mysql-after.json" --file-binary "$RUNNER_TEMP/gorge-file-storage" --file-sha "$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" > "$RUNNER_TEMP/governance-oauth-access-producer-owner/accepted.pending.json"
           mv "$RUNNER_TEMP/governance-oauth-access-producer-owner/accepted.pending.json" "$RUNNER_TEMP/governance-oauth-access-producer-owner/accepted.json"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: success()
         with:
           name: governance-oauth-access-producer-owner-php-${{ matrix.php }}
           path: ${{ runner.temp }}/governance-oauth-access-producer-owner
           if-no-files-found: error
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: failure() && steps.oauth-access-owner.outputs.diagnostic_owned == 'true'
         with:
           name: governance-oauth-access-producer-failure-php-${{ matrix.php }}
@@ -1163,13 +1163,13 @@ jobs:
           mv "$RUNNER_TEMP/governance-private-calendar-reminders/mysql-after.pending.json" "$RUNNER_TEMP/governance-private-calendar-reminders/mysql-after.json"
           python3 -B scripts/governance/check_calendar_task_schema_receipt_v2.py --root "$GITHUB_WORKSPACE" --expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT" --envelope "$RUNNER_TEMP/governance-private-calendar-reminders/integration.json" --native-body "$RUNNER_TEMP/task-calendar-reminders-v2-private/capture-native-body.private.json" --profile "$RUNNER_TEMP/task-calendar-reminders-v2-private/capture/schema-profile.private.json" --profile-sha "$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["profile_sha256"])' "$RUNNER_TEMP/task-calendar-reminders-v2-private/capture/binding.safe.json")" --runtime-before "$RUNNER_TEMP/governance-private-calendar-reminders/mysql-before.json" --runtime-after "$RUNNER_TEMP/governance-private-calendar-reminders/mysql-after.json" --file-binary "$RUNNER_TEMP/gorge-file-storage" --file-sha "$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" --queue-binary "$RUNNER_TEMP/gorge-taskqueue" --queue-sha "$(sha256sum "$RUNNER_TEMP/gorge-taskqueue" | cut -d ' ' -f1)" > "$RUNNER_TEMP/governance-private-calendar-reminders/accepted.pending.json"
           mv "$RUNNER_TEMP/governance-private-calendar-reminders/accepted.pending.json" "$RUNNER_TEMP/governance-private-calendar-reminders/accepted.json"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: success()
         with:
           name: governance-private-calendar-reminders-php-${{ matrix.php }}
           path: ${{ runner.temp }}/governance-private-calendar-reminders
           if-no-files-found: error
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: failure() && steps.calendar-reminders.outputs.diagnostic_owned == 'true'
         with:
           name: governance-private-calendar-failure-php-${{ matrix.php }}
@@ -1206,7 +1206,7 @@ jobs:
           mv "$RUNNER_TEMP/governance-organization-approval-workbench/mysql-after.pending.json" "$RUNNER_TEMP/governance-organization-approval-workbench/mysql-after.json"
           python3 -B scripts/governance/check_workbench_task_schema_receipt_v2.py --root "$GITHUB_WORKSPACE" --expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT" --envelope "$RUNNER_TEMP/governance-organization-approval-workbench/integration.json" --native-body "$RUNNER_TEMP/task-organization-approval-workbench-v2-private/capture-native-body.private.json" --profile "$RUNNER_TEMP/task-organization-approval-workbench-v2-private/capture/schema-profile.private.json" --profile-sha "$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["profile_sha256"])' "$RUNNER_TEMP/task-organization-approval-workbench-v2-private/capture/binding.safe.json")" --runtime-before "$RUNNER_TEMP/governance-organization-approval-workbench/mysql-before.json" --runtime-after "$RUNNER_TEMP/governance-organization-approval-workbench/mysql-after.json" > "$RUNNER_TEMP/governance-organization-approval-workbench/accepted.pending.json"
           mv "$RUNNER_TEMP/governance-organization-approval-workbench/accepted.pending.json" "$RUNNER_TEMP/governance-organization-approval-workbench/accepted.json"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: success()
         with:
           name: governance-organization-approval-workbench-php-${{ matrix.php }}
@@ -1221,7 +1221,7 @@ jobs:
           PHORGE_GOVERNANCE_FIXTURE_USER=root \
           PHORGE_GOVERNANCE_FIXTURE_PASSWORD="$GORGE_TEST_MYSQL_PASSWORD" \
           python3 support/governance/migrations/push-groups-wrapper.py --profile push-groups-regression > "$RUNNER_TEMP/push-groups-migration/receipt.json"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always() && steps.push-groups.outcome != 'skipped' && steps.push-groups.outcome != ''
         with:
           name: push-groups-migration-php-${{ matrix.php }}
@@ -1229,7 +1229,7 @@ jobs:
           if-no-files-found: error
       - name: Verify native permission routes on an enriched restored snapshot
         run: PERMISSION_XLSX_AUTOLOAD="$RUNNER_TEMP/permission-xlsx/vendor/autoload.php" GORGE_TEST_TASKQUEUE_BINARY="$RUNNER_TEMP/gorge-taskqueue" PERMISSION_XLSX_GO_BINARY="$RUNNER_TEMP/phorge-xlsx-reader" python3 tests/permissions/routes.py --require-clean-worktree --output "$RUNNER_TEMP/permission-route-evidence"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: permission-routes-php-${{ matrix.php }}
@@ -1237,19 +1237,19 @@ jobs:
             ${{ runner.temp }}/permission-route-evidence/route-results.json
             ${{ runner.temp }}/permission-consumers.json
           if-no-files-found: warn
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always() && hashFiles('tests/atomic/packages/D06.json') != ''
         with:
           name: atomic-workspace-http-php-${{ matrix.php }}
           path: ${{ runner.temp }}/workspace-http-evidence
           if-no-files-found: error
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: atomic-native-php-${{ matrix.php }}
           path: ${{ runner.temp }}/atomic-evidence
           if-no-files-found: warn
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: daemon-shutdown-php-${{ matrix.php }}
@@ -1300,7 +1300,7 @@ jobs:
       PHORGE_TASK_TEST_CHECKPOINT: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
     - name: Governance unit / Check out exact source
-      uses: actions/checkout@v6
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         ref: ${{ github.event.pull_request.head.sha || github.sha }}
         fetch-depth: 0
@@ -1314,12 +1314,12 @@ jobs:
         echo "HOME=$trust_home" >> "$GITHUB_ENV"
         echo "PHORGE_CI_MERGE_SOURCE_PROOF=source-proof/$EXPECTED_SOURCE_CHECKPOINT" >> "$GITHUB_ENV"
     - name: Governance unit / Set up the production PHP baseline
-      uses: shivammathur/setup-php@v2
+      uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
       with:
         php-version: ${{ matrix.php }}
         ini-values: opcache.jit=disable, opcache.jit_buffer_size=0
         extensions: mysqli, mbstring, curl, gd, zip, dom, xmlreader, xmlwriter
-        tools: composer:2.11.1
+        tools: composer:2.11.3
         coverage: none
     - name: Governance unit / Install the retained product-boundary checker dependency
       timeout-minutes: 5
@@ -1442,7 +1442,7 @@ jobs:
         bash .github/scripts/check-retired-app-references.sh
         python3 "$RUNNER_TEMP/atomic-footprint/collector.py" after_verify
     - name: Governance unit / Upload successful parser preparation source footprints early
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
       with:
         name: atomic-unit-shard-0-prepared-pre-footprint-php-${{ matrix.php }}-attempt-${{ github.run_attempt }}
         path: |
@@ -1556,7 +1556,7 @@ jobs:
       run: python3 "$RUNNER_TEMP/atomic-footprint/collector.py" after_governance
     - name: Governance unit / Upload metadata-only source footprint diagnostics
       if: ${{ always() && steps.unit-footprint.outcome == 'success' }}
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
       with:
         name: atomic-unit-shard-0-source-footprint-php-${{ matrix.php }}-attempt-${{ github.run_attempt }}
         path: ${{ runner.temp }}/atomic-footprint/records/*.json
@@ -1564,7 +1564,7 @@ jobs:
         retention-days: 3
     - name: Governance unit / Upload safe discovery results
       if: always()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
       with:
         name: atomic-governance-unit-shard-0-results-php-${{ matrix.php }}-attempt-${{ github.run_attempt }}
         path: ${{ runner.temp }}/governance-unit-tests/unit-results.json
@@ -1609,7 +1609,7 @@ jobs:
       PHORGE_TASK_TEST_CHECKPOINT: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
     - name: Governance unit / Check out exact source
-      uses: actions/checkout@v6
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         ref: ${{ github.event.pull_request.head.sha || github.sha }}
         fetch-depth: 0
@@ -1623,12 +1623,12 @@ jobs:
         echo "HOME=$trust_home" >> "$GITHUB_ENV"
         echo "PHORGE_CI_MERGE_SOURCE_PROOF=source-proof/$EXPECTED_SOURCE_CHECKPOINT" >> "$GITHUB_ENV"
     - name: Governance unit / Set up the production PHP baseline
-      uses: shivammathur/setup-php@v2
+      uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
       with:
         php-version: ${{ matrix.php }}
         ini-values: opcache.jit=disable, opcache.jit_buffer_size=0
         extensions: mysqli, mbstring, curl, gd, zip, dom, xmlreader, xmlwriter
-        tools: composer:2.11.1
+        tools: composer:2.11.3
         coverage: none
     - name: Governance unit / Install the retained product-boundary checker dependency
       timeout-minutes: 5
@@ -1751,7 +1751,7 @@ jobs:
         bash .github/scripts/check-retired-app-references.sh
         python3 "$RUNNER_TEMP/atomic-footprint/collector.py" after_verify
     - name: Governance unit / Upload successful parser preparation source footprints early
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
       with:
         name: atomic-unit-shard-1-prepared-pre-footprint-php-${{ matrix.php }}-attempt-${{ github.run_attempt }}
         path: |
@@ -1865,7 +1865,7 @@ jobs:
       run: python3 "$RUNNER_TEMP/atomic-footprint/collector.py" after_governance
     - name: Governance unit / Upload metadata-only source footprint diagnostics
       if: ${{ always() && steps.unit-footprint.outcome == 'success' }}
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
       with:
         name: atomic-unit-shard-1-source-footprint-php-${{ matrix.php }}-attempt-${{ github.run_attempt }}
         path: ${{ runner.temp }}/atomic-footprint/records/*.json
@@ -1873,7 +1873,7 @@ jobs:
         retention-days: 3
     - name: Governance unit / Upload safe discovery results
       if: always()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
       with:
         name: atomic-governance-unit-shard-1-results-php-${{ matrix.php }}-attempt-${{ github.run_attempt }}
         path: ${{ runner.temp }}/governance-unit-tests/unit-results.json
@@ -1918,7 +1918,7 @@ jobs:
       PHORGE_TASK_TEST_CHECKPOINT: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
     - name: Governance unit / Check out exact source
-      uses: actions/checkout@v6
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         ref: ${{ github.event.pull_request.head.sha || github.sha }}
         fetch-depth: 0
@@ -1932,12 +1932,12 @@ jobs:
         echo "HOME=$trust_home" >> "$GITHUB_ENV"
         echo "PHORGE_CI_MERGE_SOURCE_PROOF=source-proof/$EXPECTED_SOURCE_CHECKPOINT" >> "$GITHUB_ENV"
     - name: Governance unit / Set up the production PHP baseline
-      uses: shivammathur/setup-php@v2
+      uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
       with:
         php-version: ${{ matrix.php }}
         ini-values: opcache.jit=disable, opcache.jit_buffer_size=0
         extensions: mysqli, mbstring, curl, gd, zip, dom, xmlreader, xmlwriter
-        tools: composer:2.11.1
+        tools: composer:2.11.3
         coverage: none
     - name: Governance unit / Install the retained product-boundary checker dependency
       timeout-minutes: 5
@@ -2060,7 +2060,7 @@ jobs:
         bash .github/scripts/check-retired-app-references.sh
         python3 "$RUNNER_TEMP/atomic-footprint/collector.py" after_verify
     - name: Governance unit / Upload successful parser preparation source footprints early
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
       with:
         name: atomic-unit-shard-2-prepared-pre-footprint-php-${{ matrix.php }}-attempt-${{ github.run_attempt }}
         path: |
@@ -2174,7 +2174,7 @@ jobs:
       run: python3 "$RUNNER_TEMP/atomic-footprint/collector.py" after_governance
     - name: Governance unit / Upload metadata-only source footprint diagnostics
       if: ${{ always() && steps.unit-footprint.outcome == 'success' }}
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
       with:
         name: atomic-unit-shard-2-source-footprint-php-${{ matrix.php }}-attempt-${{ github.run_attempt }}
         path: ${{ runner.temp }}/atomic-footprint/records/*.json
@@ -2182,7 +2182,7 @@ jobs:
         retention-days: 3
     - name: Governance unit / Upload safe discovery results
       if: always()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
       with:
         name: atomic-governance-unit-shard-2-results-php-${{ matrix.php }}-attempt-${{ github.run_attempt }}
         path: ${{ runner.temp }}/governance-unit-tests/unit-results.json
@@ -2204,7 +2204,7 @@ jobs:
     timeout-minutes: 5
     steps:
     - name: Gate / Check out exact source for tier policy
-      uses: actions/checkout@v6
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         ref: ${{ needs.ci-plan.outputs.head }}
         fetch-depth: 0
@@ -2221,26 +2221,26 @@ jobs:
       run: python3 -B scripts/ci/core_guard.py aggregate --mode "$CORE_MODE"
     - name: Gate / Check out the exact source for summary lineage
       if: ${{ needs.ci-plan.outputs.mode == 'full' }}
-      uses: actions/checkout@v6
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         ref: ${{ github.event.pull_request.head.sha || github.sha }}
         fetch-depth: 0
         persist-credentials: false
     - name: Gate / Download same-run shard 0 safe summary
       if: ${{ needs.ci-plan.outputs.mode == 'full' }}
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
       with:
         name: atomic-governance-unit-shard-0-results-php-8.5.13-attempt-${{ github.run_attempt }}
         path: ${{ runner.temp }}/atomic-unit-gate/shard-0
     - name: Gate / Download same-run shard 1 safe summary
       if: ${{ needs.ci-plan.outputs.mode == 'full' }}
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
       with:
         name: atomic-governance-unit-shard-1-results-php-8.5.13-attempt-${{ github.run_attempt }}
         path: ${{ runner.temp }}/atomic-unit-gate/shard-1
     - name: Gate / Download same-run tooling safe summary
       if: ${{ needs.ci-plan.outputs.mode == 'full' }}
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
       with:
         name: atomic-governance-unit-shard-2-results-php-8.5.13-attempt-${{ github.run_attempt }}
         path: ${{ runner.temp }}/atomic-unit-gate/shard-2
@@ -2306,7 +2306,7 @@ jobs:
         PYUNION
     - name: Gate / Upload the safe exact-union result
       if: ${{ needs.ci-plan.outputs.mode == 'full' }}
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
       with:
         name: atomic-governance-unit-union-php-8.5.13-attempt-${{ github.run_attempt }}
         path: ${{ runner.temp }}/atomic-unit-gate/union-results.json

@@ -38,7 +38,7 @@ jobs:
       run:
         shell: bash
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
@@ -59,12 +59,12 @@ jobs:
             --expected-head "$EXPECTED_SOURCE_CHECKPOINT" --github-sha "$GITHUB_SHA" --trust-home "$trust_home" --external-proof-tag "source-proof/$EXPECTED_SOURCE_CHECKPOINT"
           echo "PHORGE_CI_MERGE_SOURCE_PROOF=source-proof/$EXPECTED_SOURCE_CHECKPOINT" >> "$GITHUB_ENV"
           echo "HOME=$trust_home" >> "$GITHUB_ENV"
-      - uses: shivammathur/setup-php@v2
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
         with:
           php-version: '8.5.13'
           ini-values: opcache.jit=disable, opcache.jit_buffer_size=0
           extensions: mysqli, mbstring, curl, gd, zip, dom, xmlreader, xmlwriter
-          tools: composer:2.11.1
+          tools: composer:2.11.3
           coverage: none
       - name: Existing retained runtime and two standard mapper passes
         run: |
@@ -97,7 +97,7 @@ jobs:
           mkdir "$RUNNER_TEMP/directory-file-binary"
           revision=$(python3 tests/atomic/check_pair.py --print-revision)
           echo "GORGE_CONTRACT_REF=$revision" >> "$GITHUB_ENV"
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: soulteary/gorge
           ref: ${{ env.GORGE_CONTRACT_REF }}
@@ -205,13 +205,13 @@ jobs:
             exit "$native_status"
           }
           mv "$RUNNER_TEMP/directory-transports-v1/accepted.pending.json" "$RUNNER_TEMP/directory-transports-v1/accepted.json"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: success()
         with:
           name: native-directory-transports-v1-php-8.5.13
           path: ${{ runner.temp }}/directory-transports-v1
           if-no-files-found: error
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: failure() && steps.directory-sql.outputs.safe_diagnostic_owned == 'true'
         with:
           name: native-directory-safe-failure-v1

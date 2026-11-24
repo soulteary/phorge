@@ -4,7 +4,7 @@ from pathlib import Path
 OWNER_FILES=tuple('support/governance/recovery/owned-process/'+name for name in ('go.mod','go.sum','main_linux.go','request.go','request_test.go'))
 RECIPE_FILES=('tests/governance/native_rr_ci/build_owner.py','tests/governance/native_rr_ci/provenance.py','.github/workflows/native-rr-owner-build.yml','scripts/governance/check_native_user_rr_mdl.py','scripts/governance/check_completion.py','tests/governance/native_rr_ci/execution.py','tests/governance/native_rr_ci/anchor.py','tests/governance/native_rr_ci/runner.py','support/governance/recovery/native-writer-rr-ci-profile.php','support/governance/recovery/native-writer-rr-parent.php')
 MODULE='phorge-isolated-native-rr-owner'
-DEP={'Path':'golang.org/x/sys','Version':'v0.49.0','Sum':'h1:XbzkgYJHdqh/8m2Uu0W/dQv8nktxx4BFHp1M0gROTXA='}
+DEP={'Path':'golang.org/x/sys','Version':'v0.50.0','Sum':'h1:dkKZEFTEKaLr1sjhs0WiKqoi8Jj5nHbS3Njmx1UoMJs='}
 def digest(raw):return hashlib.sha256(raw).hexdigest()
 def strict_object(pairs):
  result={}
@@ -15,7 +15,7 @@ def strict_object(pairs):
 def decode(raw):return json.loads(raw,object_pairs_hook=strict_object,parse_constant=lambda _:(_ for _ in ()).throw(ValueError('nonfinite field')))
 def verify_build_info(info,revision,arch):
  if type(revision)is not str or not re.fullmatch('[a-f0-9]{40}',revision)or arch not in ('amd64','arm64'):raise ValueError('build identity refused')
- if type(info)is not dict or info.get('GoVersion')!='go1.27.3' or info.get('Path')!=MODULE or info.get('Main')!={'Path':MODULE,'Version':'(devel)'}or info.get('Deps')!=[DEP]:raise ValueError('module provenance refused')
+ if type(info)is not dict or info.get('GoVersion')!='go1.27.4' or info.get('Path')!=MODULE or info.get('Main')!={'Path':MODULE,'Version':'(devel)'}or info.get('Deps')!=[DEP]:raise ValueError('module provenance refused')
  settings=info.get('Settings')
  if type(settings)is not list or any(type(r)is not dict or set(r)!={'Key','Value'}or type(r['Key'])is not str or type(r['Value'])is not str for r in settings):raise ValueError('build settings refused')
  values={r['Key']:r['Value']for r in settings}
@@ -24,7 +24,7 @@ def verify_build_info(info,revision,arch):
  if any(values.get(k)!=v for k,v in required.items())or 'vcs.time'not in values:raise ValueError('actual build provenance refused')
  if set(values)-set(required)-{'vcs.time','GOAMD64','GOARM64'}:raise ValueError('unreviewed build setting')
  if values.get('GOAMD64','v1')!='v1' or values.get('GOARM64','v8.0')!='v8.0':raise ValueError('architecture profile refused')
- return {'revision':revision,'arch':arch,'go':'go1.27.3','CGO_ENABLED':0,'modified':False}
+ return {'revision':revision,'arch':arch,'go':'go1.27.4','CGO_ENABLED':0,'modified':False}
 def validate_owner_inventory(root):
  current=root
  if current.is_symlink()or not current.is_dir():raise ValueError('regular source root required')

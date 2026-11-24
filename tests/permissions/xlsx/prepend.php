@@ -5,4 +5,4 @@ if(getenv('ATOMIC_TEST_DISPOSABLE')!=='1'||!is_file($d.'/owner.json')){throw new
 $o=json_decode(file_get_contents($d.'/owner.json'),true);
 if($o['root']!==$r||!hash_equals($o['configurationHash'],hash_file('sha256',$r.'/conf/local/local.json'))){throw new Exception('XLSX fixture ownership mismatch.');}
 require getenv('PERMISSION_XLSX_AUTOLOAD');
-if(Composer\InstalledVersions::getPrettyVersion('phpoffice/phpspreadsheet')!=='5.10.0'||!class_exists(PhpOffice\PhpSpreadsheet\Spreadsheet::class)){throw new Exception('Locked test-only XLSX dependency required.');}
+if(Composer\InstalledVersions::getPrettyVersion('phpoffice/phpspreadsheet')!=='5.12.0'||!class_exists(PhpOffice\PhpSpreadsheet\Spreadsheet::class)){throw new Exception('Locked test-only XLSX dependency required.');}
